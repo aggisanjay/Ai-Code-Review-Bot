@@ -1,0 +1,33 @@
+{
+  "name": "reviewflow-ai-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ReviewFlow AI - Production AI Pull Request Review Platform",
+  "packageManager": "pnpm@12.11.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:web": "npm run dev --workspace=@reviewflow/web",
+    "dev:api": "npm run dev --workspace=@reviewflow/api",
+    "dev:worker": "npm run dev --workspace=@reviewflow/worker",
+    "build": "npm run build --workspaces --if-present",
+    "test": "tsx --test tests/unit/diff-parser.test.ts tests/unit/static-analyzer.test.ts tests/unit/webhook-verifier.test.ts tests/security/cross-tenant-isolation.test.ts tests/security/prompt-injection.test.ts tests/integration/review-pipeline.test.ts",
+    "test:unit": "tsx --test tests/unit/diff-parser.test.ts tests/unit/static-analyzer.test.ts tests/unit/webhook-verifier.test.ts",
+    "test:security": "tsx --test tests/security/cross-tenant-isolation.test.ts tests/security/prompt-injection.test.ts",
+    "test:integration": "tsx --test tests/integration/review-pipeline.test.ts",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:generate": "npm run generate --workspace=@reviewflow/database",
+    "db:migrate": "npm run migrate --workspace=@reviewflow/database",
+    "db:seed": "npm run seed --workspace=@reviewflow/database",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}

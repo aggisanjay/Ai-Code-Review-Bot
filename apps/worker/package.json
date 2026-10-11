@@ -1,0 +1,23 @@
+{
+  "name": "@reviewflow/worker",
+  "version": "1.0.0",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -b",
+    "start": "node dist/main.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@reviewflow/ai-review": "*",
+    "@reviewflow/database": "*",
+    "@reviewflow/github-client": "*",
+    "@reviewflow/shared": "*",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}

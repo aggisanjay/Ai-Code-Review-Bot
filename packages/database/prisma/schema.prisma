@@ -1,0 +1,307 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  memberships   OrganizationMember[]
+  sessions      Session[]
+  feedbacks     FindingFeedback[]
+  auditLogs     AuditLog[]
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  token        String    @unique
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Organization {
+  id                   String    @id @default(cuid())
+  name                 String
+  slug                 String    @unique
+  plan                 String    @default("FREE") // FREE, PRO, TEAM, ENTERPRISE
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  members              OrganizationMember[]
+  installations        GitHubInstallation[]
+  repositories         Repository[]
+  reviewPolicies       ReviewPolicy[]
+  subscriptions        Subscription[]
+  usageRecords         UsageRecord[]
+  auditLogs            AuditLog[]
+  apiKeys              ApiKey[]
+}
+
+model OrganizationMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String       @default("MEMBER") // OWNER, ADMIN, MEMBER
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+}
+
+model GitHubInstallation {
+  id             String       @id @default(cuid())
+  organizationId String
+  installationId Int          @unique
+  accountLogin   String
+  accountType    String       @default("Organization") // User or Organization
+  avatarUrl      String?
+  permissions    String       @default("{}") // JSON string of granted permissions
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Repository {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  githubRepoId       Int          @unique
+  fullName           String       @unique // e.g. "acme/api-core"
+  name               String
+  owner              String
+  defaultBranch      String       @default("main")
+  isPrivate          Boolean      @default(true)
+  isActive           Boolean      @default(true)
+  autoReviewEnabled  Boolean      @default(true)
+  lastReviewAt       DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pullRequests       PullRequest[]
+  reviewPolicies     ReviewPolicy[]
+}
+
+model ReviewPolicy {
+  id                     String       @id @default(cuid())
+  organizationId         String
+  repositoryId           String?      // Optional: null for org-wide policy, populated for repo-specific override
+  enabledCategories      String       @default("[\"SECURITY\",\"CORRECTNESS\",\"PERFORMANCE\",\"MAINTAINABILITY\",\"TESTING\",\"ARCHITECTURE\"]") // JSON array
+  severityThreshold      String       @default("MEDIUM") // CRITICAL, HIGH, MEDIUM, LOW, INFO
+  blockPrOnCritical      Boolean      @default(true)
+  autoPostInlineComments Boolean      @default(true)
+  autoCreateCheckRun     Boolean      @default(true)
+  requireTestsForNewCode Boolean      @default(true)
+  maxDiffLines           Int          @default(4000)
+  customInstructions     String       @default("")
+  excludedPaths          String       @default("[]") // JSON array of globs
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository             Repository?  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, repositoryId])
+}
+
+model PullRequest {
+  id               String              @id @default(cuid())
+  repositoryId     String
+  githubPrId       Int                 // GitHub's internal PR ID
+  number           Int                 // PR number (e.g., #42)
+  title            String
+  author           String
+  authorAvatarUrl  String?
+  baseBranch       String
+  headBranch       String
+  headSha          String
+  state            String              @default("OPEN") // OPEN, CLOSED, MERGED
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  repository       Repository          @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  commits          PullRequestCommit[]
+  reviewJobs       ReviewJob[]
+
+  @@unique([repositoryId, number])
+}
+
+model PullRequestCommit {
+  id            String      @id @default(cuid())
+  pullRequestId String
+  commitSha     String
+  author        String
+  message       String
+  committedAt   DateTime    @default(now())
+
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  @@unique([pullRequestId, commitSha])
+}
+
+model ReviewJob {
+  id                 String        @id @default(cuid())
+  pullRequestId      String
+  commitSha          String
+  status             String        @default("QUEUED") // QUEUED, FETCHING_DIFF, ANALYZING, VALIDATING, PUBLISHING, COMPLETED, FAILED, SUPERSEDED
+  idempotencyKey     String        @unique
+  progressPercent    Int           @default(0)
+  statusMessage      String?
+  errorMessage       String?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  durationSeconds    Float?
+  tokensUsed         Int           @default(0)
+  estimatedCostUsd   Float         @default(0.0)
+  publishedToGitHub  Boolean       @default(false)
+  githubCheckRunId   String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  pullRequest        PullRequest   @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  result             ReviewResult?
+}
+
+model ReviewResult {
+  id                              String     @id @default(cuid())
+  reviewJobId                     String     @unique
+  summary                         String
+  overallRisk                     String     // CRITICAL, HIGH, MEDIUM, LOW, SAFE
+  riskRationale                   String
+  keyStrengths                    String     @default("[]") // JSON array
+  blockers                        String     @default("[]") // JSON array
+  testCoverageAssessment          String
+  estimatedReviewTimeSavedMinutes Int        @default(15)
+  rawLlmResponse                  String?
+  createdAt                       DateTime   @default(now())
+
+  reviewJob                       ReviewJob  @relation(fields: [reviewJobId], references: [id], onDelete: Cascade)
+  findings                        Finding[]
+}
+
+model Finding {
+  id               String            @id @default(cuid())
+  reviewResultId   String
+  category         String            // SECURITY, CORRECTNESS, PERFORMANCE, etc.
+  severity         String            // CRITICAL, HIGH, MEDIUM, LOW, INFO
+  confidence       Int               @default(85)
+  filePath         String
+  startLine        Int
+  endLine          Int
+  title            String
+  explanation      String
+  evidence         String
+  remediation      String
+  suggestedPatch   String?
+  ruleId           String?
+  source           String            @default("AI_ANALYSIS") // DETERMINISTIC_STATIC, AI_ANALYSIS, SECURITY_SCAN
+  githubCommentId  String?
+  dismissed        Boolean           @default(false)
+  dismissReason    String?
+  createdAt        DateTime          @default(now())
+
+  reviewResult     ReviewResult      @relation(fields: [reviewResultId], references: [id], onDelete: Cascade)
+  feedbacks        FindingFeedback[]
+}
+
+model FindingFeedback {
+  id           String    @id @default(cuid())
+  findingId    String
+  userId       String
+  feedbackType String    // HELPFUL, FALSE_POSITIVE, MISLEADING, NOT_APPLICABLE
+  comment      String?
+  createdAt    DateTime  @default(now())
+
+  finding      Finding   @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UsageRecord {
+  id               String       @id @default(cuid())
+  organizationId   String
+  periodYear       Int
+  periodMonth      Int
+  reviewCount      Int          @default(0)
+  tokenCount       Int          @default(0)
+  estimatedCostUsd Float        @default(0.0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, periodYear, periodMonth])
+}
+
+model Subscription {
+  id                   String       @id @default(cuid())
+  organizationId       String
+  stripeSubscriptionId String?      @unique
+  plan                 String       @default("FREE")
+  status               String       @default("ACTIVE") // ACTIVE, PAST_DUE, CANCELED, INCOMPLETE
+  currentPeriodStart   DateTime     @default(now())
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean      @default(false)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model WebhookEvent {
+  id                 String    @id @default(cuid())
+  deliveryId         String    @unique
+  eventType          String
+  repositoryFullName String?
+  status             String    @default("PENDING") // PENDING, PROCESSED, IGNORED, FAILED
+  payloadJson        String
+  errorMessage       String?
+  processedAt        DateTime?
+  createdAt          DateTime  @default(now())
+}
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  organizationId String
+  userId         String?
+  action         String
+  resourceType   String
+  resourceId     String?
+  detailsJson    String        @default("{}")
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime      @default(now())
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  keyPrefix      String
+  keyHash        String       @unique
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
