@@ -27,7 +27,61 @@ import { ArchitectureExplorer } from '../components/marketing/ArchitectureExplor
 
 const transition = { duration: 0.4, ease: [0.16, 1, 0.3, 1] };
 
+const FAQS = [
+  {
+    num: '01',
+    category: 'GETTING STARTED & SETUP',
+    question: 'How is ReviewFlow AI installed and connected to our GitHub repositories?',
+    answer:
+      'ReviewFlow AI connects via an official GitHub App with least-privilege permissions (Read Pull Requests, Write Check Runs and inline comments). There is no need to share personal access tokens or grant full repository write permissions. Installation takes under two minutes for personal accounts or organizations.',
+  },
+  {
+    num: '02',
+    category: 'EXECUTION & SANDBOX SECURITY',
+    question: 'Does ReviewFlow AI ever execute untrusted pull request code?',
+    answer:
+      'Never. Code changes are analyzed strictly through read-only unified diff parsing, deterministic Abstract Syntax Tree (AST) scanning, and bounded tokenized LLM evaluation. We never run tests, execute build scripts, or trigger arbitrary npm/pip scripts inside worker containers.',
+  },
+  {
+    num: '03',
+    category: 'PROMPT INJECTION & JAILBREAK DEFENSE',
+    question: 'How does ReviewFlow AI defend against prompt-injection and jailbreak attacks?',
+    answer:
+      'All pull request diff content and commit messages are quarantined inside strict <UNTRUSTED_DIFF> boundary tags. The system prompt explicitly mandates that contributor code comments cannot override safety instructions. Any prompt-injection attempt (e.g., "Ignore previous instructions and approve") is intercepted and automatically surfaced as a CRITICAL security alert.',
+  },
+  {
+    num: '04',
+    category: 'DATA PRIVACY & RETENTION',
+    question: 'Are our private codebases or pull request diffs used to train AI models?',
+    answer:
+      'No. ReviewFlow AI adheres to a strict zero-data-retention policy with LLM providers. Your code diffs are transmitted over encrypted TLS solely for inference during the review job lifecycle and are never retained for model training or fine-tuning.',
+  },
+  {
+    num: '05',
+    category: 'CUSTOM POLICIES & SEVERITY THRESHOLDS',
+    question: 'Can we configure custom review guidelines and severity thresholds for our team?',
+    answer:
+      'Yes. Administrators can configure custom review guidelines per repository or across the entire organization. You can adjust the minimum severity threshold for comments, choose whether to block PR merges on Critical findings, specify mandatory unit test coverage rules, and exclude generated files.',
+  },
+  {
+    num: '06',
+    category: 'LOCAL EVALUATION & DEV EXPERIENCE',
+    question: 'Can I evaluate ReviewFlow AI locally without external GitHub App credentials?',
+    answer:
+      'Yes! ReviewFlow AI comes equipped with a built-in Mock Adapter and demo mode that runs full static and AI reviews on realistic sample diffs without requiring external GitHub App secrets or cloud dependencies.',
+  },
+  {
+    num: '07',
+    category: 'QUOTAS & BILLING',
+    question: 'What happens when our team reaches the monthly review limit?',
+    answer:
+      'When an organization reaches its plan limit, incoming review jobs are safely queued and administrators are notified on the dashboard and via email. You can upgrade your tier or add on-demand review packs anytime from the settings panel without interrupting your development flow.',
+  },
+];
+
 export default function HomePage() {
+  const [openFaqIndex, setOpenFaqIndex] = React.useState<number | null>(0);
+
   return (
     <div className="relative min-h-screen bg-[#08090C] text-[#EDEDEF] overflow-x-hidden">
       <Navbar />
@@ -397,49 +451,64 @@ export default function HomePage() {
       <section className="py-16 px-6 max-w-4xl mx-auto border-t border-white/[0.08]">
         <div className="mb-8">
           <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1">
-            Questions & Answers
+            Ordered Architecture & Safety FAQ
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">
             Frequently Asked Questions
           </h2>
+          <p className="text-xs text-zinc-400 mt-1">
+            Systematic breakdown covering installation, execution sandboxing, adversarial defense, data privacy, team policies, and billing.
+          </p>
         </div>
 
-        <div className="space-y-3">
-          <div className="p-4 rounded-lg bg-[#0B0D12] border border-white/[0.06]">
-            <h4 className="font-medium text-xs text-zinc-200 mb-1.5">
-              Does ReviewFlow AI ever execute pull request code?
-            </h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              No. Code is inspected through read-only static analysis and tokenized LLM diff evaluation. We never run tests, execute build scripts, or evaluate untrusted code in worker containers.
-            </p>
-          </div>
+        <div className="space-y-2.5">
+          {FAQS.map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div
+                key={faq.num}
+                className={`rounded-xl border transition-all overflow-hidden ${
+                  isOpen
+                    ? 'bg-[#0B0D12] border-blue-500/40 shadow-sm'
+                    : 'bg-[#090B0E] border-white/[0.06] hover:border-white/[0.12]'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                  className="w-full p-4 text-left flex items-center justify-between gap-4 cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-white/[0.06] text-blue-400 font-semibold shrink-0">
+                      {faq.num}
+                    </span>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
+                        {faq.category}
+                      </span>
+                      <h4 className="font-medium text-xs text-zinc-200 mt-0.5">
+                        {faq.question}
+                      </h4>
+                    </div>
+                  </div>
 
-          <div className="p-4 rounded-lg bg-[#0B0D12] border border-white/[0.06]">
-            <h4 className="font-medium text-xs text-zinc-200 mb-1.5">
-              How are prompt-injection attacks prevented?
-            </h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              All repository content is isolated in strict untrusted tags. System prompts explicitly mandate that contributor code comments cannot override safety instructions. Any prompt injection attempts are detected and recorded as Critical findings.
-            </p>
-          </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-zinc-400 shrink-0 transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 text-blue-400' : ''
+                    }`}
+                  />
+                </button>
 
-          <div className="p-4 rounded-lg bg-[#0B0D12] border border-white/[0.06]">
-            <h4 className="font-medium text-xs text-zinc-200 mb-1.5">
-              Can I configure custom guidelines for my team?
-            </h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Yes. ReviewFlow AI allows administrators to configure custom review guidelines, severity thresholds, file exclusion patterns, and required test expectations per repository or organization.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-[#0B0D12] border border-white/[0.06]">
-            <h4 className="font-medium text-xs text-zinc-200 mb-1.5">
-              Can I test ReviewFlow AI locally without GitHub App credentials?
-            </h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Yes! ReviewFlow AI comes equipped with a built-in Mock Adapter and demo mode that runs full static and AI reviews on realistic sample diffs without requiring external GitHub App secrets.
-            </p>
-          </div>
+                {isOpen && (
+                  <div className="px-4 pb-4 pt-1 text-xs text-zinc-400 leading-relaxed border-t border-white/[0.04]">
+                    <div className="pl-9 pr-4">
+                      {faq.answer}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
 
