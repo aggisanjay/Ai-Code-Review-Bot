@@ -13,20 +13,22 @@
     "dev:web": "npm --prefix apps/web run dev",
     "dev:api": "npm --prefix apps/api run dev",
     "dev:worker": "npm --prefix apps/worker run dev",
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm --prefix apps/web run build",
     "test": "tsx --test tests/unit/diff-parser.test.ts tests/unit/static-analyzer.test.ts tests/unit/webhook-verifier.test.ts tests/security/cross-tenant-isolation.test.ts tests/security/prompt-injection.test.ts tests/integration/review-pipeline.test.ts",
     "test:unit": "tsx --test tests/unit/diff-parser.test.ts tests/unit/static-analyzer.test.ts tests/unit/webhook-verifier.test.ts",
     "test:security": "tsx --test tests/security/cross-tenant-isolation.test.ts tests/security/prompt-injection.test.ts",
     "test:integration": "tsx --test tests/integration/review-pipeline.test.ts",
     "lint": "npm run lint --workspaces --if-present",
-    "db:generate": "npm --prefix packages/database run generate",
-    "db:migrate": "npm --prefix packages/database run migrate",
-    "db:seed": "npm --prefix packages/database run seed",
+    "db:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
+    "db:push": "prisma db push --schema=packages/database/prisma/schema.prisma --skip-generate",
+    "db:migrate": "prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:seed": "tsx packages/database/src/seed.ts",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
+    "prisma": "^5.21.1",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3"
   }

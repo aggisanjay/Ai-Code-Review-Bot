@@ -39,7 +39,7 @@ jobs:
           DATABASE_URL: "file:./packages/database/prisma/dev.db"
 
       - name: Build Next.js Web App
-        run: npm run build --workspace=@reviewflow/web
+        run: npm run build
         env:
           NEXT_PUBLIC_APP_URL: "http://localhost:3000"
           NEXT_PUBLIC_API_URL: "http://localhost:4000/api/v1"
