@@ -100,11 +100,70 @@ export default function DashboardOverviewPage() {
     },
   ];
 
+  const [isLiveConnected, setIsLiveConnected] = useState<boolean>(false);
+  const [livePrs, setLivePrs] = useState(recentPRs);
+  const [lastSyncTime, setLastSyncTime] = useState<string>('Just now');
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveData = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/api/v1/pull-requests');
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.data && json.data.length > 0 && isMounted) {
+            setLivePrs(
+              json.data.map((pr: any) => ({
+                id: pr.id,
+                number: pr.number,
+                repo: pr.repository?.fullName || 'acme-cloud/auth-service',
+                title: pr.title,
+                author: pr.author,
+                authorAvatar:
+                  pr.authorAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+                status: pr.reviewJobs?.[0]?.status || 'COMPLETED',
+                risk: pr.reviewJobs?.[0]?.result?.overallRisk || 'CRITICAL',
+                findings: { critical: 1, high: 1, medium: 1, low: 0 },
+                duration: pr.reviewJobs?.[0]?.durationSeconds
+                  ? `${pr.reviewJobs[0].durationSeconds}s`
+                  : '8.4s',
+                time: 'Live',
+              }))
+            );
+            setIsLiveConnected(true);
+            setLastSyncTime(new Date().toLocaleTimeString());
+          }
+        }
+      } catch {
+        if (isMounted) setIsLiveConnected(false);
+      }
+    };
+
+    fetchLiveData();
+    const timer = setInterval(fetchLiveData, 3500);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, []);
+
   return (
     <div className="flex-1 pb-16">
       <Header
         title="Dashboard Overview"
         description="Live code quality, pull request analytics, and security posture."
+        action={
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
+              }`}
+            />
+            <span className={isLiveConnected ? 'text-emerald-400 font-semibold' : 'text-slate-400'}>
+              {isLiveConnected ? `Live Sync (${lastSyncTime})` : 'Offline / Standalone Ready'}
+            </span>
+          </div>
+        }
       />
 
       <div className="px-8 pt-8 space-y-8 max-w-7xl">
@@ -262,7 +321,7 @@ export default function DashboardOverviewPage() {
           </div>
 
           <div className="divide-y divide-slate-800/80 overflow-x-auto">
-            {recentPRs.map((pr) => (
+            {livePrs.map((pr) => (
               <Link
                 key={pr.id}
                 href={`/dashboard/reviews/${pr.id}`}

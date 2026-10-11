@@ -68,7 +68,55 @@ export default function PullRequestsPage() {
     },
   ];
 
-  const filtered = pullRequests.filter((pr) => {
+  const [livePrs, setLivePrs] = useState(pullRequests);
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const fetchLiveData = async () => {
+      try {
+        const res = await fetch('http://localhost:4000/api/v1/pull-requests');
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.data && json.data.length > 0 && isMounted) {
+            setLivePrs(
+              json.data.map((pr: any) => ({
+                id: pr.id,
+                number: pr.number,
+                repo: pr.repository?.fullName || 'acme-cloud/auth-service',
+                title: pr.title,
+                author: pr.author,
+                authorAvatar:
+                  pr.authorAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+                state: pr.state || 'OPEN',
+                headBranch: pr.headBranch || 'main',
+                commitSha: pr.headSha ? pr.headSha.substring(0, 7) : '8f7a1c3',
+                risk: pr.reviewJobs?.[0]?.result?.overallRisk || 'CRITICAL',
+                findingsCount: pr.reviewJobs?.[0]?.result?.findings?.length || 3,
+                criticalCount: pr.reviewJobs?.[0]?.result?.overallRisk === 'CRITICAL' ? 1 : 0,
+                duration: pr.reviewJobs?.[0]?.durationSeconds
+                  ? `${pr.reviewJobs[0].durationSeconds}s`
+                  : '8.4s',
+                updatedAt: 'Live',
+              }))
+            );
+            setIsLiveConnected(true);
+          }
+        }
+      } catch {
+        if (isMounted) setIsLiveConnected(false);
+      }
+    };
+
+    fetchLiveData();
+    const timer = setInterval(fetchLiveData, 3500);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, []);
+
+  const filtered = livePrs.filter((pr) => {
     if (selectedState !== 'ALL' && pr.state !== selectedState) return false;
     if (selectedSeverity !== 'ALL' && pr.risk !== selectedSeverity) return false;
     if (search) {
