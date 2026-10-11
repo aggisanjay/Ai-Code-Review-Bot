@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { GitPullRequest, ArrowLeft, Cpu, ShieldCheck, Database, Layers, CheckCircle, Zap } from 'lucide-react';
+import { ArrowLeft, Cpu, CheckCircle } from 'lucide-react';
 import { Navbar } from '../../components/marketing/Navbar';
 import { Footer } from '../../components/marketing/Footer';
 
@@ -71,73 +71,77 @@ const DECISIONS = [
 
 export default function EngineeringDecisionsPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#08090C] text-[#EDEDEF] flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-6 pt-32 pb-24 w-full flex-1">
-        <div className="mb-12">
+      <main className="max-w-5xl mx-auto px-6 pt-24 pb-20 w-full flex-1">
+        <div className="mb-10">
           <Link
             href="/"
-            className="text-xs text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1.5 mb-6 font-mono"
+            className="text-xs text-zinc-400 hover:text-white inline-flex items-center gap-1.5 mb-5 font-mono"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Product Overview</span>
           </Link>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono mb-4">
-            <Cpu className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-zinc-900 border border-white/[0.08] text-zinc-300 text-[11px] font-mono mb-3">
+            <Cpu className="w-3 h-3 text-blue-400" />
             <span>Architecture Decision Records (ADR)</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
+          <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
             Engineering Decisions & Trade-Offs
           </h1>
-          <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
+          <p className="text-xs text-zinc-400 max-w-2xl leading-relaxed">
             ReviewFlow AI is engineered for production reliability, defensive security, and developer clarity. Here is why we made specific architectural choices instead of taking common shortcuts.
           </p>
         </div>
 
-        <div className="space-y-6">
-          {DECISIONS.map((item) => (
+        <div className="space-y-4">
+          {DECISIONS.map((adr) => (
             <div
-              key={item.id}
-              className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl backdrop-blur-xl space-y-4"
+              key={adr.id}
+              className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] hover:border-white/[0.12] transition-all"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs px-2.5 py-1 rounded bg-slate-800 text-cyan-400 font-bold">
-                    {item.id}
-                  </span>
-                  <h3 className="text-base font-bold text-white">{item.title}</h3>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
-                    {item.status}
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
+                    {adr.id}
                   </span>
-                  <span className="text-xs text-slate-500 font-mono">{item.date}</span>
+                  <h3 className="text-sm font-semibold text-white">{adr.title}</h3>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-500">
+                  <span className="flex items-center gap-1 text-emerald-400">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>{adr.status}</span>
+                  </span>
+                  <span>•</span>
+                  <span>{adr.date}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs">
-                <div className="space-y-1.5">
-                  <h4 className="font-semibold text-slate-300 uppercase tracking-wider text-[10px] font-mono text-slate-400">
-                    Context & Challenge
-                  </h4>
-                  <p className="text-slate-400 leading-relaxed">{item.context}</p>
+              <div className="space-y-3 text-xs leading-relaxed">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-0.5">
+                    Context & Problem Statement
+                  </span>
+                  <p className="text-zinc-400">{adr.context}</p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <h4 className="font-semibold text-indigo-300 uppercase tracking-wider text-[10px] font-mono">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-0.5">
                     Architectural Decision
-                  </h4>
-                  <p className="text-slate-300 leading-relaxed">{item.decision}</p>
+                  </span>
+                  <p className="text-zinc-200 bg-[#0E1017] p-3 rounded-lg border border-white/[0.05]">
+                    {adr.decision}
+                  </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <h4 className="font-semibold text-emerald-300 uppercase tracking-wider text-[10px] font-mono">
-                    Result & Impact
-                  </h4>
-                  <p className="text-slate-300 leading-relaxed">{item.consequences}</p>
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block mb-0.5">
+                    Consequences & Engineering Impact
+                  </span>
+                  <p className="text-zinc-400">{adr.consequences}</p>
                 </div>
               </div>
             </div>

@@ -17,44 +17,34 @@ import {
 import { Header } from '../../components/dashboard/Header';
 
 export default function DashboardOverviewPage() {
-  const [loading, setLoading] = useState<boolean>(false);
-
   const stats = [
     {
       title: 'Total Reviews',
       value: '38',
       change: '+14% this month',
       icon: GitPullRequest,
-      color: 'text-indigo-400',
-      bgColor: 'bg-indigo-500/10',
-      borderColor: 'border-indigo-500/20',
+      iconColor: 'text-blue-400',
     },
     {
-      title: 'Critical Issues Prevented',
+      title: 'Critical Vulnerabilities Blocked',
       value: '7',
       change: '100% blocked pre-merge',
       icon: ShieldAlert,
-      color: 'text-red-400',
-      bgColor: 'bg-red-500/10',
-      borderColor: 'border-red-500/20',
+      iconColor: 'text-rose-400',
     },
     {
-      title: 'Avg Turnaround',
+      title: 'Average Turnaround',
       value: '8.4s',
       change: 'Sub-minute review cycle',
       icon: Clock,
-      color: 'text-cyan-400',
-      bgColor: 'bg-cyan-500/10',
-      borderColor: 'border-cyan-500/20',
+      iconColor: 'text-sky-400',
     },
     {
-      title: 'Time Saved',
+      title: 'Engineering Hours Saved',
       value: '38.5 hrs',
-      change: 'Calculated engineering time',
+      change: 'Calculated team velocity',
       icon: Zap,
-      color: 'text-amber-400',
-      bgColor: 'bg-amber-500/10',
-      borderColor: 'border-amber-500/20',
+      iconColor: 'text-amber-400',
     },
   ];
 
@@ -151,39 +141,39 @@ export default function DashboardOverviewPage() {
     <div className="flex-1 pb-16">
       <Header
         title="Dashboard Overview"
-        description="Live code quality, pull request analytics, and security posture."
+        description="Automated code review telemetry, pull request security posture, and velocity."
         action={
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0D0F14] border border-white/[0.08] text-xs font-mono">
             <span
-              className={`w-2 h-2 rounded-full ${
-                isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
+              className={`w-1.5 h-1.5 rounded-full ${
+                isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'
               }`}
             />
-            <span className={isLiveConnected ? 'text-emerald-400 font-semibold' : 'text-slate-400'}>
-              {isLiveConnected ? `Live Sync (${lastSyncTime})` : 'Offline / Standalone Ready'}
+            <span className={isLiveConnected ? 'text-emerald-400 font-semibold' : 'text-zinc-400'}>
+              {isLiveConnected ? `Live Sync (${lastSyncTime})` : 'Standalone Ready'}
             </span>
           </div>
         }
       />
 
-      <div className="px-8 pt-8 space-y-8 max-w-7xl">
+      <div className="px-6 pt-6 space-y-6 max-w-7xl">
         {/* Metric Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {stats.map((stat, i) => {
             const Icon = stat.icon;
             return (
               <div
                 key={i}
-                className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all shadow-sm"
+                className="p-4 rounded-xl bg-[#0B0D12] border border-white/[0.07] hover:border-white/[0.12] transition-all"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium text-slate-400">{stat.title}</span>
-                  <div className={`p-2 rounded-xl ${stat.bgColor} ${stat.borderColor} border`}>
-                    <Icon className={`w-4 h-4 ${stat.color}`} />
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">{stat.title}</span>
+                  <div className="w-6 h-6 rounded-md bg-zinc-900 border border-white/[0.06] flex items-center justify-center">
+                    <Icon className={`w-3.5 h-3.5 ${stat.iconColor}`} />
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-slate-100 font-mono">{stat.value}</div>
-                <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                <div className="text-2xl font-bold text-white font-mono">{stat.value}</div>
+                <div className="text-[11px] text-zinc-500 mt-1 flex items-center gap-1 font-mono">
                   <TrendingUp className="w-3 h-3 text-emerald-400" />
                   <span>{stat.change}</span>
                 </div>
@@ -193,166 +183,169 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Severity Distribution & Activity Bar */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Finding Breakdown Card */}
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center justify-between">
-              <span>Findings by Severity</span>
-              <span className="text-xs text-slate-400 font-normal">Past 30 Days</span>
-            </h3>
+          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
+                Findings by Severity
+              </h3>
+              <span className="text-[11px] text-zinc-500 font-mono">Past 30 Days</span>
+            </div>
 
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-red-400 font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-400" /> Critical
+                  <span className="text-rose-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" /> Critical
                   </span>
-                  <span className="text-slate-300 font-mono font-bold">7</span>
+                  <span className="text-zinc-300 font-mono font-bold text-xs">7</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-red-500 rounded-full w-[12%]" />
+                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-rose-500 rounded-full w-[12%]" />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-orange-400 font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-orange-400" /> High
+                  <span className="text-orange-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400" /> High
                   </span>
-                  <span className="text-slate-300 font-mono font-bold">14</span>
+                  <span className="text-zinc-300 font-mono font-bold text-xs">14</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                   <div className="h-full bg-orange-500 rounded-full w-[24%]" />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-amber-400 font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" /> Medium
+                  <span className="text-amber-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Medium
                   </span>
-                  <span className="text-slate-300 font-mono font-bold">29</span>
+                  <span className="text-zinc-300 font-mono font-bold text-xs">29</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500 rounded-full w-[48%]" />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-cyan-400 font-semibold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400" /> Low & Info
+                  <span className="text-blue-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400" /> Low & Info
                   </span>
-                  <span className="text-slate-300 font-mono font-bold">18</span>
+                  <span className="text-zinc-300 font-mono font-bold text-xs">18</span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-cyan-500 rounded-full w-[30%]" />
+                <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full w-[30%]" />
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-              <span>False Positive Feedback:</span>
-              <span className="text-emerald-400 font-mono font-bold">1.4% (Ultra-Low)</span>
+            <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400 font-mono text-[11px]">
+              <span>False Positive Rate:</span>
+              <span className="text-emerald-400 font-bold">1.4% (Grounded)</span>
             </div>
           </div>
 
           {/* Actionable Setup & Health Card */}
-          <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between">
+          <div className="lg:col-span-2 p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-indigo-400" /> Review Engine Status & Insights
+                <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300 flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Review Engine Status & Controls</span>
                 </h3>
-                <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
                   Engine Ready
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+              <p className="text-xs text-zinc-400 leading-relaxed mb-4">
                 Automated reviews are active on 3 connected repositories. Pull request commits are checked for cryptographic fallbacks, TOCTOU race conditions, unhandled exceptions, and missing unit tests.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span className="text-slate-400 block mb-1">Active AI Provider</span>
-                  <div className="flex items-center gap-2 text-slate-200 font-medium">
-                    <span className="w-2 h-2 rounded-full bg-indigo-400" />
+                <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05]">
+                  <span className="text-zinc-500 text-[11px] font-mono block mb-1">Active AI Engine</span>
+                  <div className="flex items-center gap-2 text-zinc-200 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                     <span>Gemini / OpenAI Hybrid (Mock Mode Ready)</span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-                  <span className="text-slate-400 block mb-1">Policy Enforcement</span>
-                  <div className="flex items-center gap-2 text-slate-200 font-medium">
-                    <span className="w-2 h-2 rounded-full bg-red-400" />
-                    <span>Block PR on Critical Findings (Active)</span>
+                <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05]">
+                  <span className="text-zinc-500 text-[11px] font-mono block mb-1">Policy Enforcement</span>
+                  <div className="flex items-center gap-2 text-zinc-200 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                    <span>Block PR on Critical Findings (Enforced)</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-400">Next scheduled quota reset: Nov 1, 2026</span>
+            <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-500 font-mono text-[11px]">
+              <span>Next scheduled quota reset: Nov 1, 2026</span>
               <Link
                 href="/dashboard/repositories"
-                className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+                className="text-blue-400 hover:underline flex items-center gap-1 font-medium"
               >
                 <span>Configure Policies</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                <ArrowUpRight className="w-3 h-3" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Recent Pull Requests Table */}
-        <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
+        <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-100">Recent Pull Requests</h3>
-              <p className="text-xs text-slate-400">Latest code review events and automated finding summaries.</p>
+              <h3 className="text-sm font-semibold text-white">Recent Pull Requests</h3>
+              <p className="text-xs text-zinc-400">Latest code review events and automated finding summaries.</p>
             </div>
             <Link
               href="/dashboard/pull-requests"
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
+              className="text-xs text-blue-400 hover:underline font-mono flex items-center gap-1"
             >
               <span>View All PRs</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="divide-y divide-slate-800/80 overflow-x-auto">
+          <div className="divide-y divide-white/[0.05]">
             {livePrs.map((pr) => (
               <Link
                 key={pr.id}
                 href={`/dashboard/reviews/${pr.id}`}
-                className="py-4 flex items-center justify-between gap-4 hover:bg-slate-800/30 px-2 rounded-xl transition-colors block group"
+                className="py-3.5 flex items-center justify-between gap-4 hover:bg-white/[0.02] px-2 rounded-lg transition-colors block group"
               >
                 <div className="flex items-start gap-3">
                   <img
                     src={pr.authorAvatar}
                     alt={pr.author}
-                    className="w-8 h-8 rounded-full border border-slate-700 mt-0.5"
+                    className="w-7 h-7 rounded-full border border-white/[0.1] mt-0.5"
                   />
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-slate-400">{pr.repo}#{pr.number}</span>
+                      <span className="text-xs font-mono text-zinc-400">{pr.repo}#{pr.number}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
+                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${
                           pr.risk === 'CRITICAL'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                             : pr.risk === 'HIGH'
-                            ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         }`}
                       >
                         {pr.risk}
                       </span>
                     </div>
-                    <h4 className="text-sm font-semibold text-slate-200 group-hover:text-indigo-400 transition-colors">
+                    <h4 className="text-xs font-medium text-zinc-200 group-hover:text-white transition-colors mt-0.5">
                       {pr.title}
                     </h4>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 font-mono">
-                      <span>by @{pr.author}</span>
+                    <div className="flex items-center gap-2 text-[11px] text-zinc-500 mt-1 font-mono">
+                      <span>@{pr.author}</span>
                       <span>•</span>
                       <span>Review in {pr.duration}</span>
                       <span>•</span>
@@ -364,22 +357,22 @@ export default function DashboardOverviewPage() {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5 text-xs font-mono">
                     {pr.findings.critical > 0 && (
-                      <span className="px-2 py-0.5 rounded bg-red-500/15 text-red-300">
+                      <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[11px]">
                         {pr.findings.critical} Critical
                       </span>
                     )}
                     {pr.findings.high > 0 && (
-                      <span className="px-2 py-0.5 rounded bg-orange-500/15 text-orange-300">
+                      <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-300 border border-orange-500/20 text-[11px]">
                         {pr.findings.high} High
                       </span>
                     )}
                     {pr.findings.critical === 0 && pr.findings.high === 0 && (
-                      <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[11px]">
                         All Clean
                       </span>
                     )}
                   </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-colors" />
                 </div>
               </Link>
             ))}

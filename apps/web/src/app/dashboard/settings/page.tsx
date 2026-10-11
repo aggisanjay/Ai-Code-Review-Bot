@@ -50,16 +50,16 @@ export default function SettingsPage() {
         description="Manage organization preferences, AI review engine providers, team members, and billing quotas."
       />
 
-      <div className="px-8 pt-8 space-y-6 max-w-5xl">
+      <div className="px-6 pt-6 space-y-5 max-w-5xl">
         {saveFeedback && (
-          <div className="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2 font-mono">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span>{saveFeedback}</span>
           </div>
         )}
 
         {/* Settings Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+        <div className="flex items-center gap-1.5 border-b border-white/[0.08] pb-2">
           {[
             { id: 'org', label: 'Organization & Team', icon: Building2 },
             { id: 'ai', label: 'AI Review Providers', icon: Brain },
@@ -72,13 +72,13 @@ export default function SettingsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                   isSelected
-                    ? 'bg-slate-800 text-slate-100 border border-slate-700 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-zinc-800 text-white border border-white/[0.12] shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-indigo-400' : ''}`} />
+                <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-blue-400' : ''}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -87,34 +87,34 @@ export default function SettingsPage() {
 
         {/* Tab 1: Organization & Team */}
         {activeTab === 'org' && (
-          <div className="space-y-6">
-            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
-              <h3 className="text-sm font-bold text-slate-100">Organization Profile</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="space-y-5">
+            <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-3.5">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">Organization Profile</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="text-slate-400 block mb-1">Organization Name</label>
+                  <label className="text-zinc-400 block mb-1">Organization Name</label>
                   <input
                     type="text"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#08090C] border border-white/[0.08] rounded-md p-2 text-zinc-200 focus:outline-none focus:border-blue-500 font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 block mb-1">Slug Identifier</label>
+                  <label className="text-zinc-400 block mb-1">Slug Identifier</label>
                   <input
                     type="text"
                     disabled
                     value="acme-cloud"
-                    className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl p-2.5 text-slate-500 font-mono"
+                    className="w-full bg-[#08090C] border border-white/[0.05] rounded-md p-2 text-zinc-500 font-mono"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end pt-1">
                 <button
                   onClick={() => handleSave('Organization')}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs font-medium"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>Save Organization</span>
@@ -123,30 +123,30 @@ export default function SettingsPage() {
             </div>
 
             {/* Members List */}
-            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-              <div className="flex items-center justify-between mb-4">
+            <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
+              <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-100">Team Members ({members.length})</h3>
-                  <p className="text-xs text-slate-400">Users who have access to pull request review findings.</p>
+                  <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">Team Members ({members.length})</h3>
+                  <p className="text-xs text-zinc-400">Users who have access to pull request review findings.</p>
                 </div>
-                <button className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 text-xs font-semibold border border-slate-700">
+                <button className="px-3 py-1.5 rounded-lg btn-secondary text-xs font-medium">
                   Invite Member
                 </button>
               </div>
 
-              <div className="divide-y divide-slate-800/80 text-xs">
+              <div className="divide-y divide-white/[0.04] text-xs">
                 {members.map((m) => (
-                  <div key={m.email} className="py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs">
+                  <div key={m.email} className="py-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center font-bold text-zinc-300 font-mono text-[10px]">
                         {m.avatar}
                       </div>
                       <div>
-                        <span className="font-semibold text-slate-200 block">{m.name}</span>
-                        <span className="text-slate-400 font-mono text-[11px]">{m.email}</span>
+                        <span className="font-medium text-zinc-200 block text-xs">{m.name}</span>
+                        <span className="text-[11px] text-zinc-500 font-mono">{m.email}</span>
                       </div>
                     </div>
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono border border-slate-700">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 border border-white/[0.06] text-zinc-400 font-mono">
                       {m.role}
                     </span>
                   </div>
@@ -156,84 +156,91 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Tab 2: AI Review Providers */}
+        {/* Tab 2: AI Review Engine */}
         {activeTab === 'ai' && (
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-6">
+          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-4">
             <div>
-              <h3 className="text-sm font-bold text-slate-100 mb-1">AI Review Engine Configuration</h3>
-              <p className="text-xs text-slate-400">
-                Choose your LLM provider. ReviewFlow AI formats prompts with strict prompt-injection defenses and validates all outputs against schema contracts.
+              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
+                AI Provider Architecture & Model Selection
+              </h3>
+              <p className="text-xs text-zinc-400">
+                Configure which language model provider powers deep cross-file review analysis.
               </p>
             </div>
 
-            <div className="space-y-4 text-xs">
-              <div>
-                <label className="text-slate-300 font-semibold block mb-2">Active LLM Provider:</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { id: 'mock', name: 'Local Mock Adapter', badge: 'Recommended for Demo & Tests' },
-                    { id: 'gemini', name: 'Google Gemini', badge: 'Gemini 1.5 Pro' },
-                    { id: 'openai', name: 'OpenAI', badge: 'GPT-4o' },
-                  ].map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => setAiProvider(p.id)}
-                      className={`p-4 rounded-xl border text-left transition-all ${
-                        aiProvider === p.id
-                          ? 'bg-slate-800 border-indigo-500 text-slate-100 shadow-glow'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-850'
-                      }`}
-                    >
-                      <span className="font-bold text-slate-200 block mb-1">{p.name}</span>
-                      <span className="text-[10px] text-indigo-400 font-mono">{p.badge}</span>
-                    </button>
-                  ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <label
+                onClick={() => setAiProvider('mock')}
+                className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
+                  aiProvider === 'mock'
+                    ? 'bg-[#121622] border-blue-500/50'
+                    : 'bg-[#0E1017] border-white/[0.05] hover:border-white/[0.1]'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold text-zinc-200">Mock Fixture Mode</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono">Zero Keys</span>
                 </div>
-              </div>
+                <p className="text-[11px] text-zinc-400">Fast, local mock reviews without API key quota requirements.</p>
+              </label>
 
-              {aiProvider === 'gemini' && (
-                <div className="space-y-2 pt-2">
-                  <label className="text-slate-300 font-semibold block">Gemini API Key:</label>
-                  <input
-                    type="password"
-                    value={geminiKey}
-                    onChange={(e) => setGeminiKey(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 font-mono text-xs"
-                    placeholder="Enter GEMINI_API_KEY"
-                  />
-                  <p className="text-[11px] text-slate-500">
-                    Keys are encrypted server-side and never exposed in client bundles.
-                  </p>
+              <label
+                onClick={() => setAiProvider('gemini')}
+                className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
+                  aiProvider === 'gemini'
+                    ? 'bg-[#121622] border-blue-500/50'
+                    : 'bg-[#0E1017] border-white/[0.05] hover:border-white/[0.1]'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold text-zinc-200">Google Gemini 1.5</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 font-mono">2M Context</span>
                 </div>
-              )}
+                <p className="text-[11px] text-zinc-400">Gemini 1.5 Pro with large context window for massive monorepo diffs.</p>
+              </label>
 
-              {aiProvider === 'openai' && (
-                <div className="space-y-2 pt-2">
-                  <label className="text-slate-300 font-semibold block">OpenAI API Key:</label>
-                  <input
-                    type="password"
-                    value={openaiKey}
-                    onChange={(e) => setOpenaiKey(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 font-mono text-xs"
-                    placeholder="Enter OPENAI_API_KEY"
-                  />
-                  <p className="text-[11px] text-slate-500">
-                    Encrypted with AES-256 before storage.
-                  </p>
+              <label
+                onClick={() => setAiProvider('openai')}
+                className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
+                  aiProvider === 'openai'
+                    ? 'bg-[#121622] border-blue-500/50'
+                    : 'bg-[#0E1017] border-white/[0.05] hover:border-white/[0.1]'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold text-zinc-200">OpenAI GPT-4o</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 font-mono">Structured</span>
                 </div>
-              )}
-
-              {aiProvider === 'mock' && (
-                <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-500/20 text-indigo-300 text-xs">
-                  <strong>Local Mock Mode Enabled:</strong> The review pipeline will run deterministic static checks and evaluate pull requests using local sample diff fixtures. No third-party LLM API keys are required.
-                </div>
-              )}
+                <p className="text-[11px] text-zinc-400">Native JSON schema validation with high reasoning benchmark accuracy.</p>
+              </label>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-slate-800">
+            <div className="space-y-3 pt-2 text-xs">
+              <div>
+                <label className="text-zinc-400 block mb-1">Gemini API Key (Optional Override)</label>
+                <input
+                  type="password"
+                  value={geminiKey}
+                  onChange={(e) => setGeminiKey(e.target.value)}
+                  className="w-full bg-[#08090C] border border-white/[0.08] rounded-md p-2 text-zinc-200 font-mono text-xs focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-zinc-400 block mb-1">OpenAI API Key (Optional Override)</label>
+                <input
+                  type="password"
+                  value={openaiKey}
+                  onChange={(e) => setOpenaiKey(e.target.value)}
+                  className="w-full bg-[#08090C] border border-white/[0.08] rounded-md p-2 text-zinc-200 font-mono text-xs focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
               <button
                 onClick={() => handleSave('AI Provider')}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs font-medium"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Provider Settings</span>
@@ -242,90 +249,89 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Tab 3: Subscription & Quotas */}
+        {/* Tab 3: Billing & Subscription */}
         {activeTab === 'billing' && (
-          <div className="space-y-6">
-            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <span className="text-xs font-mono text-indigo-400">Current Subscription</span>
-                  <h3 className="text-xl font-bold text-slate-100">{currentPlan} Plan</h3>
-                </div>
-                <span className="text-xs px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                  Active (Stripe Test Mode)
-                </span>
-              </div>
+          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-4">
+            <div>
+              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
+                Subscription Tier & Review Quotas
+              </h3>
+              <p className="text-xs text-zinc-400">
+                Current active subscription plan for Acme Cloud Technologies.
+              </p>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 mb-6">
-                <div>
-                  <span className="text-slate-500 block">Monthly Reviews:</span>
-                  <span className="text-slate-200 font-bold text-sm">38 / 500</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block">Connected Repos:</span>
-                  <span className="text-slate-200 font-bold text-sm">3 / 15</span>
-                </div>
-                <div>
-                  <span className="text-slate-500 block">Team Members:</span>
-                  <span className="text-slate-200 font-bold text-sm">3 / 10</span>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              {(['FREE', 'PRO', 'TEAM'] as const).map((tier) => (
+                <div
+                  key={tier}
+                  className={`p-4 rounded-lg border flex flex-col justify-between ${
+                    currentPlan === tier
+                      ? 'bg-[#121622] border-blue-500/50 shadow-sm'
+                      : 'bg-[#0E1017] border-white/[0.05]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-semibold text-zinc-200 font-mono">{tier} TIER</span>
+                      {currentPlan === tier && (
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 font-mono">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xl font-bold text-white font-mono my-2">
+                      {tier === 'FREE' ? '$0' : tier === 'PRO' ? '$29/mo' : '$99/mo'}
+                    </div>
+                    <p className="text-[11px] text-zinc-400">
+                      {tier === 'FREE'
+                        ? '50 reviews / month • 3 repos'
+                        : tier === 'PRO'
+                        ? '500 reviews / month • 15 repos'
+                        : '2,500 reviews / month • 50 repos'}
+                    </p>
+                  </div>
 
-              {/* Upgrade/Change Plan Simulation */}
-              <div className="space-y-3">
-                <span className="text-xs text-slate-400 font-semibold block">Change Plan Tier:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {(['FREE', 'PRO', 'TEAM'] as const).map((tier) => (
+                  {currentPlan !== tier ? (
                     <button
-                      key={tier}
                       onClick={() => handleUpgradePlan(tier)}
-                      className={`p-4 rounded-xl border text-left transition-all ${
-                        currentPlan === tier
-                          ? 'bg-slate-800 border-indigo-500 text-slate-100 shadow-glow'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/40'
-                      }`}
+                      className="mt-4 w-full py-1.5 rounded-md btn-secondary text-xs"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-200">{tier}</span>
-                        {currentPlan === tier && <span className="text-[10px] text-indigo-400 font-mono">Current</span>}
-                      </div>
-                      <span className="text-xs text-slate-400 block mt-1">
-                        {tier === 'FREE' ? '$0/mo' : tier === 'PRO' ? '$29/mo' : '$99/mo'}
-                      </span>
+                      Switch to {tier}
                     </button>
-                  ))}
+                  ) : (
+                    <div className="mt-4 text-[11px] text-blue-400 font-mono text-center">Active Plan</div>
+                  )}
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Tab 4: GitHub App & Security */}
+        {/* Tab 4: Security & Webhooks */}
         {activeTab === 'security' && (
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-5">
+          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-4 text-xs">
             <div>
-              <h3 className="text-sm font-bold text-slate-100 mb-1">GitHub App Integration & Webhooks</h3>
-              <p className="text-xs text-slate-400">
-                Webhook delivery endpoint and cryptographic signature verification status.
+              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
+                GitHub App Cryptographic Verification
+              </h3>
+              <p className="text-xs text-zinc-400">
+                Security baseline and webhook signature verification status.
               </p>
             </div>
 
-            <div className="space-y-3 text-xs font-mono bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-              <div className="flex justify-between py-1 border-b border-slate-900">
-                <span className="text-slate-500">GitHub Installation ID:</span>
-                <span className="text-slate-300">4892019 (acme-cloud)</span>
+            <div className="space-y-2 font-mono text-[11px]">
+              <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05] flex items-center justify-between">
+                <span>Webhook Signature Verification (HMAC-SHA256)</span>
+                <span className="text-emerald-400 font-semibold">Active & Enforced</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-900">
-                <span className="text-slate-500">Webhook Receiver URL:</span>
-                <span className="text-indigo-400">https://api.reviewflow.ai/api/v1/webhooks/github</span>
+              <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05] flex items-center justify-between">
+                <span>Untrusted Diff Boundary Quarantining</span>
+                <span className="text-emerald-400 font-semibold">Enforced</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-900">
-                <span className="text-slate-500">HMAC-SHA256 Signature Verification:</span>
-                <span className="text-emerald-400">Active (Constant-Time Verification)</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-slate-500">Execution Sandbox:</span>
-                <span className="text-emerald-400">Zero-Execution (AST & Token Static Only)</span>
+              <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05] flex items-center justify-between">
+                <span>Code Execution Sandbox Isolation</span>
+                <span className="text-emerald-400 font-semibold">Read-Only Static</span>
               </div>
             </div>
           </div>

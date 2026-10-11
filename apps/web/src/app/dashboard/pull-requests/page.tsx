@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Search,
-  Filter,
   GitPullRequest,
   ShieldAlert,
   ArrowUpRight,
@@ -137,32 +136,32 @@ export default function PullRequestsPage() {
         description="Monitor automated reviews, risk assessments, and line-level findings across all repositories."
       />
 
-      <div className="px-8 pt-8 space-y-6 max-w-7xl">
+      <div className="px-6 pt-6 space-y-4 max-w-7xl">
         {/* Search & Filter Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div className="flex items-center gap-3 flex-1 min-w-[280px]">
-            <Search className="w-4 h-4 text-slate-400 shrink-0" />
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
+          <div className="flex items-center gap-2.5 flex-1 min-w-[260px]">
+            <Search className="w-4 h-4 text-zinc-500 shrink-0" />
             <input
               type="text"
               placeholder="Search pull requests by title, repository, or author..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent border-none text-xs text-slate-100 placeholder-slate-500 focus:outline-none w-full"
+              className="bg-transparent border-none text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none w-full"
             />
           </div>
 
           <div className="flex items-center gap-2">
             {/* Severity Filter */}
             <div className="flex items-center gap-1 text-xs font-mono">
-              <span className="text-slate-500 text-[11px] mr-1">Risk:</span>
+              <span className="text-zinc-500 text-[11px] mr-1">Risk:</span>
               {(['ALL', 'CRITICAL', 'HIGH', 'SAFE'] as const).map((sev) => (
                 <button
                   key={sev}
                   onClick={() => setSelectedSeverity(sev)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] transition-all border ${
+                  className={`px-2 py-0.5 rounded text-[11px] transition-all border ${
                     selectedSeverity === sev
-                      ? 'bg-slate-800 text-slate-100 border-indigo-500 font-semibold'
-                      : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                      ? 'bg-zinc-800 text-white border-white/[0.15] font-semibold'
+                      : 'bg-transparent text-zinc-400 border-transparent hover:text-white'
                   }`}
                 >
                   {sev}
@@ -172,77 +171,74 @@ export default function PullRequestsPage() {
           </div>
         </div>
 
-        {/* PR Table List */}
-        <div className="rounded-2xl bg-slate-900/60 border border-slate-800 overflow-hidden shadow-xl">
-          <div className="divide-y divide-slate-800/80">
+        {/* PR Table Card */}
+        <div className="rounded-xl bg-[#0B0D12] border border-white/[0.07] overflow-hidden">
+          <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+            <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">
+              {filtered.length} Pull Requests Evaluated
+            </span>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-500">
+              <span className={`w-1.5 h-1.5 rounded-full ${isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
+              <span>{isLiveConnected ? 'Live GitHub Sync' : 'Static Seed'}</span>
+            </div>
+          </div>
+
+          <div className="divide-y divide-white/[0.04]">
             {filtered.map((pr) => (
               <Link
                 key={pr.id}
                 href={`/dashboard/reviews/${pr.id}`}
-                className="p-5 flex items-center justify-between gap-4 hover:bg-slate-800/40 transition-colors block group"
+                className="p-4 flex items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors block group"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-3">
                   <img
                     src={pr.authorAvatar}
                     alt={pr.author}
-                    className="w-9 h-9 rounded-full border border-slate-700 shrink-0 mt-0.5"
+                    className="w-7 h-7 rounded-full border border-white/[0.08] mt-0.5"
                   />
                   <div>
-                    <div className="flex items-center gap-2.5 mb-1">
-                      <span className="text-xs font-mono text-slate-400">{pr.repo}#{pr.number}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-mono text-zinc-400">{pr.repo}#{pr.number}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded font-mono ${
+                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${
                           pr.risk === 'CRITICAL'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                             : pr.risk === 'HIGH'
-                            ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                            : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         }`}
                       >
                         {pr.risk}
                       </span>
-                      <span className="text-[11px] font-mono text-slate-500">commit {pr.commitSha}</span>
                     </div>
-
-                    <h3 className="text-sm font-semibold text-slate-100 group-hover:text-indigo-400 transition-colors">
+                    <h3 className="text-xs font-medium text-zinc-200 group-hover:text-white transition-colors">
                       {pr.title}
                     </h3>
-
-                    <div className="flex items-center gap-3 text-xs text-slate-400 mt-1 font-mono">
-                      <span>branch: {pr.headBranch}</span>
+                    <div className="flex items-center gap-2 text-[11px] text-zinc-500 mt-1 font-mono">
+                      <span>@{pr.author}</span>
                       <span>•</span>
-                      <span>by @{pr.author}</span>
+                      <span>{pr.headBranch}</span>
                       <span>•</span>
-                      <span>Reviewed in {pr.duration}</span>
+                      <span>SHA: {pr.commitSha}</span>
                       <span>•</span>
-                      <span>Updated {pr.updatedAt}</span>
+                      <span>{pr.updatedAt}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <span className="text-xs font-mono font-bold text-slate-200 block">
-                      {pr.findingsCount} findings
-                    </span>
-                    {pr.criticalCount > 0 ? (
-                      <span className="text-[11px] text-red-400 font-mono">
-                        {pr.criticalCount} Critical Blocker
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 text-xs font-mono">
+                    <span className="text-[11px] text-zinc-400">{pr.findingsCount} findings</span>
+                    {pr.criticalCount > 0 && (
+                      <span className="px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[10px] font-bold">
+                        {pr.criticalCount} CRITICAL
                       </span>
-                    ) : (
-                      <span className="text-[11px] text-emerald-400 font-mono">Check Run: Passed</span>
                     )}
                   </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-colors" />
                 </div>
               </Link>
             ))}
-
-            {filtered.length === 0 && (
-              <div className="p-12 text-center text-slate-500 text-xs font-mono">
-                No pull requests match the selected filters.
-              </div>
-            )}
           </div>
         </div>
       </div>

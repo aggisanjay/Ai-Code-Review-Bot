@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --foreground: #f8fafc;
-  --background: #090d16;
+  --foreground: #EDEDEF;
+  --background: #08090C;
 }
 
 body {
@@ -12,51 +14,104 @@ body {
   background: var(--background);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar for sleek developer tool look */
+/* Developer tool scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #08090C;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 3px;
+  background: #1C202A;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #2C3345;
 }
 
-/* Glassmorphism subtle surface */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Background grid patterns */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 
-.glass-panel-hover:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.15);
+.bg-dot-pattern {
+  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
 }
 
-/* Code diff styling */
+/* Precision surface cards */
+.surface-card {
+  background: #0D0F14;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.surface-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.surface-card-hover:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #12151D;
+}
+
+/* Engineering buttons */
+.btn-primary {
+  background: #2563EB;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: all 0.15s ease-out;
+}
+
+.btn-primary:hover {
+  background: #1D4ED8;
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #12141C;
+  color: #E2E8F0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  transition: all 0.15s ease-out;
+}
+
+.btn-secondary:hover {
+  background: #191D28;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+/* GitHub-authentic code diff syntax */
 .diff-add {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: #a7f3d0;
+  background-color: rgba(35, 134, 54, 0.16);
+  color: #7EE787;
+  border-left: 3px solid #238636;
 }
 
 .diff-del {
-  background-color: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
+  background-color: rgba(218, 54, 51, 0.16);
+  color: #FFA198;
+  border-left: 3px solid #DA3633;
 }
 
 .diff-context {
-  color: #94a3b8;
+  color: #8B949E;
+}
+
+/* Monospace code blocks */
+pre, code {
+  font-family: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }

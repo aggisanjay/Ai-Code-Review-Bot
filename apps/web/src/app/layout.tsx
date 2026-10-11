@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import '../styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'ReviewFlow AI — Every pull request. Reviewed intelligently.',
+  title: 'ReviewFlow AI — Engineering-Grade Pull Request Intelligence',
   description:
-    'An intelligent GitHub pull-request review platform that automatically analyzes code changes, identifies bugs and security vulnerabilities, suggests fixes, and posts actionable inline comments directly on GitHub.',
+    'High-assurance automated code reviews for GitHub pull requests. Deterministic AST security scanning, evidence-grounded AI analysis, and inline code suggestions.',
   keywords: [
     'AI Code Review',
     'GitHub Bot',
@@ -23,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-background text-slate-100 min-h-screen antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
+    <html lang="en" className="dark scroll-smooth">
+      <body className="bg-[#08090C] text-[#EDEDEF] min-h-screen antialiased selection:bg-blue-500/25 selection:text-blue-100 font-sans">
         {children}
       </body>
     </html>

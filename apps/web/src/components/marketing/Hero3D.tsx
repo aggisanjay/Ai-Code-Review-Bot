@@ -10,7 +10,6 @@ export function Hero3D() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Check WebGL availability
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -24,160 +23,184 @@ export function Hero3D() {
     }
 
     const container = containerRef.current;
-    const width = container.clientWidth || 600;
-    const height = container.clientHeight || 500;
+    const width = container.clientWidth || 550;
+    const height = container.clientHeight || 480;
 
     // Three.js Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 0, 14);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+    camera.position.set(0, 0, 13);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // Group for layered code review workspace
-    const mainGroup = new THREE.Group();
-    scene.add(mainGroup);
+    const rootGroup = new THREE.Group();
+    scene.add(rootGroup);
 
-    // 1. Central Abstract Review Core (Geometric Icosahedron)
-    const coreGeometry = new THREE.IcosahedronGeometry(1.8, 1);
-    const coreMaterial = new THREE.MeshStandardMaterial({
-      color: 0x6366f1, // Indigo
-      wireframe: true,
-      emissive: 0x4f46e5,
-      emissiveIntensity: 0.4,
+    // 1. Dark Titanium Monolith / Octahedron Core
+    const coreGeo = new THREE.OctahedronGeometry(2.0, 2);
+    const coreMat = new THREE.MeshStandardMaterial({
+      color: 0x0f131a,
+      roughness: 0.25,
+      metalness: 0.9,
+      flatShading: true,
     });
-    const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
-    mainGroup.add(coreMesh);
+    const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+    rootGroup.add(coreMesh);
 
-    // Inner glowing sphere
-    const innerGeo = new THREE.SphereGeometry(1.0, 16, 16);
-    const innerMat = new THREE.MeshBasicMaterial({
-      color: 0x06b6d4, // Cyan
-      wireframe: true,
-    });
-    const innerSphere = new THREE.Mesh(innerGeo, innerMat);
-    mainGroup.add(innerSphere);
-
-    // 2. Layered Floating Code Panels (Planes)
-    const panelGeo = new THREE.PlaneGeometry(3.5, 2.2);
-    const panelMaterial1 = new THREE.MeshStandardMaterial({
-      color: 0x0f172a,
-      roughness: 0.2,
-      metalness: 0.8,
+    // Wireframe overlay for architectural telemetry
+    const wireframeGeo = new THREE.WireframeGeometry(coreGeo);
+    const wireframeMat = new THREE.LineBasicMaterial({
+      color: 0x2563eb,
       transparent: true,
-      opacity: 0.85,
-      side: THREE.DoubleSide,
+      opacity: 0.35,
     });
-    const panel1 = new THREE.Mesh(panelGeo, panelMaterial1);
-    panel1.position.set(-2.8, 1.2, -1);
-    panel1.rotation.set(0.1, 0.35, -0.05);
-    mainGroup.add(panel1);
+    const wireframe = new THREE.LineSegments(wireframeGeo, wireframeMat);
+    coreMesh.add(wireframe);
 
-    const panelMaterial2 = new THREE.MeshStandardMaterial({
-      color: 0x1e1b4b,
-      roughness: 0.2,
-      metalness: 0.8,
-      transparent: true,
-      opacity: 0.85,
-      side: THREE.DoubleSide,
+    // 2. Telemetry Scanner Rings (AST & Diff Scan Layers)
+    const scanRings: THREE.Mesh[] = [];
+    for (let i = 0; i < 3; i++) {
+      const ringGeo = new THREE.RingGeometry(2.8 + i * 0.7, 2.82 + i * 0.7, 64);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: i === 0 ? 0x3b82f6 : i === 1 ? 0x10b981 : 0x64748b,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.25 - i * 0.05,
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2 + (i * 0.2);
+      ring.rotation.y = i * 0.4;
+      rootGroup.add(ring);
+      scanRings.push(ring);
+    }
+
+    // 3. Precision Node Points (Commits, AST, Grounding)
+    const nodeCoords = [
+      { pos: new THREE.Vector3(-3.2, 1.4, 1.2), color: 0x3b82f6, label: 'COMMIT' },
+      { pos: new THREE.Vector3(3.0, -1.2, 0.8), color: 0x10b981, label: 'GROUNDED' },
+      { pos: new THREE.Vector3(-1.8, -2.4, -1.0), color: 0xf43f5e, label: 'VULN_RULE' },
+      { pos: new THREE.Vector3(2.4, 2.2, -1.2), color: 0xf59e0b, label: 'AST_SCAN' },
+    ];
+
+    const nodeMeshes: THREE.Mesh[] = [];
+    nodeCoords.forEach((item) => {
+      // Outer subtle ring
+      const ringGeo = new THREE.RingGeometry(0.24, 0.28, 24);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: item.color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.6,
+      });
+      const rMesh = new THREE.Mesh(ringGeo, ringMat);
+      rMesh.position.copy(item.pos);
+      rootGroup.add(rMesh);
+
+      // Inner solid point
+      const pGeo = new THREE.SphereGeometry(0.12, 16, 16);
+      const pMat = new THREE.MeshBasicMaterial({ color: item.color });
+      const pMesh = new THREE.Mesh(pGeo, pMat);
+      pMesh.position.copy(item.pos);
+      rootGroup.add(pMesh);
+      nodeMeshes.push(pMesh);
+
+      // Connecting data line back to central core
+      const points = [item.pos, new THREE.Vector3(0, 0, 0)];
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const lineMat = new THREE.LineDashedMaterial({
+        color: item.color,
+        dashSize: 0.2,
+        gapSize: 0.1,
+        transparent: true,
+        opacity: 0.3,
+      });
+      const line = new THREE.Line(lineGeo, lineMat);
+      line.computeLineDistances();
+      rootGroup.add(line);
     });
-    const panel2 = new THREE.Mesh(panelGeo, panelMaterial2);
-    panel2.position.set(2.8, -1.0, 1);
-    panel2.rotation.set(-0.1, -0.3, 0.05);
-    mainGroup.add(panel2);
 
-    // 3. Floating Review Finding Nodes (Glowing Particles/Spheres)
-    const nodeGeometry = new THREE.SphereGeometry(0.14, 12, 12);
-    const nodeMaterialCritical = new THREE.MeshBasicMaterial({ color: 0xef4444 }); // Red
-    const nodeMaterialSafe = new THREE.MeshBasicMaterial({ color: 0x10b981 }); // Green
-    const nodeMaterialCyan = new THREE.MeshBasicMaterial({ color: 0x06b6d4 }); // Cyan
+    // 4. Subtle Architectural Grid Plane
+    const gridHelper = new THREE.GridHelper(10, 20, 0x1e2433, 0x111622);
+    gridHelper.position.y = -3.2;
+    rootGroup.add(gridHelper);
 
-    const node1 = new THREE.Mesh(nodeGeometry, nodeMaterialCritical);
-    node1.position.set(-1.8, 2.1, 0.8);
-    mainGroup.add(node1);
-
-    const node2 = new THREE.Mesh(nodeGeometry, nodeMaterialSafe);
-    node2.position.set(2.2, 1.6, -0.5);
-    mainGroup.add(node2);
-
-    const node3 = new THREE.Mesh(nodeGeometry, nodeMaterialCyan);
-    node3.position.set(0.8, -2.4, 0.6);
-    mainGroup.add(node3);
-
-    // 4. Subtle Ambient & Directional Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // 5. Precision Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0x818cf8, 2.5, 50);
-    pointLight.position.set(5, 5, 8);
-    scene.add(pointLight);
+    const topKeyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    topKeyLight.position.set(6, 10, 8);
+    scene.add(topKeyLight);
 
-    const cyanPointLight = new THREE.PointLight(0x06b6d4, 2.0, 40);
-    cyanPointLight.position.set(-5, -4, 5);
-    scene.add(cyanPointLight);
+    const rimBlueLight = new THREE.PointLight(0x2563eb, 3.0, 30);
+    rimBlueLight.position.set(-6, 2, 4);
+    scene.add(rimBlueLight);
 
-    // Pointer Parallax Movement
+    const rimEmeraldLight = new THREE.PointLight(0x10b981, 1.5, 20);
+    rimEmeraldLight.position.set(6, -4, 2);
+    scene.add(rimEmeraldLight);
+
+    // Mouse Tracking with Damped Inertia
     let mouseX = 0;
     let mouseY = 0;
     let targetX = 0;
     let targetY = 0;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
       mouseY = -((e.clientY - rect.top) / rect.height - 0.5) * 2;
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', onMouseMove);
 
     // Animation Loop
-    let animationFrameId: number;
-    let clock = new THREE.Clock();
+    let animId: number;
+    const clock = new THREE.Clock();
 
     const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
+      animId = requestAnimationFrame(animate);
+      const time = clock.getElapsedTime();
 
-      // Smooth parallax interpolation
-      targetX += (mouseX * 0.4 - targetX) * 0.05;
-      targetY += (mouseY * 0.4 - targetY) * 0.05;
+      // Smooth inertia
+      targetX += (mouseX * 0.35 - targetX) * 0.05;
+      targetY += (mouseY * 0.35 - targetY) * 0.05;
 
-      mainGroup.rotation.y = elapsedTime * 0.15 + targetX;
-      mainGroup.rotation.x = Math.sin(elapsedTime * 0.2) * 0.1 + targetY;
+      rootGroup.rotation.y = time * 0.08 + targetX;
+      rootGroup.rotation.x = Math.sin(time * 0.15) * 0.06 + targetY;
 
-      // Inner core counter-rotation
-      coreMesh.rotation.y = elapsedTime * 0.25;
-      coreMesh.rotation.z = elapsedTime * 0.15;
-      innerSphere.rotation.y = -elapsedTime * 0.35;
+      // Pulse scan rings
+      scanRings.forEach((ring, idx) => {
+        ring.rotation.z = time * (0.05 * (idx % 2 === 0 ? 1 : -1));
+      });
 
-      // Subtle bobbing of panels
-      panel1.position.y = 1.2 + Math.sin(elapsedTime * 0.8) * 0.15;
-      panel2.position.y = -1.0 + Math.cos(elapsedTime * 0.8) * 0.15;
+      // Core faceted rotation
+      coreMesh.rotation.y = time * 0.12;
+      coreMesh.rotation.x = Math.sin(time * 0.2) * 0.1;
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // Resize Handler
-    const handleResize = () => {
+    const onResize = () => {
       if (!container) return;
-      const newW = container.clientWidth;
-      const newH = container.clientHeight;
-      camera.aspect = newW / newH;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(newW, newH);
+      renderer.setSize(w, h);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', onResize);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('resize', onResize);
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -186,25 +209,35 @@ export function Hero3D() {
   }, []);
 
   return (
-    <div className="relative w-full h-[420px] md:h-[520px] flex items-center justify-center">
+    <div className="relative w-full h-[400px] md:h-[460px] flex items-center justify-center">
       {hasWebGL ? (
-        <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+        <>
+          <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing select-none" />
+          
+          {/* Subtle Telemetry Overlay Tags */}
+          <div className="absolute bottom-4 left-4 flex items-center gap-2 font-mono text-[11px] text-zinc-400 bg-[#0B0D12]/90 border border-white/[0.08] px-3 py-1.5 rounded-md backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>AST_PARSER: ACTIVE</span>
+            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-400">DIFF_DEPTH: 48 FILES</span>
+          </div>
+
+          <div className="absolute top-4 right-4 font-mono text-[11px] text-zinc-400 bg-[#0B0D12]/90 border border-white/[0.08] px-3 py-1.5 rounded-md backdrop-blur-md">
+            <span>GROUNDING: </span>
+            <span className="text-blue-400 font-semibold">ZERO-HALLUCINATION</span>
+          </div>
+        </>
       ) : (
-        // WebGL Fallback: Layered Glass Architectural Mockup
         <div className="w-full h-full flex items-center justify-center p-6">
-          <div className="relative w-80 h-64 glass-panel rounded-2xl p-6 border border-brand-500/30 shadow-glow flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-cyan-400">DIFF_ANALYZER_CORE</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="w-80 surface-card rounded-xl p-5 border border-white/[0.08]">
+            <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-4">
+              <span>SECURITY_MONOLITH</span>
+              <span className="text-emerald-400">ONLINE</span>
             </div>
-            <div className="space-y-2">
-              <div className="h-2 w-3/4 bg-slate-700/60 rounded" />
-              <div className="h-2 w-1/2 bg-brand-500/40 rounded" />
-              <div className="h-2 w-5/6 bg-slate-700/60 rounded" />
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono">1 CRITICAL</span>
-              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">VERIFIED</span>
+            <div className="space-y-2 text-xs font-mono text-zinc-500">
+              <div className="h-2 w-full bg-zinc-800 rounded" />
+              <div className="h-2 w-3/4 bg-blue-900/60 rounded" />
+              <div className="h-2 w-5/6 bg-zinc-800 rounded" />
             </div>
           </div>
         </div>
