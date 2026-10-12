@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { FINDING_CATEGORIES, FINDING_SEVERITIES, REVIEW_STATUSES, ORG_ROLES, PLAN_TIERS } from '../constants';
+import { FINDING_CATEGORIES, FINDING_SEVERITIES, REVIEW_STATUSES, ORG_ROLES, PLAN_TIERS } from './constants';
 
 export const FindingSeveritySchema = z.enum(FINDING_SEVERITIES);
 export const FindingCategorySchema = z.enum(FINDING_CATEGORIES);

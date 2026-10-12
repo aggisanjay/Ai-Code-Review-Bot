@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc -b",
-    "start": "node dist/main.js",
+    "start": "tsx src/main.ts",
     "test": "node --test"
   },
   "dependencies": {
@@ -16,10 +16,8 @@
     "bullmq": "^6.3.12",
     "dotenv": "^16.4.5",
     "ioredis": "^6.0.0",
+    "tsx": "^4.19.1",
     "@types/node": "^22.7.5",
     "typescript": "^5.6.3"
-  },
-  "devDependencies": {
-    "tsx": "^4.19.1"
   }
 }

@@ -5,8 +5,8 @@ import {
   OrgRole,
   PlanTier,
   PlanLimits,
-} from '../constants';
-import { ReviewFinding, ReviewSummary, ReviewPolicy } from '../schemas';
+} from './constants';
+import { ReviewFinding, ReviewSummary, ReviewPolicy } from './schemas';
 
 export interface UserSession {
   id: string;
