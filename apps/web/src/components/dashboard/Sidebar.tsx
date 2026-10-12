@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   GitPullRequest,
@@ -11,11 +11,76 @@ import {
   Settings,
   LogOut,
   Building2,
-  Sparkles,
 } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [org, setOrg] = useState<{ name: string; plan: string } | null>(null);
+  const [usage, setUsage] = useState<{ reviewsUsed: number; reviewsLimit: number } | null>(null);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) return;
+
+    // Fetch user profile and active organization
+    fetch(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          localStorage.removeItem('reviewflow_token');
+          router.push('/login');
+          return null;
+        }
+        return res.json();
+      })
+      .then((json) => {
+        if (json?.data?.user) {
+          setUser({ name: json.data.user.name, email: json.data.user.email });
+        }
+        if (json?.data?.activeOrganization) {
+          setOrg({
+            name: json.data.activeOrganization.name,
+            plan: json.data.activeOrganization.plan,
+          });
+        }
+      })
+      .catch(() => {});
+
+    // Fetch real billing usage
+    fetch(`${API_URL}/billing/subscription`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.data?.usage) {
+          setUsage({
+            reviewsUsed: json.data.usage.reviewsUsed,
+            reviewsLimit: json.data.usage.reviewsLimit,
+          });
+        }
+      })
+      .catch(() => {});
+  }, [router]);
+
+  const handleLogout = async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (token) {
+      try {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {}
+    }
+    localStorage.removeItem('reviewflow_token');
+    router.push('/login');
+  };
 
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
@@ -24,6 +89,20 @@ export function Sidebar() {
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Settings & Policy', href: '/dashboard/settings', icon: Settings },
   ];
+
+  const userInitials = user?.name
+    ? user.name
+        .split(' ')
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : 'U';
+
+  const usagePercent =
+    usage && usage.reviewsLimit > 0
+      ? Math.min(100, Math.round((usage.reviewsUsed / usage.reviewsLimit) * 100))
+      : 0;
 
   return (
     <aside className="w-64 border-r border-white/[0.08] bg-[#090B0E] flex flex-col justify-between shrink-0 h-screen sticky top-0">
@@ -51,8 +130,12 @@ export function Sidebar() {
                 <Building2 className="w-3.5 h-3.5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-medium text-zinc-200">Acme Cloud</span>
-                <span className="text-[10px] text-emerald-400 font-mono">PRO Active</span>
+                <span className="text-xs font-medium text-zinc-200 truncate max-w-[140px]">
+                  {org?.name || 'Workspace'}
+                </span>
+                <span className="text-[10px] text-emerald-400 font-mono">
+                  {org?.plan || 'FREE'} Active
+                </span>
               </div>
             </div>
           </div>
@@ -86,13 +169,15 @@ export function Sidebar() {
         <div className="p-2.5 rounded-lg bg-[#0E1117] border border-white/[0.07]">
           <div className="flex items-center justify-between text-[11px] mb-1.5 font-mono">
             <span className="text-zinc-400">Monthly Reviews</span>
-            <span className="text-zinc-200 font-semibold">38 / 500</span>
+            <span className="text-zinc-200 font-semibold">
+              {usage ? `${usage.reviewsUsed} / ${usage.reviewsLimit}` : '0 / 50'}
+            </span>
           </div>
           <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full w-[8%]" />
+            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${usagePercent}%` }} />
           </div>
           <div className="mt-1.5 flex items-center justify-between text-[10px] text-zinc-500 font-mono">
-            <span>Reset in 16d</span>
+            <span>Quota Usage</span>
             <Link href="/dashboard/settings" className="text-blue-400 hover:underline">
               Plan Details
             </Link>
@@ -103,16 +188,20 @@ export function Sidebar() {
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[11px] font-semibold text-zinc-200 font-mono">
-              AC
+              {userInitials}
             </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-zinc-200">Alex Chen</span>
-              <span className="text-[10px] text-zinc-500 font-mono">Staff Engineer</span>
+            <div className="flex flex-col truncate max-w-[130px]">
+              <span className="text-xs font-medium text-zinc-200 truncate">{user?.name || 'User'}</span>
+              <span className="text-[10px] text-zinc-500 font-mono truncate">{user?.email || ''}</span>
             </div>
           </div>
-          <Link href="/" title="Log out" className="text-zinc-500 hover:text-zinc-300 p-1">
+          <button
+            onClick={handleLogout}
+            title="Log out"
+            className="text-zinc-500 hover:text-rose-400 p-1 transition-colors"
+          >
             <LogOut className="w-3.5 h-3.5" />
-          </Link>
+          </button>
         </div>
       </div>
     </aside>

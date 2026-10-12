@@ -10,6 +10,7 @@ export interface AuthenticatedUser {
   name: string;
   organizationId: string;
   role: OrgRole;
+  sessionId?: string;
 }
 
 export interface AuthenticatedRequest extends Request {
@@ -28,23 +29,6 @@ export async function authenticateToken(
     null;
 
   if (!token) {
-    if (config.nodeEnv !== 'production') {
-      const demoUser = await prisma.user.findFirst({
-        where: { email: 'alex@reviewflow.ai' },
-        include: { memberships: true },
-      });
-      if (demoUser && demoUser.memberships.length > 0) {
-        req.user = {
-          id: demoUser.id,
-          email: demoUser.email,
-          name: demoUser.name,
-          organizationId: demoUser.memberships[0].organizationId,
-          role: demoUser.memberships[0].role as OrgRole,
-        };
-        return next();
-      }
-    }
-
     res.status(401).json({
       error: { code: 'UNAUTHORIZED', message: 'Authentication required. No bearer token provided.' },
     });
@@ -52,8 +36,13 @@ export async function authenticateToken(
   }
 
   try {
-    const payload = jwt.verify(token, config.jwtSecret) as { userId: string; organizationId?: string };
+    const payload = jwt.verify(token, config.jwtSecret) as {
+      userId: string;
+      organizationId?: string;
+      sessionId?: string;
+    };
 
+    // Verify user exists in database
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       include: { memberships: true },
@@ -66,7 +55,21 @@ export async function authenticateToken(
       return;
     }
 
-    // Determine active organization
+    // Verify session in database if sessionId was embedded
+    if (payload.sessionId) {
+      const dbSession = await prisma.session.findUnique({
+        where: { id: payload.sessionId },
+      });
+
+      if (!dbSession || dbSession.expiresAt < new Date()) {
+        res.status(401).json({
+          error: { code: 'SESSION_EXPIRED', message: 'Session has expired or been revoked. Please sign in again.' },
+        });
+        return;
+      }
+    }
+
+    // Determine active organization tenant boundary
     let orgId = payload.organizationId;
     let memberRole: OrgRole = 'MEMBER';
 
@@ -91,6 +94,7 @@ export async function authenticateToken(
       name: user.name,
       organizationId: orgId,
       role: memberRole,
+      sessionId: payload.sessionId,
     };
 
     next();

@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   BarChart,
   Bar,
@@ -16,30 +17,73 @@ import {
 } from 'recharts';
 import { Header } from '../../../components/dashboard/Header';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
 export default function AnalyticsPage() {
-  const trendData = [
-    { date: 'Oct 5', reviews: 4, findings: 11 },
-    { date: 'Oct 6', reviews: 6, findings: 16 },
-    { date: 'Oct 7', reviews: 5, findings: 12 },
-    { date: 'Oct 8', reviews: 8, findings: 22 },
-    { date: 'Oct 9', reviews: 7, findings: 18 },
-    { date: 'Oct 10', reviews: 10, findings: 26 },
-    { date: 'Oct 11', reviews: 9, findings: 20 },
-  ];
+  const router = useRouter();
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    fetch(`${API_URL}/analytics/overview`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          localStorage.removeItem('reviewflow_token');
+          router.push('/login');
+          return null;
+        }
+        return res.json();
+      })
+      .then((json) => {
+        if (json?.data) setData(json.data);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [router]);
+
+  const totalReviews = data?.totalReviews || 0;
+  const totalFindings = data?.totalFindings || 0;
+  const criticalBlocked = data?.criticalIssuesPrevented || 0;
+  const avgProcessingTime = data?.averageReviewDurationSeconds
+    ? `${data.averageReviewDurationSeconds} Seconds`
+    : '0.0 Seconds';
+  const timeSavedHours = data?.timeSavedHours ? `${data.timeSavedHours} hrs` : '0 hrs';
+
+  const trendData = (data?.reviewsTrend || []).map((t: any) => ({
+    date: t.date,
+    reviews: t.reviewsCount || 0,
+    findings: t.findingsCount || 0,
+  }));
+
+  const severity = data?.severityDistribution || {
+    CRITICAL: 0,
+    HIGH: 0,
+    MEDIUM: 0,
+    LOW: 0,
+  };
 
   const severityData = [
-    { name: 'Critical', value: 7, color: '#F43F5E' },
-    { name: 'High', value: 14, color: '#F97316' },
-    { name: 'Medium', value: 29, color: '#F59E0B' },
-    { name: 'Low / Info', value: 18, color: '#3B82F6' },
+    { name: 'Critical', value: severity.CRITICAL || 0, color: '#F43F5E' },
+    { name: 'High', value: severity.HIGH || 0, color: '#F97316' },
+    { name: 'Medium', value: severity.MEDIUM || 0, color: '#F59E0B' },
+    { name: 'Low / Info', value: (severity.LOW || 0) + (severity.INFO || 0), color: '#3B82F6' },
   ];
 
+  const categories = data?.categoryDistribution || {};
   const categoryData = [
-    { category: 'Security', count: 21 },
-    { category: 'Correctness', count: 18 },
-    { category: 'Performance', count: 12 },
-    { category: 'Testing', count: 9 },
-    { category: 'Maintainability', count: 8 },
+    { category: 'Security', count: categories.SECURITY || 0 },
+    { category: 'Correctness', count: categories.CORRECTNESS || 0 },
+    { category: 'Performance', count: categories.PERFORMANCE || 0 },
+    { category: 'Testing', count: categories.TESTING || 0 },
+    { category: 'Maintainability', count: categories.MAINTAINABILITY || 0 },
   ];
 
   return (
@@ -54,26 +98,28 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <div className="p-4 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
             <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">Total Defect Catches</span>
-            <div className="text-2xl font-bold text-white font-mono mt-1">68 Issues</div>
-            <span className="text-[11px] text-emerald-400 font-mono mt-1 block">98.6% accuracy rate</span>
+            <div className="text-2xl font-bold text-white font-mono mt-1">{totalFindings} Issues</div>
+            <span className="text-[11px] text-emerald-400 font-mono mt-1 block">
+              {totalReviews > 0 ? 'Persisted review telemetry' : 'No review events yet'}
+            </span>
           </div>
 
           <div className="p-4 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
             <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">Critical Blocked</span>
-            <div className="text-2xl font-bold text-rose-400 font-mono mt-1">7 Prevented</div>
-            <span className="text-[11px] text-zinc-500 font-mono mt-1 block">JWT fallbacks & race conditions</span>
+            <div className="text-2xl font-bold text-rose-400 font-mono mt-1">{criticalBlocked} Prevented</div>
+            <span className="text-[11px] text-zinc-500 font-mono mt-1 block">Pre-merge branch enforcement</span>
           </div>
 
           <div className="p-4 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
             <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">Avg Processing Time</span>
-            <div className="text-2xl font-bold text-white font-mono mt-1">8.4 Seconds</div>
-            <span className="text-[11px] text-zinc-500 font-mono mt-1 block">Sub-minute turnarounds</span>
+            <div className="text-2xl font-bold text-white font-mono mt-1">{avgProcessingTime}</div>
+            <span className="text-[11px] text-zinc-500 font-mono mt-1 block">Real execution latency</span>
           </div>
 
           <div className="p-4 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
-            <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">Estimated Model Cost</span>
-            <div className="text-2xl font-bold text-blue-400 font-mono mt-1">$0.56 / Mo</div>
-            <span className="text-[11px] text-zinc-500 font-mono mt-1 block">112,500 tokens used</span>
+            <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">Engineering Hours Saved</span>
+            <div className="text-2xl font-bold text-blue-400 font-mono mt-1">{timeSavedHours}</div>
+            <span className="text-[11px] text-zinc-500 font-mono mt-1 block">Calculated from review volume</span>
           </div>
         </div>
 
@@ -86,7 +132,7 @@ export default function AnalyticsPage() {
                 <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
                   Review Volume & Findings Trend
                 </h3>
-                <p className="text-xs text-zinc-400">Pull requests analyzed vs findings generated</p>
+                <p className="text-xs text-zinc-400">Pull requests analyzed vs findings generated (Past 7 Days)</p>
               </div>
               <div className="flex items-center gap-4 text-xs font-mono">
                 <span className="flex items-center gap-1.5 text-blue-400">
@@ -102,7 +148,7 @@ export default function AnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData}>
                   <XAxis dataKey="date" stroke="#4B5563" fontSize={11} />
-                  <YAxis stroke="#4B5563" fontSize={11} />
+                  <YAxis stroke="#4B5563" fontSize={11} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#0B0D12',
@@ -128,24 +174,30 @@ export default function AnalyticsPage() {
               <p className="text-xs text-zinc-400 mb-3">Distribution across all findings</p>
 
               <div className="h-44 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={severityData} dataKey="value" nameKey="name" innerRadius={42} outerRadius={66} paddingAngle={3}>
-                      {severityData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#0B0D12',
-                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                        borderRadius: '6px',
-                        fontSize: '11px',
-                        color: '#EDEDEF',
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                {totalFindings === 0 ? (
+                  <div className="h-full flex items-center justify-center text-xs text-zinc-500 font-mono">
+                    Zero findings recorded
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={severityData} dataKey="value" nameKey="name" innerRadius={42} outerRadius={66} paddingAngle={3}>
+                        {severityData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#0B0D12',
+                          borderColor: 'rgba(255, 255, 255, 0.1)',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          color: '#EDEDEF',
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -172,7 +224,7 @@ export default function AnalyticsPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryData}>
                 <XAxis dataKey="category" stroke="#4B5563" fontSize={11} />
-                <YAxis stroke="#4B5563" fontSize={11} />
+                <YAxis stroke="#4B5563" fontSize={11} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: '#0B0D12',

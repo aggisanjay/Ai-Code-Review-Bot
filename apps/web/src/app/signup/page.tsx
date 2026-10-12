@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GitPullRequest, ArrowRight, Lock, Mail, User, Building } from 'lucide-react';
+import { GitPullRequest, ArrowRight, Lock, Mail, User, Building, AlertCircle } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -12,13 +14,49 @@ export default function SignupPage() {
   const [orgName, setOrgName] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      router.push('/onboarding');
-    }, 400);
+    setError(null);
+
+    if (password.length < 8) {
+      setError('Password must contain at least 8 characters.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          orgName: orgName.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error?.message || 'Registration failed. Please check your information.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.data?.token) {
+        localStorage.setItem('reviewflow_token', data.data.token);
+        router.push('/dashboard');
+      } else {
+        router.push('/login');
+      }
+    } catch (err: any) {
+      setError(`Cannot reach API server at ${API_URL}. Ensure the backend server is running.`);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -49,6 +87,13 @@ export default function SignupPage() {
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         <div className="bg-[#0B0D12] border border-white/[0.08] py-7 px-6 shadow-2xl rounded-xl sm:px-8">
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <form className="space-y-3.5" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
@@ -64,7 +109,7 @@ export default function SignupPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
-                  placeholder="Alex Chen"
+                  placeholder="Alex Rivera"
                 />
               </div>
             </div>
@@ -83,7 +128,7 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                  placeholder="alex@company.com"
+                  placeholder="name@company.com"
                 />
               </div>
             </div>
@@ -98,11 +143,10 @@ export default function SignupPage() {
                 </div>
                 <input
                   type="text"
-                  required
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
-                  placeholder="Acme Cloud"
+                  placeholder="Acme Engineering"
                 />
               </div>
             </div>
@@ -129,16 +173,16 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 rounded-lg btn-primary text-xs font-medium"
+              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg btn-primary text-xs font-medium"
             >
-              <span>{isLoading ? 'Creating workspace...' : 'Get Started with ReviewFlow'}</span>
+              <span>{isLoading ? 'Creating account...' : 'Create Account & Organization'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
         </div>
 
         <p className="mt-5 text-center text-[11px] text-zinc-500 font-mono">
-          Free 14-day trial with full feature access. No credit card required.
+          Strict tenant isolation enabled. No demo data auto-populated.
         </p>
       </div>
     </div>

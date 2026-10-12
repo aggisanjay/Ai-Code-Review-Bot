@@ -80,7 +80,21 @@ const FAQS = [
 ];
 
 export default function HomePage() {
-  const [openFaqIndex, setOpenFaqIndex] = React.useState<number | null>(0);
+  const [openedFaqs, setOpenedFaqs] = React.useState<number[]>([0]);
+
+  const toggleFaq = (idx: number) => {
+    setOpenedFaqs((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    );
+  };
+
+  const toggleAll = () => {
+    if (openedFaqs.length === FAQS.length) {
+      setOpenedFaqs([]);
+    } else {
+      setOpenedFaqs(FAQS.map((_, i) => i));
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-[#08090C] text-[#EDEDEF] overflow-x-hidden">
@@ -448,22 +462,33 @@ export default function HomePage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 px-6 max-w-4xl mx-auto border-t border-white/[0.08]">
-        <div className="mb-8">
-          <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1">
-            Ordered Architecture & Safety FAQ
+      <section id="faq" className="scroll-mt-24 pt-28 pb-20 px-6 max-w-4xl mx-auto border-t border-white/[0.08]">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              <span>Architecture & Safety Knowledge Base</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xs text-zinc-400 mt-1 max-w-xl leading-relaxed">
+              Complete architectural answers regarding GitHub App permissions, execution sandboxing, prompt injection defenses, data privacy, and review policies.
+            </p>
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-xs text-zinc-400 mt-1">
-            Systematic breakdown covering installation, execution sandboxing, adversarial defense, data privacy, team policies, and billing.
-          </p>
+
+          <button
+            type="button"
+            onClick={toggleAll}
+            className="self-start sm:self-auto px-3 py-1.5 rounded-md bg-zinc-900 border border-white/[0.08] text-zinc-300 hover:text-white text-xs font-mono transition-colors shrink-0"
+          >
+            {openedFaqs.length === FAQS.length ? 'Collapse All' : 'Expand All Answers'}
+          </button>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {FAQS.map((faq, idx) => {
-            const isOpen = openFaqIndex === idx;
+            const isOpen = openedFaqs.includes(idx);
             return (
               <div
                 key={faq.num}
@@ -475,7 +500,7 @@ export default function HomePage() {
               >
                 <button
                   type="button"
-                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                  onClick={() => toggleFaq(idx)}
                   className="w-full p-4 text-left flex items-center justify-between gap-4 cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
@@ -486,7 +511,7 @@ export default function HomePage() {
                       <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 block">
                         {faq.category}
                       </span>
-                      <h4 className="font-medium text-xs text-zinc-200 mt-0.5">
+                      <h4 className="font-semibold text-xs sm:text-sm text-zinc-100 mt-0.5">
                         {faq.question}
                       </h4>
                     </div>
@@ -500,8 +525,8 @@ export default function HomePage() {
                 </button>
 
                 {isOpen && (
-                  <div className="px-4 pb-4 pt-1 text-xs text-zinc-400 leading-relaxed border-t border-white/[0.04]">
-                    <div className="pl-9 pr-4">
+                  <div className="px-4 pb-4 pt-1 text-xs sm:text-[13px] text-zinc-300 leading-relaxed border-t border-white/[0.04] bg-[#08090C]/50">
+                    <div className="pl-9 pr-4 py-1">
                       {faq.answer}
                     </div>
                   </div>

@@ -1,47 +1,128 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Building2,
   Users,
   CreditCard,
   Brain,
-  Key,
   Shield,
   CheckCircle2,
   Save,
-  Lock,
+  AlertCircle,
   ExternalLink,
 } from 'lucide-react';
 import { Header } from '../../../components/dashboard/Header';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
 export default function SettingsPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'org' | 'ai' | 'billing' | 'security'>('org');
-  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Form states
-  const [orgName, setOrgName] = useState('Acme Cloud Technologies');
-  const [aiProvider, setAiProvider] = useState('mock'); // 'gemini' | 'openai' | 'mock'
-  const [geminiKey, setGeminiKey] = useState('AIzaSyD-••••••••••••••••••••••••');
-  const [openaiKey, setOpenaiKey] = useState('sk-proj-••••••••••••••••••••••••');
-  const [currentPlan, setCurrentPlan] = useState<'FREE' | 'PRO' | 'TEAM'>('PRO');
+  // Profile & Org
+  const [org, setOrg] = useState<any>(null);
+  const [orgName, setOrgName] = useState('');
+  const [members, setMembers] = useState<any[]>([]);
 
-  const members = [
-    { name: 'Alex Chen', email: 'alex@reviewflow.ai', role: 'OWNER', avatar: 'AC' },
-    { name: 'Sarah Lin', email: 'sarah@acmecloud.io', role: 'ADMIN', avatar: 'SL' },
-    { name: 'David Kim', email: 'david@acmecloud.io', role: 'MEMBER', avatar: 'DK' },
-  ];
+  // Billing
+  const [billing, setBilling] = useState<any>(null);
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
-  const handleSave = (section: string) => {
-    setSaveFeedback(`${section} settings saved successfully.`);
-    setTimeout(() => setSaveFeedback(null), 2500);
+  // AI Settings
+  const [aiProvider, setAiProvider] = useState('gemini');
+
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    // Fetch user and organization
+    fetch(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          localStorage.removeItem('reviewflow_token');
+          router.push('/login');
+          return null;
+        }
+        return res.json();
+      })
+      .then((json) => {
+        if (json?.data?.activeOrganization) {
+          const activeOrg = json.data.activeOrganization;
+          setOrg(activeOrg);
+          setOrgName(activeOrg.name);
+
+          // Fetch members
+          fetch(`${API_URL}/organizations/${activeOrg.id}/members`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+            .then((mRes) => (mRes.ok ? mRes.json() : null))
+            .then((mJson) => {
+              if (mJson?.data) setMembers(mJson.data);
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {});
+
+    // Fetch subscription details
+    fetch(`${API_URL}/billing/subscription`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.data) setBilling(json.data);
+      })
+      .catch(() => {});
+  }, [router]);
+
+  const handleUpgradePlan = async (planTier: 'PRO' | 'TEAM') => {
+    setIsUpgrading(true);
+    setError(null);
+    setFeedback(null);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/billing/checkout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ planTier }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error?.message || 'Failed to initiate billing checkout.');
+        setIsUpgrading(false);
+        return;
+      }
+
+      if (json.data?.checkoutUrl) {
+        window.location.href = json.data.checkoutUrl;
+      } else {
+        setFeedback(`Plan upgrade checkout session generated: ${json.data?.sessionId || 'Ready'}`);
+        setIsUpgrading(false);
+      }
+    } catch (err: any) {
+      setError(`Billing request failed: ${err.message}`);
+      setIsUpgrading(false);
+    }
   };
 
-  const handleUpgradePlan = (newPlan: 'FREE' | 'PRO' | 'TEAM') => {
-    setCurrentPlan(newPlan);
-    setSaveFeedback(`Organization plan successfully updated to ${newPlan}.`);
-    setTimeout(() => setSaveFeedback(null), 3000);
-  };
+  const currentPlan = billing?.plan || org?.plan || 'FREE';
 
   return (
     <div className="flex-1 pb-16">
@@ -51,10 +132,17 @@ export default function SettingsPage() {
       />
 
       <div className="px-6 pt-6 space-y-5 max-w-5xl">
-        {saveFeedback && (
+        {feedback && (
           <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2 font-mono">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>{saveFeedback}</span>
+            <span>{feedback}</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2 font-mono">
+            <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -89,7 +177,9 @@ export default function SettingsPage() {
         {activeTab === 'org' && (
           <div className="space-y-5">
             <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-3.5">
-              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">Organization Profile</h3>
+              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
+                Organization Profile
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
                   <label className="text-zinc-400 block mb-1">Organization Name</label>
@@ -105,20 +195,10 @@ export default function SettingsPage() {
                   <input
                     type="text"
                     disabled
-                    value="acme-cloud"
+                    value={org?.slug || 'workspace'}
                     className="w-full bg-[#08090C] border border-white/[0.05] rounded-md p-2 text-zinc-500 font-mono"
                   />
                 </div>
-              </div>
-
-              <div className="flex justify-end pt-1">
-                <button
-                  onClick={() => handleSave('Organization')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs font-medium"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>Save Organization</span>
-                </button>
               </div>
             </div>
 
@@ -126,31 +206,33 @@ export default function SettingsPage() {
             <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">Team Members ({members.length})</h3>
-                  <p className="text-xs text-zinc-400">Users who have access to pull request review findings.</p>
+                  <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
+                    Team Members ({members.length})
+                  </h3>
+                  <p className="text-xs text-zinc-400">Authorized members with access to tenant repositories.</p>
                 </div>
-                <button className="px-3 py-1.5 rounded-lg btn-secondary text-xs font-medium">
-                  Invite Member
-                </button>
               </div>
 
               <div className="divide-y divide-white/[0.04] text-xs">
-                {members.map((m) => (
-                  <div key={m.email} className="py-2.5 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center font-bold text-zinc-300 font-mono text-[10px]">
-                        {m.avatar}
+                {members.map((m) => {
+                  const initial = (m.user?.name || m.user?.email || 'U').substring(0, 2).toUpperCase();
+                  return (
+                    <div key={m.id} className="py-2.5 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center font-bold text-zinc-300 font-mono text-[10px]">
+                          {initial}
+                        </div>
+                        <div>
+                          <span className="font-medium text-zinc-200 block text-xs">{m.user?.name}</span>
+                          <span className="text-[11px] text-zinc-500 font-mono">{m.user?.email}</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium text-zinc-200 block text-xs">{m.name}</span>
-                        <span className="text-[11px] text-zinc-500 font-mono">{m.email}</span>
-                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 border border-white/[0.06] text-zinc-400 font-mono">
+                        {m.role}
+                      </span>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 border border-white/[0.06] text-zinc-400 font-mono">
-                      {m.role}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -164,87 +246,39 @@ export default function SettingsPage() {
                 AI Provider Architecture & Model Selection
               </h3>
               <p className="text-xs text-zinc-400">
-                Configure which language model provider powers deep cross-file review analysis.
+                Worker executes reviews through Google Gemini or OpenAI with structured JSON schemas.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <label
-                onClick={() => setAiProvider('mock')}
-                className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
-                  aiProvider === 'mock'
-                    ? 'bg-[#121622] border-blue-500/50'
-                    : 'bg-[#0E1017] border-white/[0.05] hover:border-white/[0.1]'
-                }`}
-              >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div className="p-4 rounded-lg border bg-[#121622] border-blue-500/50">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-zinc-200">Mock Fixture Mode</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono">Zero Keys</span>
+                  <span className="font-semibold text-zinc-200">Google Gemini 1.5 Pro</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 font-mono">
+                    2M Context
+                  </span>
                 </div>
-                <p className="text-[11px] text-zinc-400">Fast, local mock reviews without API key quota requirements.</p>
-              </label>
-
-              <label
-                onClick={() => setAiProvider('gemini')}
-                className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
-                  aiProvider === 'gemini'
-                    ? 'bg-[#121622] border-blue-500/50'
-                    : 'bg-[#0E1017] border-white/[0.05] hover:border-white/[0.1]'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-zinc-200">Google Gemini 1.5</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 font-mono">2M Context</span>
-                </div>
-                <p className="text-[11px] text-zinc-400">Gemini 1.5 Pro with large context window for massive monorepo diffs.</p>
-              </label>
-
-              <label
-                onClick={() => setAiProvider('openai')}
-                className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
-                  aiProvider === 'openai'
-                    ? 'bg-[#121622] border-blue-500/50'
-                    : 'bg-[#0E1017] border-white/[0.05] hover:border-white/[0.1]'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-zinc-200">OpenAI GPT-4o</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 font-mono">Structured</span>
-                </div>
-                <p className="text-[11px] text-zinc-400">Native JSON schema validation with high reasoning benchmark accuracy.</p>
-              </label>
-            </div>
-
-            <div className="space-y-3 pt-2 text-xs">
-              <div>
-                <label className="text-zinc-400 block mb-1">Gemini API Key (Optional Override)</label>
-                <input
-                  type="password"
-                  value={geminiKey}
-                  onChange={(e) => setGeminiKey(e.target.value)}
-                  className="w-full bg-[#08090C] border border-white/[0.08] rounded-md p-2 text-zinc-200 font-mono text-xs focus:outline-none"
-                />
+                <p className="text-[11px] text-zinc-400">
+                  Default production LLM engine. Uses structured output mode to analyze large repository pull request diffs.
+                </p>
               </div>
 
-              <div>
-                <label className="text-zinc-400 block mb-1">OpenAI API Key (Optional Override)</label>
-                <input
-                  type="password"
-                  value={openaiKey}
-                  onChange={(e) => setOpenaiKey(e.target.value)}
-                  className="w-full bg-[#08090C] border border-white/[0.08] rounded-md p-2 text-zinc-200 font-mono text-xs focus:outline-none"
-                />
+              <div className="p-4 rounded-lg border bg-[#0E1017] border-white/[0.05]">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold text-zinc-200">Deterministic Static Rules</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono">
+                    Zero-latency
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400">
+                  Pre-flight AST checks for cryptographic secret fallbacks, eval execution, and prompt injection defense.
+                </p>
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => handleSave('AI Provider')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs font-medium"
-              >
-                <Save className="w-3.5 h-3.5" />
-                <span>Save Provider Settings</span>
-              </button>
+            <div className="p-3 rounded-lg bg-[#08090C] border border-white/[0.06] font-mono text-xs text-zinc-400 space-y-1">
+              <div>Provider Status: Configured via environment variables</div>
+              <div>Worker Execution Path: Durable BullMQ + Background Processor</div>
             </div>
           </div>
         )}
@@ -257,7 +291,7 @@ export default function SettingsPage() {
                 Subscription Tier & Review Quotas
               </h3>
               <p className="text-xs text-zinc-400">
-                Current active subscription plan for Acme Cloud Technologies.
+                Current active subscription plan for {org?.name || 'your workspace'}.
               </p>
             </div>
 
@@ -292,15 +326,19 @@ export default function SettingsPage() {
                     </p>
                   </div>
 
-                  {currentPlan !== tier ? (
+                  {currentPlan !== tier && tier !== 'FREE' ? (
                     <button
-                      onClick={() => handleUpgradePlan(tier)}
-                      className="mt-4 w-full py-1.5 rounded-md btn-secondary text-xs"
+                      onClick={() => handleUpgradePlan(tier as any)}
+                      disabled={isUpgrading}
+                      className="mt-4 w-full py-1.5 rounded-md btn-secondary text-xs flex items-center justify-center gap-1.5"
                     >
-                      Switch to {tier}
+                      <span>{isUpgrading ? 'Redirecting...' : `Upgrade to ${tier}`}</span>
+                      <ExternalLink className="w-3 h-3" />
                     </button>
-                  ) : (
+                  ) : currentPlan === tier ? (
                     <div className="mt-4 text-[11px] text-blue-400 font-mono text-center">Active Plan</div>
+                  ) : (
+                    <div className="mt-4 text-[11px] text-zinc-500 font-mono text-center">Base Tier</div>
                   )}
                 </div>
               ))}
@@ -313,10 +351,10 @@ export default function SettingsPage() {
           <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-4 text-xs">
             <div>
               <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
-                GitHub App Cryptographic Verification
+                GitHub App Cryptographic Verification & Multi-Tenancy
               </h3>
               <p className="text-xs text-zinc-400">
-                Security baseline and webhook signature verification status.
+                Security baseline, webhook verification, and tenant quarantine guarantees.
               </p>
             </div>
 
@@ -326,12 +364,16 @@ export default function SettingsPage() {
                 <span className="text-emerald-400 font-semibold">Active & Enforced</span>
               </div>
               <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05] flex items-center justify-between">
-                <span>Untrusted Diff Boundary Quarantining</span>
-                <span className="text-emerald-400 font-semibold">Enforced</span>
+                <span>Tenant Isolation on Webhook Ingestion</span>
+                <span className="text-emerald-400 font-semibold">Enforced via InstallationId</span>
               </div>
               <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05] flex items-center justify-between">
-                <span>Code Execution Sandbox Isolation</span>
-                <span className="text-emerald-400 font-semibold">Read-Only Static</span>
+                <span>Server-Enforced Database Sessions</span>
+                <span className="text-emerald-400 font-semibold">Active</span>
+              </div>
+              <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05] flex items-center justify-between">
+                <span>Webhook Delivery Deduplication</span>
+                <span className="text-emerald-400 font-semibold">Unique Constraint Enforced</span>
               </div>
             </div>
           </div>

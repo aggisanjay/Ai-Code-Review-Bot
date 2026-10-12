@@ -1,7 +1,11 @@
 import { prisma } from './index';
 
 export async function seedDatabase() {
-  console.log('🌱 Seeding ReviewFlow AI database with realistic SaaS data...');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('FATAL: Database seeding is prohibited in production environment.');
+  }
+
+  console.log('🌱 Seeding ReviewFlow AI database with realistic test fixture data for local development...');
 
   // Clean existing data for idempotency
   await prisma.findingFeedback.deleteMany();

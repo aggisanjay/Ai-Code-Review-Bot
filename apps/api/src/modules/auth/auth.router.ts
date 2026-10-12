@@ -8,26 +8,33 @@ import { authenticateToken, AuthenticatedRequest } from '../../common/auth.middl
 
 export const authRouter = Router();
 
-function hashPassword(password: string): string {
-  // Use PBKDF2 with sha512 for secure, standard password hashing without external binary addons
+export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString('hex');
   const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
   return `${salt}:${hash}`;
 }
 
-function verifyPassword(password: string, storedHash: string): boolean {
-  // If demo dummy argon hash from seed, allow 'Password123!'
-  if (storedHash.startsWith('$argon2id')) {
-    return password === 'Password123!';
+export function verifyPassword(password: string, storedHash: string): boolean {
+  if (!storedHash || !storedHash.includes(':')) {
+    return false;
   }
   const [salt, hash] = storedHash.split(':');
   if (!salt || !hash) return false;
-  const verifyHash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
-  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verifyHash, 'hex'));
+
+  try {
+    const verifyHash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+    return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(verifyHash, 'hex'));
+  } catch {
+    return false;
+  }
 }
 
-function generateToken(userId: string, organizationId?: string): string {
-  return jwt.sign({ userId, organizationId }, config.jwtSecret, { expiresIn: '7d' });
+function generateToken(userId: string, organizationId?: string, sessionId?: string): string {
+  return jwt.sign(
+    { userId, organizationId, sessionId },
+    config.jwtSecret,
+    { expiresIn: '30d' }
+  );
 }
 
 // POST /api/v1/auth/register
@@ -39,6 +46,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
   }
 
   const { email, password, name } = result.data;
+  const requestedOrgName = req.body.orgName || `${name}'s Team`;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -55,10 +63,10 @@ authRouter.post('/register', async (req: Request, res: Response) => {
   });
 
   // Automatically create user's initial organization
-  const slug = `${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Math.random().toString(36).substring(2, 6)}`;
+  const slug = `${requestedOrgName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Math.random().toString(36).substring(2, 6)}`;
   const org = await prisma.organization.create({
     data: {
-      name: `${name}'s Team`,
+      name: requestedOrgName,
       slug,
       plan: 'FREE',
     },
@@ -81,7 +89,17 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     },
   });
 
-  const token = generateToken(user.id, org.id);
+  // Create persistent session in database
+  const sessionToken = crypto.randomBytes(32).toString('hex');
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: sessionToken,
+      expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30 days
+    },
+  });
+
+  const token = generateToken(user.id, org.id, session.id);
 
   res.status(201).json({
     data: {
@@ -113,7 +131,18 @@ authRouter.post('/login', async (req: Request, res: Response) => {
   }
 
   const activeOrg = user.memberships[0];
-  const token = generateToken(user.id, activeOrg?.organizationId);
+
+  // Create durable session in database
+  const sessionToken = crypto.randomBytes(32).toString('hex');
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: sessionToken,
+      expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+    },
+  });
+
+  const token = generateToken(user.id, activeOrg?.organizationId, session.id);
 
   res.json({
     data: {
@@ -129,6 +158,86 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         : null,
       token,
     },
+  });
+});
+
+// POST /api/v1/auth/logout
+authRouter.post('/logout', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  if (req.user?.sessionId) {
+    await prisma.session.deleteMany({
+      where: { id: req.user.sessionId },
+    });
+  }
+
+  res.json({
+    data: { success: true, message: 'Logged out successfully.' },
+  });
+});
+
+// POST /api/v1/auth/forgot-password
+authRouter.post('/forgot-password', async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email || typeof email !== 'string') {
+    res.status(400).json({ error: { code: 'INVALID_EMAIL', message: 'Valid email required.' } });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  // Always return success to prevent user enumeration attacks
+  if (!user) {
+    res.json({ data: { message: 'If an account exists, a password reset link has been dispatched.' } });
+    return;
+  }
+
+  // Create reset session token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: `reset_${resetToken}`,
+      expiresAt: new Date(Date.now() + 3600 * 1000), // 1 hour expiration
+    },
+  });
+
+  res.json({
+    data: {
+      message: 'If an account exists, a password reset link has been dispatched.',
+      // In development mode, provide token for testing reset flow
+      ...(config.nodeEnv !== 'production' ? { devResetToken: resetToken } : {}),
+    },
+  });
+});
+
+// POST /api/v1/auth/reset-password
+authRouter.post('/reset-password', async (req: Request, res: Response) => {
+  const { token, newPassword } = req.body;
+  if (!token || !newPassword || newPassword.length < 8) {
+    res.status(400).json({
+      error: { code: 'INVALID_REQUEST', message: 'Valid token and password of at least 8 characters required.' },
+    });
+    return;
+  }
+
+  const session = await prisma.session.findUnique({
+    where: { token: `reset_${token}` },
+    include: { user: true },
+  });
+
+  if (!session || session.expiresAt < new Date()) {
+    res.status(400).json({ error: { code: 'INVALID_OR_EXPIRED_TOKEN', message: 'Reset token is invalid or has expired.' } });
+    return;
+  }
+
+  await prisma.user.update({
+    where: { id: session.userId },
+    data: { passwordHash: hashPassword(newPassword) },
+  });
+
+  // Invalidate reset session
+  await prisma.session.delete({ where: { id: session.id } });
+
+  res.json({
+    data: { success: true, message: 'Password has been reset successfully. You may now log in.' },
   });
 });
 
