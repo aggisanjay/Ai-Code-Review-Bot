@@ -24,7 +24,8 @@
     "db:migrate": "node packages/database/scripts/sync-schema.js && prisma migrate dev --schema=packages/database/prisma/schema.prisma",
     "db:seed": "tsx packages/database/src/seed.ts",
     "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "postinstall": "npm run db:generate"
   },
   "dependencies": {
     "prisma": "^5.21.1",

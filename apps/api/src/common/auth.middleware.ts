@@ -70,18 +70,18 @@ export async function authenticateToken(
     }
 
     // Determine active organization tenant boundary
-    let orgId = payload.organizationId;
+    let orgId: string = payload.organizationId || '';
     let memberRole: OrgRole = 'MEMBER';
 
-    if (orgId) {
-      const mem = user.memberships.find((m) => m.organizationId === orgId);
+    if (orgId && user.memberships) {
+      const mem = user.memberships.find((m: any) => m.organizationId === orgId);
       if (mem) {
         memberRole = mem.role as OrgRole;
       } else if (user.memberships.length > 0) {
         orgId = user.memberships[0].organizationId;
         memberRole = user.memberships[0].role as OrgRole;
       }
-    } else if (user.memberships.length > 0) {
+    } else if (user.memberships && user.memberships.length > 0) {
       orgId = user.memberships[0].organizationId;
       memberRole = user.memberships[0].role as OrgRole;
     } else {
