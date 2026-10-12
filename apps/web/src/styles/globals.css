@@ -1,59 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --foreground: #EDEDEF;
-  --background: #08090C;
+  --background: #FFFFFF;
+  --foreground: #14211D;
+  --muted: #66736D;
+  --accent: #126B50;
+  --accent-hover: #0B523D;
+  --accent-surface: #EAF5EF;
+  --border: #E4EAE6;
+  --card: #FFFFFF;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: #14211D;
+  background: #FFFFFF;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Developer tool scrollbar */
+/* Subtle clean scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #08090C;
+  background: #F7F9F8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1C202A;
-  border-radius: 2px;
+  background: #D5DFDA;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2C3345;
+  background: #126B50;
 }
 
-/* Background grid patterns */
+/* Background grid & subtle dot pattern */
 .bg-grid-pattern {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(20, 33, 29, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 33, 29, 0.04) 1px, transparent 1px);
 }
 
 .bg-dot-pattern {
   background-size: 24px 24px;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(20, 33, 29, 0.07) 1.2px, transparent 1.2px);
 }
 
-/* Precision surface cards */
+/* Sleek surface cards */
 .surface-card {
-  background: #0D0F14;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #FFFFFF;
+  border: 1px solid #E4EAE6;
+  box-shadow: 0 1px 3px 0 rgba(16, 24, 40, 0.03), 0 1px 2px -1px rgba(16, 24, 40, 0.03);
 }
 
 .surface-card-hover {
@@ -61,54 +68,66 @@ body {
 }
 
 .surface-card-hover:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: #12151D;
+  border-color: #C7E4D6;
+  box-shadow: 0 10px 25px -5px rgba(18, 107, 80, 0.08), 0 4px 6px -2px rgba(16, 24, 40, 0.03);
+  transform: translateY(-1px);
 }
 
-/* Engineering buttons */
+/* Sleek-inspired buttons */
 .btn-primary {
-  background: #2563EB;
+  background: #126B50;
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  transition: all 0.15s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 2px rgba(11, 82, 61, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-weight: 500;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-primary:hover {
-  background: #1D4ED8;
-  border-color: rgba(255, 255, 255, 0.25);
+  background: #0B523D;
+  box-shadow: 0 4px 12px rgba(18, 107, 80, 0.22);
   transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0px);
 }
 
 .btn-secondary {
-  background: #12141C;
-  color: #E2E8F0;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  transition: all 0.15s ease-out;
+  background: #FFFFFF;
+  color: #14211D;
+  border: 1px solid #E4EAE6;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  font-weight: 500;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-secondary:hover {
-  background: #191D28;
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #FFFFFF;
+  background: #F7F9F8;
+  border-color: #D5DFDA;
+  color: #0B523D;
   transform: translateY(-1px);
 }
 
-/* GitHub-authentic code diff syntax */
+.btn-secondary:active {
+  transform: translateY(0px);
+}
+
+/* Clean code diff syntax */
 .diff-add {
-  background-color: rgba(35, 134, 54, 0.16);
-  color: #7EE787;
-  border-left: 3px solid #238636;
+  background-color: rgba(22, 131, 91, 0.08);
+  color: #126B50;
+  border-left: 3px solid #16835B;
 }
 
 .diff-del {
-  background-color: rgba(218, 54, 51, 0.16);
-  color: #FFA198;
-  border-left: 3px solid #DA3633;
+  background-color: rgba(196, 61, 75, 0.08);
+  color: #C43D4B;
+  border-left: 3px solid #C43D4B;
 }
 
 .diff-context {
-  color: #8B949E;
+  color: #66736D;
 }
 
 /* Monospace code blocks */

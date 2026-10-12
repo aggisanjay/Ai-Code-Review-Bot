@@ -14,7 +14,6 @@ import {
   FolderGit2,
   Plus,
   Github,
-  ExternalLink,
 } from 'lucide-react';
 import { Header } from '../../components/dashboard/Header';
 
@@ -119,28 +118,32 @@ export default function DashboardOverviewPage() {
       value: String(totalReviews),
       change: totalReviews > 0 ? 'Persisted review jobs' : 'No review events yet',
       icon: GitPullRequest,
-      iconColor: 'text-blue-400',
+      iconColor: 'text-[#126B50]',
+      iconBg: 'bg-[#EAF5EF]',
     },
     {
-      title: 'Critical Vulnerabilities Blocked',
+      title: 'Critical Issues Blocked',
       value: String(criticalBlocked),
       change: criticalBlocked > 0 ? 'Pre-merge protection' : 'Zero critical defects',
       icon: ShieldAlert,
-      iconColor: 'text-rose-400',
+      iconColor: 'text-[#C43D4B]',
+      iconBg: 'bg-[#FDE8E8]',
     },
     {
       title: 'Average Turnaround',
       value: avgTurnaround,
       change: 'Sub-minute cycle target',
       icon: Clock,
-      iconColor: 'text-sky-400',
+      iconColor: 'text-[#126B50]',
+      iconBg: 'bg-[#EAF5EF]',
     },
     {
       title: 'Engineering Hours Saved',
       value: hoursSaved,
       change: 'Grounded team velocity',
       icon: Zap,
-      iconColor: 'text-amber-400',
+      iconColor: 'text-[#B7791F]',
+      iconBg: 'bg-[#FEF3C7]',
     },
   ];
 
@@ -158,72 +161,76 @@ export default function DashboardOverviewPage() {
     (severity.LOW || 0);
 
   return (
-    <div className="flex-1 pb-16">
+    <div className="flex-1 pb-16 bg-[#F7F9F8]">
       <Header
         title="Dashboard Overview"
         description="Automated code review telemetry, pull request security posture, and velocity."
         isConnected={isLiveConnected}
         action={
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#0D0F14] border border-white/[0.08] text-xs font-mono">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E4EAE6] text-xs font-mono shadow-sleek-sm">
             <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'
+              className={`w-2 h-2 rounded-full ${
+                isLiveConnected ? 'bg-[#16835B] animate-pulse' : 'bg-zinc-400'
               }`}
             />
-            <span className={isLiveConnected ? 'text-emerald-400 font-semibold' : 'text-zinc-400'}>
+            <span className={isLiveConnected ? 'text-[#126B50] font-semibold' : 'text-[#66736D]'}>
               {isLiveConnected ? `Live Sync (${lastSyncTime})` : 'Connecting...'}
             </span>
           </div>
         }
       />
 
-      <div className="px-6 pt-6 space-y-6 max-w-7xl">
+      <div className="px-6 sm:px-8 pt-8 space-y-7 max-w-7xl mx-auto">
         {/* Prominent Connect GitHub Banner when disconnected */}
         {!isLoading && installations.length === 0 && (
-          <div className="p-5 rounded-xl bg-gradient-to-r from-blue-950/40 via-[#0E1017] to-purple-950/30 border border-blue-500/30 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start sm:items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/[0.1] flex items-center justify-center shrink-0">
-                <Github className="w-5 h-5 text-white" />
+          <div className="p-6 rounded-2xl bg-white border border-[#C7E4D6] shadow-sleek-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
+            <div className="flex items-start sm:items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center shrink-0">
+                <Github className="w-6 h-6 text-[#126B50]" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-[#14211D] flex items-center gap-2.5 font-display">
                   <span>Connect Your GitHub Account or Organization</span>
-                  <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[10px] font-mono border border-blue-500/30">Action Required</span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] text-[10px] font-mono border border-[#C7E4D6] font-bold">
+                    Action Required
+                  </span>
                 </h3>
-                <p className="text-xs text-zinc-400 mt-0.5 max-w-2xl">
+                <p className="text-xs sm:text-sm text-[#66736D] mt-1 max-w-2xl leading-relaxed">
                   Install the official ReviewFlow AI GitHub App on your repositories to enable automated pull request code reviews and security scanning. No personal access tokens or Gemini keys needed.
                 </p>
               </div>
             </div>
             <Link
               href="/dashboard/repositories"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg btn-primary text-xs font-medium shrink-0 shadow-lg hover:shadow-blue-500/20"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary text-xs font-semibold shrink-0 shadow-sm"
             >
-              <Github className="w-3.5 h-3.5" />
+              <Github className="w-4 h-4" />
               <span>Connect GitHub</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="w-4 h-4" />
             </Link>
           </div>
         )}
 
         {/* Metric Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => {
             const Icon = stat.icon;
             return (
               <div
                 key={i}
-                className="p-4 rounded-xl bg-[#0B0D12] border border-white/[0.07] hover:border-white/[0.12] transition-all"
+                className="p-5 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm hover:shadow-sleek-md hover:border-[#C7E4D6] transition-all"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono text-zinc-400 uppercase tracking-wider">{stat.title}</span>
-                  <div className="w-6 h-6 rounded-md bg-zinc-900 border border-white/[0.06] flex items-center justify-center">
-                    <Icon className={`w-3.5 h-3.5 ${stat.iconColor}`} />
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-mono text-[#66736D] uppercase tracking-wider font-semibold">
+                    {stat.title}
+                  </span>
+                  <div className={`w-8 h-8 rounded-xl ${stat.iconBg} flex items-center justify-center`}>
+                    <Icon className={`w-4 h-4 ${stat.iconColor}`} />
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-white font-mono">{stat.value}</div>
-                <div className="text-[11px] text-zinc-500 mt-1 flex items-center gap-1 font-mono">
-                  <TrendingUp className="w-3 h-3 text-emerald-400" />
+                <div className="text-3xl font-bold text-[#14211D] font-mono tracking-tight">{stat.value}</div>
+                <div className="text-[11px] text-[#66736D] mt-2 flex items-center gap-1.5 font-mono">
+                  <TrendingUp className="w-3.5 h-3.5 text-[#16835B]" />
                   <span>{stat.change}</span>
                 </div>
               </div>
@@ -232,80 +239,80 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Severity Distribution & Engine Status */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Finding Breakdown Card */}
-          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
+          <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
                 Findings by Severity
               </h3>
-              <span className="text-[11px] text-zinc-500 font-mono">Persisted</span>
+              <span className="text-[11px] text-[#66736D] font-mono">Persisted</span>
             </div>
 
             {totalFindings === 0 ? (
-              <div className="py-8 text-center space-y-2">
-                <span className="text-xs text-zinc-400 font-mono block">Zero findings recorded</span>
-                <span className="text-[11px] text-zinc-500 font-mono block">
+              <div className="py-10 text-center space-y-2">
+                <span className="text-xs text-[#14211D] font-mono font-medium block">Zero findings recorded</span>
+                <span className="text-[11px] text-[#66736D] font-mono block">
                   Reviews will populate severity metrics automatically.
                 </span>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-rose-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400" /> Critical
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-[#C43D4B] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#C43D4B]" /> Critical
                     </span>
-                    <span className="text-zinc-300 font-mono font-bold text-xs">{severity.CRITICAL}</span>
+                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.CRITICAL}</span>
                   </div>
-                  <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
                     <div
-                      className="h-full bg-rose-500 rounded-full"
+                      className="h-full bg-[#C43D4B] rounded-full"
                       style={{ width: `${Math.round((severity.CRITICAL / totalFindings) * 100)}%` }}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-orange-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400" /> High
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-[#B7791F] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#B7791F]" /> High
                     </span>
-                    <span className="text-zinc-300 font-mono font-bold text-xs">{severity.HIGH}</span>
+                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.HIGH}</span>
                   </div>
-                  <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
                     <div
-                      className="h-full bg-orange-500 rounded-full"
+                      className="h-full bg-[#B7791F] rounded-full"
                       style={{ width: `${Math.round((severity.HIGH / totalFindings) * 100)}%` }}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-amber-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Medium
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-[#126B50] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#126B50]" /> Medium
                     </span>
-                    <span className="text-zinc-300 font-mono font-bold text-xs">{severity.MEDIUM}</span>
+                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.MEDIUM}</span>
                   </div>
-                  <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
                     <div
-                      className="h-full bg-amber-500 rounded-full"
+                      className="h-full bg-[#126B50] rounded-full"
                       style={{ width: `${Math.round((severity.MEDIUM / totalFindings) * 100)}%` }}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-blue-400 font-medium flex items-center gap-1.5 font-mono text-[11px]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" /> Low & Info
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-[#66736D] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#66736D]" /> Low & Info
                     </span>
-                    <span className="text-zinc-300 font-mono font-bold text-xs">{severity.LOW}</span>
+                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.LOW}</span>
                   </div>
-                  <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
                     <div
-                      className="h-full bg-blue-500 rounded-full"
+                      className="h-full bg-[#66736D] rounded-full"
                       style={{ width: `${Math.round((severity.LOW / totalFindings) * 100)}%` }}
                     />
                   </div>
@@ -315,89 +322,89 @@ export default function DashboardOverviewPage() {
           </div>
 
           {/* Actionable Setup & Review Controls */}
-          <div className="lg:col-span-2 p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] flex flex-col justify-between">
+          <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300 flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <div className="flex items-center justify-between mb-3.5">
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#126B50]" />
                   <span>Review Engine Status & Controls</span>
                 </h3>
-                <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-mono font-bold">
                   Engine Ready
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed mb-4">
+              <p className="text-xs sm:text-sm text-[#66736D] leading-relaxed mb-5">
                 Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-3.8-flash'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05]">
-                  <span className="text-zinc-500 text-[11px] font-mono block mb-1">Active AI Model</span>
-                  <div className="flex items-center gap-2 text-zinc-200 font-medium font-mono text-[11px]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6]">
+                  <span className="text-[#66736D] text-[11px] font-mono block mb-1.5">Active AI Model</span>
+                  <div className="flex items-center gap-2 text-[#14211D] font-semibold font-mono text-xs">
+                    <span className="w-2 h-2 rounded-full bg-[#126B50]" />
                     <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini (gemini-3.8-flash)'}</span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05]">
-                  <span className="text-zinc-500 text-[11px] font-mono block mb-1">Policy Enforcement</span>
-                  <div className="flex items-center gap-2 text-zinc-200 font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6]">
+                  <span className="text-[#66736D] text-[11px] font-mono block mb-1.5">Policy Enforcement</span>
+                  <div className="flex items-center gap-2 text-[#14211D] font-semibold text-xs">
+                    <span className="w-2 h-2 rounded-full bg-[#C43D4B]" />
                     <span>Block PR on Critical Findings (Active)</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-500 font-mono text-[11px]">
+            <div className="mt-6 pt-4 border-t border-[#E4EAE6] flex items-center justify-between text-xs text-[#66736D] font-mono">
               <span>Tenant Isolation: Enforced</span>
               <Link
                 href="/dashboard/repositories"
-                className="text-blue-400 hover:underline flex items-center gap-1 font-medium"
+                className="text-[#126B50] hover:underline flex items-center gap-1 font-semibold"
               >
                 <span>Manage Policies</span>
-                <ArrowUpRight className="w-3 h-3" />
+                <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Recent Pull Requests Section */}
-        <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07]">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-sm font-semibold text-white">Recent Pull Requests</h3>
-              <p className="text-xs text-zinc-400">Latest code review events and automated finding summaries.</p>
+              <h3 className="text-base font-bold text-[#14211D] font-display">Recent Pull Requests</h3>
+              <p className="text-xs text-[#66736D] mt-0.5">Latest code review events and automated finding summaries.</p>
             </div>
             <Link
               href="/dashboard/pull-requests"
-              className="text-xs text-blue-400 hover:underline font-mono flex items-center gap-1"
+              className="text-xs text-[#126B50] font-semibold hover:underline font-mono flex items-center gap-1"
             >
               <span>View All PRs</span>
-              <ArrowUpRight className="w-3 h-3" />
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           {pullRequests.length === 0 ? (
             /* Honest Empty State */
-            <div className="py-12 px-4 text-center border border-dashed border-white/[0.08] rounded-lg">
-              <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-white/[0.06] flex items-center justify-center mx-auto mb-3 text-zinc-500">
-                <FolderGit2 className="w-5 h-5 text-zinc-400" />
+            <div className="py-14 px-4 text-center border-2 border-dashed border-[#E4EAE6] rounded-2xl bg-[#F7F9F8]">
+              <div className="w-12 h-12 rounded-xl bg-white border border-[#E4EAE6] flex items-center justify-center mx-auto mb-3.5 text-[#66736D] shadow-sm">
+                <FolderGit2 className="w-6 h-6 text-[#126B50]" />
               </div>
-              <h4 className="text-sm font-medium text-zinc-200">No pull requests reviewed yet</h4>
-              <p className="text-xs text-zinc-500 max-w-md mx-auto mt-1 mb-4 font-mono">
+              <h4 className="text-sm font-bold text-[#14211D] font-display">No pull requests reviewed yet</h4>
+              <p className="text-xs text-[#66736D] max-w-md mx-auto mt-1 mb-5 font-mono">
                 Connect a GitHub repository and open a pull request to trigger your first automated AI code review.
               </p>
               <Link
                 href="/dashboard/repositories"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary text-xs font-semibold"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 <span>Connect Repository</span>
               </Link>
             </div>
           ) : (
-            <div className="divide-y divide-white/[0.05]">
+            <div className="divide-y divide-[#E4EAE6]">
               {pullRequests.map((pr) => {
                 const latestJob = pr.latestReview;
                 const risk = latestJob?.overallRisk || 'SAFE';
@@ -409,41 +416,41 @@ export default function DashboardOverviewPage() {
                   <Link
                     key={pr.id}
                     href={`/dashboard/reviews/${latestJob?.id || pr.id}`}
-                    className="py-3.5 flex items-center justify-between gap-4 hover:bg-white/[0.02] px-2 rounded-lg transition-colors block group"
+                    className="py-4 flex items-center justify-between gap-4 hover:bg-[#F7F9F8] px-3 rounded-xl transition-colors block group"
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-3.5">
                       {pr.authorAvatarUrl ? (
                         <img
                           src={pr.authorAvatarUrl}
                           alt={pr.author}
-                          className="w-7 h-7 rounded-full border border-white/[0.1] mt-0.5"
+                          className="w-8 h-8 rounded-full border border-[#E4EAE6] mt-0.5"
                         />
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-zinc-800 border border-white/[0.1] mt-0.5 flex items-center justify-center text-[10px] font-mono text-zinc-300">
+                        <div className="w-8 h-8 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] mt-0.5 flex items-center justify-center text-[10px] font-mono text-[#126B50] font-bold">
                           {pr.author.substring(0, 2).toUpperCase()}
                         </div>
                       )}
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-zinc-400">
+                          <span className="text-xs font-mono text-[#66736D] font-medium">
                             {pr.repoFullName || pr.repoName}#{pr.number}
                           </span>
                           <span
-                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${
                               risk === 'CRITICAL'
-                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
                                 : risk === 'HIGH'
-                                ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
+                                : 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
                             }`}
                           >
                             {risk}
                           </span>
                         </div>
-                        <h4 className="text-xs font-medium text-zinc-200 group-hover:text-white transition-colors mt-0.5">
+                        <h4 className="text-xs sm:text-sm font-semibold text-[#14211D] group-hover:text-[#126B50] transition-colors mt-0.5">
                           {pr.title}
                         </h4>
-                        <div className="flex items-center gap-2 text-[11px] text-zinc-500 mt-1 font-mono">
+                        <div className="flex items-center gap-2 text-[11px] text-[#66736D] mt-1 font-mono">
                           <span>@{pr.author}</span>
                           <span>•</span>
                           <span>Review: {duration}</span>
@@ -456,22 +463,22 @@ export default function DashboardOverviewPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5 text-xs font-mono">
                         {criticalCount > 0 && (
-                          <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[11px]">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4] text-[11px] font-bold">
                             {criticalCount} Critical
                           </span>
                         )}
                         {highCount > 0 && (
-                          <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-300 border border-orange-500/20 text-[11px]">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A] text-[11px] font-bold">
                             {highCount} High
                           </span>
                         )}
                         {criticalCount === 0 && highCount === 0 && (
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[11px]">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] text-[11px] font-semibold">
                             All Clean
                           </span>
                         )}
                       </div>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-colors" />
+                      <ArrowUpRight className="w-4 h-4 text-[#66736D] group-hover:text-[#126B50] transition-colors" />
                     </div>
                   </Link>
                 );

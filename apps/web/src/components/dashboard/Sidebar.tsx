@@ -107,17 +107,19 @@ export function Sidebar() {
       : 0;
 
   return (
-    <aside className="w-64 border-r border-white/[0.08] bg-[#090B0E] flex flex-col justify-between shrink-0 h-screen sticky top-0">
+    <aside className="w-64 border-r border-[#E4EAE6] bg-white flex flex-col justify-between shrink-0 h-screen sticky top-0 shadow-sleek-sm">
       <div>
         {/* Organization Brand Header */}
-        <div className="h-14 border-b border-white/[0.08] px-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-md bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
-              <GitPullRequest className="w-3.5 h-3.5 text-blue-400" />
+        <div className="h-16 border-b border-[#E4EAE6] px-5 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center transition-transform group-hover:scale-105">
+              <GitPullRequest className="w-4 h-4 text-[#126B50]" />
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-xs tracking-tight text-white">ReviewFlow</span>
-              <span className="text-[10px] px-1 py-0.2 rounded bg-white/[0.08] text-zinc-400 font-mono">
+              <span className="font-semibold text-sm tracking-tight text-[#14211D] font-display">
+                ReviewFlow
+              </span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
                 AI
               </span>
             </div>
@@ -125,18 +127,18 @@ export function Sidebar() {
         </div>
 
         {/* Active Organization Switcher Card */}
-        <div className="p-3">
-          <div className="p-2.5 rounded-lg bg-[#0E1117] border border-white/[0.07] flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-zinc-800 border border-white/[0.06] flex items-center justify-center text-zinc-300">
-                <Building2 className="w-3.5 h-3.5" />
+        <div className="p-3.5">
+          <div className="p-3 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-white border border-[#E4EAE6] flex items-center justify-center text-[#14211D] shadow-sm">
+                <Building2 className="w-3.5 h-3.5 text-[#126B50]" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-medium text-zinc-200 truncate max-w-[140px]">
+                <span className="text-xs font-semibold text-[#14211D] truncate max-w-[130px]">
                   {org?.name || 'Workspace'}
                 </span>
-                <span className="text-[10px] text-emerald-400 font-mono">
-                  {org?.plan || 'FREE'} Active
+                <span className="text-[10px] text-[#126B50] font-mono font-semibold">
+                  {org?.plan || 'FREE'} Tier Active
                 </span>
               </div>
             </div>
@@ -144,20 +146,20 @@ export function Sidebar() {
         </div>
 
         {/* Nav Links */}
-        <nav className="px-2 space-y-0.5 mt-2">
+        <nav className="px-3 space-y-1 mt-1">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
                   isActive
-                    ? 'bg-white/[0.08] text-white border border-white/[0.1] shadow-sm'
-                    : 'text-zinc-400 hover:bg-zinc-900/60 hover:text-zinc-200 border border-transparent'
+                    ? 'bg-[#EAF5EF] text-[#126B50] font-semibold border border-[#C7E4D6] shadow-sm'
+                    : 'text-[#66736D] hover:bg-[#F7F9F8] hover:text-[#14211D] border border-transparent'
                 }`}
               >
-                <item.icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-zinc-400'}`} />
+                <item.icon className={`w-4 h-4 ${isActive ? 'text-[#126B50]' : 'text-[#66736D]'}`} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -166,21 +168,21 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Monthly Usage Bar & User */}
-      <div className="p-3 border-t border-white/[0.08] space-y-3">
+      <div className="p-3.5 border-t border-[#E4EAE6] space-y-3.5">
         {/* Usage Quota Card */}
-        <div className="p-2.5 rounded-lg bg-[#0E1117] border border-white/[0.07]">
-          <div className="flex items-center justify-between text-[11px] mb-1.5 font-mono">
-            <span className="text-zinc-400">Monthly Reviews</span>
-            <span className="text-zinc-200 font-semibold">
+        <div className="p-3 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6]">
+          <div className="flex items-center justify-between text-[11px] mb-2 font-mono">
+            <span className="text-[#66736D] font-medium">Monthly Reviews</span>
+            <span className="text-[#14211D] font-bold">
               {usage ? `${usage.reviewsUsed} / ${usage.reviewsLimit}` : '0 / 25'}
             </span>
           </div>
-          <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${usagePercent}%` }} />
+          <div className="w-full h-1.5 bg-[#E4EAE6] rounded-full overflow-hidden">
+            <div className="h-full bg-[#126B50] rounded-full transition-all duration-300" style={{ width: `${usagePercent}%` }} />
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+          <div className="mt-2 flex items-center justify-between text-[10px] text-[#66736D] font-mono">
             <span>{usage?.resetDate ? `Resets ${new Date(usage.resetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Quota Usage'}</span>
-            <Link href="/dashboard/settings" className="text-blue-400 hover:underline">
+            <Link href="/dashboard/settings" className="text-[#126B50] font-semibold hover:underline">
               Plan Details
             </Link>
           </div>
@@ -188,21 +190,21 @@ export function Sidebar() {
 
         {/* User Card */}
         <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[11px] font-semibold text-zinc-200 font-mono">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-xs font-bold text-[#126B50] font-mono shadow-sm">
               {userInitials}
             </div>
             <div className="flex flex-col truncate max-w-[130px]">
-              <span className="text-xs font-medium text-zinc-200 truncate">{user?.name || 'User'}</span>
-              <span className="text-[10px] text-zinc-500 font-mono truncate">{user?.email || ''}</span>
+              <span className="text-xs font-semibold text-[#14211D] truncate">{user?.name || 'User'}</span>
+              <span className="text-[10px] text-[#66736D] font-mono truncate">{user?.email || ''}</span>
             </div>
           </div>
           <button
             onClick={handleLogout}
             title="Log out"
-            className="text-zinc-500 hover:text-rose-400 p-1 transition-colors"
+            className="text-[#66736D] hover:text-[#C43D4B] p-1.5 rounded-lg hover:bg-[#FDE8E8] transition-colors"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -30,11 +30,15 @@ export class GitHubAppClient implements IGitHubAdapter {
 
     let resolvedKey = options.privateKey;
     if (typeof resolvedKey === 'string' && !resolvedKey.includes('PRIVATE KEY')) {
+      const baseFilename = path.basename(resolvedKey);
       const candidates = [
         resolvedKey,
         path.resolve(process.cwd(), resolvedKey),
         path.resolve(process.cwd(), '..', resolvedKey),
         path.resolve(process.cwd(), '../..', resolvedKey),
+        path.resolve('/etc/secrets', resolvedKey),
+        path.resolve('/etc/secrets', baseFilename),
+        '/etc/secrets/github-app-private-key.pem',
       ];
       for (const candidate of candidates) {
         try {

@@ -1,21 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldAlert,
   GitPullRequest,
   GitBranch,
   GitCommit,
   Check,
-  CheckCircle2,
-  AlertTriangle,
   Code2,
-  ChevronRight,
-  Terminal,
   FileCode2,
   Sparkles,
-  Zap,
 } from 'lucide-react';
 
 export function PrShowcase() {
@@ -104,62 +98,62 @@ export function PrShowcase() {
   const current = findings[selectedFinding];
 
   return (
-    <div className="w-full max-w-6xl mx-auto my-8">
+    <div className="w-full max-w-6xl mx-auto my-10">
       {/* GitHub PR Meta Header */}
-      <div className="bg-[#0B0D12] border border-white/[0.08] rounded-t-xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white border border-[#E4EAE6] rounded-t-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-sleek-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-300">
-            <GitPullRequest className="w-4 h-4 text-emerald-400" />
+          <div className="w-9 h-9 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-[#126B50] shadow-sm">
+            <GitPullRequest className="w-4 h-4 text-[#126B50]" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-zinc-400">acme-cloud / auth-service</span>
-              <span className="text-zinc-600">/</span>
-              <span className="font-semibold text-xs text-white">#142</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-medium">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-xs text-[#66736D]">acme-cloud / auth-service</span>
+              <span className="text-[#C7E4D6]">/</span>
+              <span className="font-semibold text-xs text-[#14211D]">#142</span>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-mono font-medium">
                 Open PR
               </span>
-              <span className="text-[10px] px-2 py-0.2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">
-                Interactive Sandbox • Sample Data
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F7F9F8] text-[#66736D] border border-[#E4EAE6] font-mono font-medium">
+                Interactive Sandbox • Live AST
               </span>
             </div>
-            <div className="text-xs text-zinc-300 font-medium mt-0.5">
+            <div className="text-xs font-semibold text-[#14211D] mt-1 font-display">
               feat(auth): Add JWT refresh token rotation and cookie session handler
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-mono">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 border border-white/[0.06] text-zinc-300">
-            <GitBranch className="w-3 h-3 text-zinc-400" />
-            <span className="text-zinc-400">feature/jwt-rotation</span>
-            <span className="text-zinc-500">→</span>
-            <span className="text-white">main</span>
+        <div className="flex items-center gap-2.5 text-xs font-mono">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F9F8] border border-[#E4EAE6] text-[#14211D]">
+            <GitBranch className="w-3.5 h-3.5 text-[#66736D]" />
+            <span className="text-[#66736D]">feature/jwt-rotation</span>
+            <span className="text-[#66736D]">→</span>
+            <span className="font-medium text-[#14211D]">main</span>
           </div>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 border border-white/[0.06] text-zinc-300">
-            <GitCommit className="w-3 h-3 text-zinc-400" />
-            <span className="text-zinc-300">8f2a1b9</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F9F8] border border-[#E4EAE6] text-[#66736D]">
+            <GitCommit className="w-3.5 h-3.5 text-[#66736D]" />
+            <span className="font-medium text-[#14211D]">8f2a1b9</span>
           </div>
         </div>
       </div>
 
       {/* Main Review Window */}
-      <div className="bg-[#08090C] border-x border-b border-white/[0.08] rounded-b-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-2xl">
+      <div className="bg-white border-x border-b border-[#E4EAE6] rounded-b-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-sleek-lg">
         {/* Left Column: Finding Selector & Remediation Details */}
-        <div className="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-white/[0.08] bg-[#0A0C10] p-5 flex flex-col justify-between">
+        <div className="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-[#E4EAE6] bg-[#F7F9F8] p-5 sm:p-6 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-400">
+              <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#66736D]">
                 Identified Findings ({findings.length})
               </div>
-              <div className="text-[11px] font-mono text-zinc-500">
-                Grounding: 100% Verified
+              <div className="text-[11px] font-mono text-[#126B50] font-semibold bg-[#EAF5EF] px-2 py-0.5 rounded-full border border-[#C7E4D6]">
+                100% Grounded
               </div>
             </div>
 
             {/* Findings Tab List */}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {findings.map((f, idx) => {
                 const isSelected = idx === selectedFinding;
                 return (
@@ -169,65 +163,65 @@ export function PrShowcase() {
                       setSelectedFinding(idx);
                       setApplied(false);
                     }}
-                    className={`w-full text-left p-3 rounded-lg border transition-all text-xs ${
+                    className={`w-full text-left p-3.5 rounded-xl border transition-all text-xs ${
                       isSelected
-                        ? 'bg-[#121620] border-blue-500/50 shadow-sm'
-                        : 'bg-zinc-900/30 border-white/[0.05] hover:bg-zinc-900/60 hover:border-white/[0.1]'
+                        ? 'bg-white border-[#126B50] shadow-sleek-sm ring-1 ring-[#126B50]/20'
+                        : 'bg-white/80 border-[#E4EAE6] hover:bg-white hover:border-[#D5DFDA]'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded ${
+                          className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
                             f.severity === 'CRITICAL'
-                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
                               : f.severity === 'HIGH'
-                              ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
+                              : 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
                           }`}
                         >
                           {f.severity}
                         </span>
-                        <span className="text-[10px] font-mono text-zinc-400">{f.ruleId}</span>
+                        <span className="text-[11px] font-mono text-[#66736D] font-medium">{f.ruleId}</span>
                       </div>
-                      <span className="text-[10px] font-mono text-zinc-500">{f.lines}</span>
+                      <span className="text-[11px] font-mono text-[#66736D]">{f.lines}</span>
                     </div>
-                    <div className="font-medium text-zinc-200 line-clamp-1">{f.title}</div>
-                    <div className="text-[11px] text-zinc-400 font-mono mt-1">{f.file}</div>
+                    <div className="font-semibold text-[#14211D] line-clamp-1">{f.title}</div>
+                    <div className="text-[11px] text-[#66736D] font-mono mt-1">{f.file}</div>
                   </button>
                 );
               })}
             </div>
 
             {/* Finding Deep Dive Card */}
-            <div className="pt-2 border-t border-white/[0.06] space-y-3">
-              <div className="text-[11px] font-mono text-zinc-400 flex items-center justify-between">
+            <div className="pt-3 border-t border-[#E4EAE6] space-y-2.5">
+              <div className="text-[11px] font-mono text-[#66736D] flex items-center justify-between">
                 <span>{current.cwe}</span>
-                <span className="text-emerald-400">Confidence: {current.confidence}%</span>
+                <span className="text-[#126B50] font-semibold">Confidence: {current.confidence}%</span>
               </div>
-              <p className="text-xs text-zinc-300 leading-relaxed bg-[#0E1017] p-3 rounded-md border border-white/[0.05]">
+              <p className="text-xs text-[#14211D] leading-relaxed bg-white p-3.5 rounded-xl border border-[#E4EAE6]">
                 {current.explanation}
               </p>
             </div>
           </div>
 
           {/* Action Footer */}
-          <div className="pt-4 border-t border-white/[0.06] mt-4 flex items-center justify-between gap-3">
-            <div className="text-[11px] font-mono text-zinc-500">
-              Inline PR Comment Ready
+          <div className="pt-4 border-t border-[#E4EAE6] mt-4 flex items-center justify-between gap-3">
+            <div className="text-[11px] font-mono text-[#66736D]">
+              Inline GitHub Check Ready
             </div>
             <button
               onClick={() => setApplied(true)}
               disabled={applied}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
                 applied
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  ? 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-semibold'
                   : 'btn-primary'
               }`}
             >
               {applied ? (
                 <>
-                  <Check className="w-3.5 h-3.5" />
+                  <Check className="w-3.5 h-3.5 text-[#126B50]" />
                   <span>Patch Committed</span>
                 </>
               ) : (
@@ -241,21 +235,21 @@ export function PrShowcase() {
         </div>
 
         {/* Right Column: Code Diff Hunk with GitHub-Style Inline Comment */}
-        <div className="lg:col-span-7 bg-[#08090C] flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-[#14211D] flex flex-col justify-between text-zinc-100">
           <div>
             {/* Diff Header Bar */}
-            <div className="bg-[#0B0D12] border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between text-xs font-mono">
+            <div className="bg-[#0B1512] border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between text-xs font-mono">
               <div className="flex items-center gap-2 text-zinc-300">
-                <FileCode2 className="w-3.5 h-3.5 text-blue-400" />
-                <span>{current.file}</span>
+                <FileCode2 className="w-3.5 h-3.5 text-[#10B981]" />
+                <span className="text-zinc-200">{current.file}</span>
               </div>
-              <div className="text-[11px] text-zinc-500">
-                Unified Diff Viewer
+              <div className="text-[11px] text-zinc-400">
+                Deterministic AST Diff
               </div>
             </div>
 
             {/* Code Diff Display */}
-            <div className="font-mono text-xs overflow-x-auto divide-y divide-white/[0.02]">
+            <div className="font-mono text-xs overflow-x-auto divide-y divide-white/[0.04] p-2">
               {current.diffLines.map((line, idx) => {
                 const isDel = line.type === 'del';
                 const isAdd = line.type === 'add';
@@ -263,19 +257,19 @@ export function PrShowcase() {
                 return (
                   <div
                     key={idx}
-                    className={`flex items-stretch py-0.5 px-3 leading-5 select-text ${
+                    className={`flex items-stretch py-0.5 px-3 leading-5 rounded select-text ${
                       isDel
-                        ? 'bg-rose-500/10 text-rose-200'
+                        ? 'bg-rose-500/15 text-rose-200'
                         : isAdd
-                        ? 'bg-emerald-500/10 text-emerald-200'
-                        : 'text-zinc-400'
+                        ? 'bg-emerald-500/15 text-emerald-200'
+                        : 'text-zinc-300'
                     }`}
                   >
                     {/* Line Numbers */}
-                    <div className="w-8 shrink-0 text-right pr-3 select-none text-[11px] text-zinc-600 font-mono">
+                    <div className="w-8 shrink-0 text-right pr-3 select-none text-[11px] text-zinc-500 font-mono">
                       {line.oldLine || ''}
                     </div>
-                    <div className="w-8 shrink-0 text-right pr-3 select-none text-[11px] text-zinc-600 font-mono">
+                    <div className="w-8 shrink-0 text-right pr-3 select-none text-[11px] text-zinc-500 font-mono">
                       {line.newLine || ''}
                     </div>
 
@@ -292,37 +286,37 @@ export function PrShowcase() {
             </div>
 
             {/* Inline ReviewFlow AI Comment Block */}
-            <div className="m-4 rounded-lg bg-[#0D0F16] border border-blue-500/30 overflow-hidden shadow-lg">
-              <div className="bg-[#121520] px-3.5 py-2 border-b border-blue-500/20 flex items-center justify-between text-xs">
+            <div className="m-4 rounded-xl bg-white border border-[#E4EAE6] overflow-hidden shadow-sleek-md text-[#14211D]">
+              <div className="bg-[#F7F9F8] px-4 py-2.5 border-b border-[#E4EAE6] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-blue-600/30 border border-blue-500/40 flex items-center justify-center">
-                    <Sparkles className="w-3 h-3 text-blue-400" />
+                  <div className="w-5 h-5 rounded-md bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-[#126B50]" />
                   </div>
-                  <span className="font-semibold text-zinc-200 text-xs">ReviewFlow AI</span>
-                  <span className="text-[10px] px-1 py-0.2 rounded bg-zinc-800 text-zinc-400 font-mono">
+                  <span className="font-semibold text-[#14211D] text-xs">ReviewFlow AI</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#EAF5EF] text-[#126B50] font-mono font-medium">
                     bot
                   </span>
-                  <span className="text-[10px] text-zinc-500 font-mono">automated review</span>
+                  <span className="text-[10px] text-[#66736D] font-mono">automated review</span>
                 </div>
-                <span className="text-[10px] text-zinc-400 font-mono">posted via GitHub Check</span>
+                <span className="text-[10px] text-[#66736D] font-mono">posted via GitHub Check</span>
               </div>
 
-              <div className="p-3.5 space-y-2 text-xs">
-                <div className="text-zinc-300 font-medium">
+              <div className="p-4 space-y-2.5 text-xs">
+                <div className="text-[#14211D] font-semibold">
                   Suggested change
                 </div>
-                <div className="text-zinc-400 text-[11px] leading-relaxed">
+                <div className="text-[#66736D] text-[11px] leading-relaxed">
                   {current.suggestion}
                 </div>
 
-                <div className="pt-2 flex items-center gap-2 text-xs font-mono">
+                <div className="pt-2 flex items-center gap-3 text-xs font-mono">
                   <button
                     onClick={() => setApplied(true)}
-                    className="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/[0.08] transition-all text-[11px] font-medium"
+                    className="px-3 py-1.5 rounded-lg btn-primary text-white text-[11px] font-medium"
                   >
                     Commit suggestion
                   </button>
-                  <span className="text-[11px] text-zinc-500">Sign-off required</span>
+                  <span className="text-[11px] text-[#66736D]">Verified cryptographic patch</span>
                 </div>
               </div>
             </div>

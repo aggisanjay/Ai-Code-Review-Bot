@@ -1,17 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Webhook,
-  Layers,
-  Cpu,
-  Brain,
   ShieldCheck,
   CheckCircle2,
-  ArrowRight,
-  Database,
-  Lock,
   Clock,
   Terminal,
 } from 'lucide-react';
@@ -117,43 +109,43 @@ export function ArchitectureExplorer() {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-4 border-b border-white/[0.08] gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-5 border-b border-[#E4EAE6] gap-4">
         <div>
-          <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1">
+          <div className="text-[11px] font-mono text-[#126B50] font-semibold uppercase tracking-wider mb-1.5">
             End-To-End Systems Architecture
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#14211D] tracking-tight font-display">
             Review Pipeline Execution Stages
           </h2>
         </div>
-        <div className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-white/[0.08] px-3 py-1.5 rounded-md flex items-center gap-2">
-          <Clock className="w-3.5 h-3.5 text-blue-400" />
+        <div className="text-xs font-mono text-[#66736D] bg-[#F7F9F8] border border-[#E4EAE6] px-3.5 py-2 rounded-xl flex items-center gap-2">
+          <Clock className="w-4 h-4 text-[#126B50]" />
           <span>Average Total Pipeline Latency: </span>
-          <span className="text-white font-semibold">~5.4s</span>
+          <span className="text-[#14211D] font-bold">~5.4s</span>
         </div>
       </div>
 
       {/* Stage Selector Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         {stages.map((stage) => {
           const isActive = stage.id === activeStageId;
           return (
             <button
               key={stage.id}
               onClick={() => setActiveStageId(stage.id)}
-              className={`p-3 rounded-lg border text-left transition-all relative ${
+              className={`p-3.5 rounded-xl border text-left transition-all relative ${
                 isActive
-                  ? 'bg-[#10141E] border-blue-500/50 shadow-sm'
-                  : 'bg-[#0B0D12] border-white/[0.06] hover:bg-[#121620] hover:border-white/[0.12]'
+                  ? 'bg-[#EAF5EF] border-[#126B50] shadow-sleek-sm ring-1 ring-[#126B50]/30'
+                  : 'bg-white border-[#E4EAE6] hover:bg-[#F7F9F8] hover:border-[#D5DFDA]'
               }`}
             >
-              <div className="flex items-center justify-between text-[10px] font-mono mb-1">
-                <span className={isActive ? 'text-blue-400 font-semibold' : 'text-zinc-500'}>
+              <div className="flex items-center justify-between text-[11px] font-mono mb-1.5">
+                <span className={isActive ? 'text-[#126B50] font-bold' : 'text-[#66736D]'}>
                   {stage.stepNum}
                 </span>
-                <span className="text-zinc-500">{stage.latency}</span>
+                <span className="text-[#66736D]">{stage.latency}</span>
               </div>
-              <div className="text-xs font-medium text-zinc-200 line-clamp-1">
+              <div className={`text-xs font-semibold line-clamp-1 ${isActive ? 'text-[#14211D]' : 'text-[#66736D]'}`}>
                 {stage.name.replace(/^\d+\.\s*/, '')}
               </div>
             </button>
@@ -162,54 +154,54 @@ export function ArchitectureExplorer() {
       </div>
 
       {/* Stage Deep Dive Telemetry Box */}
-      <div className="bg-[#0B0D12] border border-white/[0.08] rounded-xl p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/[0.06] mb-5">
+      <div className="bg-white border border-[#E4EAE6] rounded-2xl p-6 sm:p-8 shadow-sleek-md">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#E4EAE6] mb-6">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
+            <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-bold">
               STAGE {current.stepNum}
             </span>
-            <h3 className="text-base font-semibold text-white">
+            <h3 className="text-lg font-bold text-[#14211D] font-display">
               {current.name}
             </h3>
           </div>
           <div className="flex items-center gap-2 font-mono text-xs">
-            <span className="text-zinc-400">Step Budget:</span>
-            <span className="text-emerald-400 font-semibold">{current.latency}</span>
+            <span className="text-[#66736D]">Step Budget:</span>
+            <span className="text-[#126B50] font-bold bg-[#EAF5EF] px-2 py-0.5 rounded-md border border-[#C7E4D6]">{current.latency}</span>
           </div>
         </div>
 
-        <p className="text-xs text-zinc-300 leading-relaxed mb-6">
+        <p className="text-sm text-[#66736D] leading-relaxed mb-8">
           {current.summary}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Technical Invariants */}
-          <div className="bg-[#0E1017] p-4 rounded-lg border border-white/[0.05]">
-            <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Terminal className="w-3.5 h-3.5 text-blue-400" />
+          <div className="bg-[#F7F9F8] p-5 rounded-xl border border-[#E4EAE6]">
+            <div className="text-[11px] font-mono text-[#14211D] font-semibold uppercase tracking-wider mb-3.5 flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-[#126B50]" />
               <span>Core Invariants & Technical Details</span>
             </div>
-            <ul className="space-y-2 text-xs text-zinc-300">
+            <ul className="space-y-2.5 text-xs text-[#66736D]">
               {current.technicalDetails.map((detail, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="text-blue-400 text-xs leading-4">›</span>
-                  <span className="leading-5">{detail}</span>
+                  <span className="text-[#126B50] font-bold text-xs leading-4">›</span>
+                  <span className="leading-5 text-[#14211D]">{detail}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           {/* Security Controls */}
-          <div className="bg-[#0E1017] p-4 rounded-lg border border-white/[0.05]">
-            <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="bg-[#F7F9F8] p-5 rounded-xl border border-[#E4EAE6]">
+            <div className="text-[11px] font-mono text-[#14211D] font-semibold uppercase tracking-wider mb-3.5 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#16835B]" />
               <span>Security Controls & Sandboxing</span>
             </div>
-            <ul className="space-y-2 text-xs text-zinc-300">
+            <ul className="space-y-2.5 text-xs text-[#66736D]">
               {current.securityControls.map((ctrl, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span className="leading-5">{ctrl}</span>
+                  <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0 mt-0.5" />
+                  <span className="leading-5 text-[#14211D]">{ctrl}</span>
                 </li>
               ))}
             </ul>

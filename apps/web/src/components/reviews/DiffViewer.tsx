@@ -1,18 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import {
-  ShieldAlert,
-  AlertTriangle,
-  Info,
-  CheckCircle,
   FileCode,
-  X,
   ThumbsUp,
   ThumbsDown,
-  Sparkles,
-  Check,
 } from 'lucide-react';
 import { ReviewFinding } from '@reviewflow/shared';
 
@@ -38,7 +30,7 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
 
   const currentFile = files[activeFileIndex] || files[0];
   if (!currentFile) {
-    return <div className="p-8 text-center text-zinc-500 font-mono text-xs">No diff files to display.</div>;
+    return <div className="p-8 text-center text-[#66736D] font-mono text-xs">No diff files to display.</div>;
   }
 
   // Filter findings for the active file
@@ -50,11 +42,11 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
   });
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[#08090C] overflow-hidden shadow-2xl">
+    <div className="rounded-2xl border border-[#E4EAE6] bg-white overflow-hidden shadow-sleek-md">
       {/* File Navigation & Severity Filter Toolbar */}
-      <div className="bg-[#0B0D12] border-b border-white/[0.08] px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-[#F7F9F8] border-b border-[#E4EAE6] px-5 py-3 flex flex-wrap items-center justify-between gap-3">
         {/* File Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-0.5">
           {files.map((file, idx) => {
             const isSelected = idx === activeFileIndex;
             const fileFindingCount = findings.filter(
@@ -65,18 +57,18 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
               <button
                 key={file.path}
                 onClick={() => setActiveFileIndex(idx)}
-                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-mono transition-all shrink-0 border ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono transition-all shrink-0 border ${
                   isSelected
-                    ? 'bg-[#151924] text-white border-blue-500/40 shadow-sm'
-                    : 'bg-zinc-900/40 text-zinc-400 border-white/[0.05] hover:bg-zinc-900/80 hover:text-zinc-200'
+                    ? 'bg-white text-[#14211D] border-[#126B50] font-bold shadow-sleek-sm ring-1 ring-[#126B50]/20'
+                    : 'bg-white/60 text-[#66736D] border-[#E4EAE6] hover:bg-white hover:text-[#14211D]'
                 }`}
               >
-                <FileCode className="w-3.5 h-3.5 text-blue-400" />
-                <span className="font-medium">{file.path}</span>
-                <span className="text-[10px] text-emerald-400">+{file.additions}</span>
-                <span className="text-[10px] text-rose-400">-{file.deletions}</span>
+                <FileCode className="w-3.5 h-3.5 text-[#126B50]" />
+                <span>{file.path}</span>
+                <span className="text-[10px] text-[#16835B] font-bold">+{file.additions}</span>
+                <span className="text-[10px] text-[#C43D4B] font-bold">-{file.deletions}</span>
                 {fileFindingCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[10px] font-bold">
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4] text-[10px] font-bold">
                     {fileFindingCount}
                   </span>
                 )}
@@ -86,16 +78,16 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
         </div>
 
         {/* Severity Filters */}
-        <div className="flex items-center gap-1 text-xs font-mono">
-          <span className="text-zinc-500 text-[11px] mr-1">Filter:</span>
+        <div className="flex items-center gap-1.5 text-xs font-mono">
+          <span className="text-[#66736D] text-[11px] mr-1 font-semibold">Filter:</span>
           {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((sev) => (
             <button
               key={sev}
               onClick={() => setSelectedSeverity(sev)}
-              className={`px-2 py-0.5 rounded text-[11px] transition-all border ${
+              className={`px-2.5 py-0.5 rounded-lg text-[11px] transition-all border font-semibold ${
                 selectedSeverity === sev
-                  ? 'bg-zinc-800 text-white border-white/[0.15] font-semibold'
-                  : 'bg-transparent text-zinc-500 border-transparent hover:text-zinc-300'
+                  ? 'bg-[#EAF5EF] text-[#126B50] border-[#C7E4D6] shadow-sm'
+                  : 'bg-transparent text-[#66736D] border-transparent hover:text-[#14211D]'
               }`}
             >
               {sev}
@@ -105,7 +97,7 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
       </div>
 
       {/* Code Lines with Inline Finding Cards */}
-      <div className="font-mono text-xs overflow-x-auto divide-y divide-white/[0.02]">
+      <div className="font-mono text-xs overflow-x-auto divide-y divide-[#E4EAE6]/50">
         {currentFile.lines.map((line, lineIndex) => {
           const matchingFindings = line.newLine
             ? fileFindings.filter((f) => f.startLine === line.newLine)
@@ -117,19 +109,19 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
           return (
             <React.Fragment key={lineIndex}>
               <div
-                className={`flex items-stretch hover:bg-white/[0.02] transition-colors ${
+                className={`flex items-stretch hover:bg-[#F7F9F8] transition-colors ${
                   isAdd
-                    ? 'bg-emerald-500/10 text-emerald-200'
+                    ? 'bg-emerald-50 text-[#126B50]'
                     : isDel
-                    ? 'bg-rose-500/10 text-rose-200'
-                    : 'text-zinc-400'
+                    ? 'bg-rose-50 text-[#C43D4B]'
+                    : 'text-[#14211D]'
                 }`}
               >
                 {/* Line Numbers Column */}
-                <div className="w-10 shrink-0 select-none text-right pr-2 py-0.5 text-zinc-600 bg-[#07080A] border-r border-white/[0.05] text-[11px]">
+                <div className="w-10 shrink-0 select-none text-right pr-2 py-0.5 text-[#66736D] bg-[#F7F9F8] border-r border-[#E4EAE6] text-[11px]">
                   {line.oldLine || ''}
                 </div>
-                <div className="w-10 shrink-0 select-none text-right pr-2 py-0.5 text-zinc-600 bg-[#07080A] border-r border-white/[0.05] text-[11px]">
+                <div className="w-10 shrink-0 select-none text-right pr-2 py-0.5 text-[#66736D] bg-[#F7F9F8] border-r border-[#E4EAE6] text-[11px]">
                   {line.newLine || ''}
                 </div>
 
@@ -146,28 +138,28 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
               {matchingFindings.map((finding) => (
                 <div
                   key={finding.id}
-                  className="p-4 my-2 mx-6 rounded-lg border border-rose-500/30 bg-[#0D0F16] shadow-xl"
+                  className="p-5 my-3 mx-6 rounded-2xl border border-[#F8B4B4] bg-[#FFF8F8] shadow-sleek-md text-[#14211D]"
                 >
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-start justify-between gap-4 mb-2.5">
+                    <div className="flex items-center gap-2.5">
                       <span
-                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded font-mono ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${
                           finding.severity === 'CRITICAL'
-                            ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
-                            : 'bg-orange-500/15 text-orange-300 border border-orange-500/30'
+                            ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
+                            : 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
                         }`}
                       >
                         [{finding.severity}] {finding.category}
                       </span>
-                      <h4 className="font-semibold text-zinc-200 text-xs">{finding.title}</h4>
+                      <h4 className="font-bold text-[#14211D] text-xs font-display">{finding.title}</h4>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-zinc-500 font-mono">{finding.confidence}% confidence</span>
+                      <span className="text-[10px] text-[#66736D] font-mono">{finding.confidence}% confidence</span>
                       {onDismissFinding && !finding.dismissed && (
                         <button
                           onClick={() => onDismissFinding(finding.id, 'User marked as resolved/dismissed')}
-                          className="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 hover:text-white text-[11px] border border-white/[0.08]"
+                          className="px-2.5 py-0.5 rounded-lg bg-white text-[#66736D] hover:text-[#C43D4B] text-[11px] border border-[#E4EAE6] font-medium"
                         >
                           Dismiss
                         </button>
@@ -175,35 +167,35 @@ export function DiffViewer({ files, findings, onDismissFinding }: DiffViewerProp
                     </div>
                   </div>
 
-                  <p className="text-xs text-zinc-400 mb-3 leading-relaxed">{finding.explanation}</p>
+                  <p className="text-xs text-[#66736D] mb-3.5 leading-relaxed">{finding.explanation}</p>
 
-                  <div className="p-2.5 rounded-md bg-[#0A0C10] border border-white/[0.06] mb-3">
-                    <span className="text-[10px] text-emerald-400 font-bold block mb-1 uppercase tracking-wider font-mono">
+                  <div className="p-3 rounded-xl bg-white border border-[#E4EAE6] mb-3">
+                    <span className="text-[10px] text-[#126B50] font-bold block mb-1 uppercase tracking-wider font-mono">
                       Remediation Guidance:
                     </span>
-                    <p className="text-xs text-zinc-300">{finding.remediation}</p>
+                    <p className="text-xs text-[#14211D]">{finding.remediation}</p>
                   </div>
 
                   {finding.suggestedPatch && (
-                    <div className="mb-2">
-                      <span className="text-[10px] text-blue-400 font-bold block mb-1 uppercase tracking-wider font-mono">
+                    <div className="mb-2.5">
+                      <span className="text-[10px] text-[#126B50] font-bold block mb-1 uppercase tracking-wider font-mono">
                         Suggested Diff Patch:
                       </span>
-                      <pre className="p-2.5 rounded-md bg-[#08090C] border border-white/[0.08] text-emerald-300 text-xs overflow-x-auto whitespace-pre font-mono">
+                      <pre className="p-3 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] text-[#126B50] text-xs overflow-x-auto whitespace-pre font-mono">
                         {finding.suggestedPatch}
                       </pre>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-2 border-t border-white/[0.06] font-mono">
-                    <span className="text-blue-400">Published to GitHub Check Run & Conversation</span>
+                  <div className="flex items-center justify-between text-[11px] text-[#66736D] pt-3 border-t border-[#E4EAE6] font-mono">
+                    <span className="text-[#126B50] font-semibold">Published to GitHub Check Run & Conversation</span>
                     <div className="flex items-center gap-2">
                       <span>Helpful?</span>
-                      <button className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-emerald-400">
-                        <ThumbsUp className="w-3 h-3" />
+                      <button className="p-1 rounded-md hover:bg-white text-[#66736D] hover:text-[#16835B]">
+                        <ThumbsUp className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-rose-400">
-                        <ThumbsDown className="w-3 h-3" />
+                      <button className="p-1 rounded-md hover:bg-white text-[#66736D] hover:text-[#C43D4B]">
+                        <ThumbsDown className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

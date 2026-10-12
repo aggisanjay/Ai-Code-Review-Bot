@@ -13,25 +13,25 @@ interface HeaderProps {
 
 export function Header({ title, description, action, isConnected }: HeaderProps) {
   return (
-    <header className="h-14 border-b border-white/[0.08] bg-[#090B0E]/80 px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md">
+    <header className="h-16 border-b border-[#E4EAE6] bg-white/90 px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md">
       <div>
-        <h1 className="text-sm font-semibold text-white tracking-tight">{title}</h1>
-        {description && <p className="text-[11px] text-zinc-400">{description}</p>}
+        <h1 className="text-sm sm:text-base font-bold text-[#14211D] tracking-tight font-display">{title}</h1>
+        {description && <p className="text-xs text-[#66736D] mt-0.5">{description}</p>}
       </div>
 
       <div className="flex items-center gap-3">
         {/* Status Badge */}
         {isConnected !== undefined && (
           <div
-            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono ${
+            className={`hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border text-[11px] font-mono font-medium ${
               isConnected
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                : 'bg-zinc-800/60 border-white/[0.08] text-zinc-400'
+                ? 'bg-[#EAF5EF] border-[#C7E4D6] text-[#126B50]'
+                : 'bg-[#F7F9F8] border-[#E4EAE6] text-[#66736D]'
             }`}
           >
             <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'
+              className={`w-2 h-2 rounded-full ${
+                isConnected ? 'bg-[#16835B] animate-pulse' : 'bg-zinc-400'
               }`}
             />
             <span>{isConnected ? 'GitHub App Connected' : 'GitHub App Standby'}</span>
@@ -42,10 +42,10 @@ export function Header({ title, description, action, isConnected }: HeaderProps)
 
         <Link
           href="/docs"
-          className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors font-mono"
+          className="text-xs text-[#66736D] hover:text-[#126B50] flex items-center gap-1.5 transition-colors font-mono font-medium"
         >
           <span>Docs</span>
-          <ExternalLink className="w-3 h-3" />
+          <ExternalLink className="w-3.5 h-3.5" />
         </Link>
       </div>
     </header>

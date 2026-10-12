@@ -51,55 +51,55 @@ function LoginContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#08090C] text-[#EDEDEF] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-[#F7F9F8] text-[#14211D] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Dot Texture */}
-      <div className="absolute inset-0 bg-dot-pattern opacity-30 pointer-events-none [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)]" />
+      <div className="absolute inset-0 bg-dot-pattern opacity-40 pointer-events-none [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)]" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <Link href="/" className="flex items-center justify-center gap-2 group mb-6">
-          <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
-            <GitPullRequest className="w-4 h-4 text-blue-400" />
+        <Link href="/" className="flex items-center justify-center gap-2.5 group mb-6">
+          <div className="w-8 h-8 rounded-lg bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center shadow-sm">
+            <GitPullRequest className="w-4 h-4 text-[#126B50]" />
           </div>
-          <span className="font-semibold text-base tracking-tight text-white">
-            ReviewFlow <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/[0.08] text-zinc-400 font-mono">AI</span>
+          <span className="font-bold text-base tracking-tight text-[#14211D] font-display">
+            ReviewFlow <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">AI</span>
           </span>
         </Link>
 
-        <h2 className="text-center text-xl font-bold tracking-tight text-white">
+        <h2 className="text-center text-2xl font-bold tracking-tight text-[#14211D] font-display">
           Sign in to your account
         </h2>
-        <p className="mt-1.5 text-center text-xs text-zinc-400">
+        <p className="mt-1.5 text-center text-xs text-[#66736D]">
           Or{' '}
-          <Link href={`/signup${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`} className="text-blue-400 hover:underline">
+          <Link href={`/signup${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`} className="text-[#126B50] font-semibold hover:underline">
             create a new team organization
           </Link>
         </p>
       </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-[#0B0D12] border border-white/[0.08] py-7 px-6 shadow-2xl rounded-xl sm:px-8">
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 sm:px-0">
+        <div className="bg-white border border-[#E4EAE6] py-8 px-6 shadow-sleek-md rounded-2xl sm:px-8">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="mb-4 p-3.5 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-xs flex items-start gap-2.5 font-medium shadow-sm">
+              <AlertCircle className="w-4 h-4 text-[#C43D4B] shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-[#14211D] mb-1.5">
                 Work Email
               </label>
-              <div className="relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                  <Mail className="h-3.5 w-3.5" />
+              <div className="relative rounded-xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#66736D]">
+                  <Mail className="h-4 w-4" />
                 </div>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
+                  className="block w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl text-xs sm:text-sm text-[#14211D] placeholder-[#66736D] focus:outline-none focus:border-[#126B50] transition-colors font-mono"
                   placeholder="name@company.com"
                   autoComplete="email"
                 />
@@ -107,39 +107,39 @@ function LoginContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-[#14211D] mb-1.5">
                 Password
               </label>
-              <div className="relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
-                  <Lock className="h-3.5 w-3.5" />
+              <div className="relative rounded-xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#66736D]">
+                  <Lock className="h-4 w-4" />
                 </div>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
+                  className="block w-full pl-10 pr-3.5 py-2.5 bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl text-xs sm:text-sm text-[#14211D] placeholder-[#66736D] focus:outline-none focus:border-[#126B50] transition-colors font-mono"
                   placeholder="••••••••••••"
                   autoComplete="current-password"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-0.5">
+            <div className="flex items-center justify-between text-xs pt-1">
               <div className="flex items-center">
                 <input
                   id="remember-me"
                   type="checkbox"
                   defaultChecked
-                  className="h-3.5 w-3.5 rounded bg-zinc-900 border-white/[0.1] text-blue-600"
+                  className="h-4 w-4 rounded border-[#E4EAE6] text-[#126B50] focus:ring-[#126B50]"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-zinc-400 text-[11px]">
+                <label htmlFor="remember-me" className="ml-2 block text-[#66736D] text-xs font-medium">
                   Remember session (30 days)
                 </label>
               </div>
 
-              <Link href="/login" onClick={(e) => { e.preventDefault(); alert('Please contact your organization administrator or use password reset.'); }} className="text-zinc-400 hover:text-white text-[11px]">
+              <Link href="/login" onClick={(e) => { e.preventDefault(); alert('Please contact your organization administrator or use password reset.'); }} className="text-[#66736D] hover:text-[#126B50] text-xs font-medium">
                 Forgot password?
               </Link>
             </div>
@@ -147,15 +147,15 @@ function LoginContent() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg btn-primary text-xs font-medium"
+              className="w-full mt-3 flex items-center justify-center gap-2 px-5 py-3 rounded-xl btn-primary text-xs sm:text-sm font-semibold shadow-sleek-sm"
             >
               <span>{isLoading ? 'Verifying credentials...' : 'Sign In with Email'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
 
-        <p className="mt-5 text-center text-[11px] text-zinc-500 font-mono">
+        <p className="mt-5 text-center text-xs text-[#66736D] font-mono">
           Protected by enterprise multi-tenant isolation and cryptographic verification.
         </p>
       </div>
@@ -165,7 +165,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#08090C]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F7F9F8]" />}>
       <LoginContent />
     </Suspense>
   );

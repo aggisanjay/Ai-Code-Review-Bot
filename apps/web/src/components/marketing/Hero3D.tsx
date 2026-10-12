@@ -39,12 +39,12 @@ export function Hero3D() {
     const rootGroup = new THREE.Group();
     scene.add(rootGroup);
 
-    // 1. Dark Titanium Monolith / Octahedron Core
-    const coreGeo = new THREE.OctahedronGeometry(2.0, 2);
+    // 1. Deep Slate / Forest Emerald Faceted Monolith
+    const coreGeo = new THREE.OctahedronGeometry(2.1, 2);
     const coreMat = new THREE.MeshStandardMaterial({
-      color: 0x0f131a,
-      roughness: 0.25,
-      metalness: 0.9,
+      color: 0x14211D,
+      roughness: 0.28,
+      metalness: 0.85,
       flatShading: true,
     });
     const coreMesh = new THREE.Mesh(coreGeo, coreMat);
@@ -53,9 +53,9 @@ export function Hero3D() {
     // Wireframe overlay for architectural telemetry
     const wireframeGeo = new THREE.WireframeGeometry(coreGeo);
     const wireframeMat = new THREE.LineBasicMaterial({
-      color: 0x2563eb,
+      color: 0x126B50,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.55,
     });
     const wireframe = new THREE.LineSegments(wireframeGeo, wireframeMat);
     coreMesh.add(wireframe);
@@ -65,10 +65,10 @@ export function Hero3D() {
     for (let i = 0; i < 3; i++) {
       const ringGeo = new THREE.RingGeometry(2.8 + i * 0.7, 2.82 + i * 0.7, 64);
       const ringMat = new THREE.MeshBasicMaterial({
-        color: i === 0 ? 0x3b82f6 : i === 1 ? 0x10b981 : 0x64748b,
+        color: i === 0 ? 0x126B50 : i === 1 ? 0x16835B : 0x66736D,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.25 - i * 0.05,
+        opacity: 0.35 - i * 0.08,
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = Math.PI / 2 + (i * 0.2);
@@ -79,10 +79,10 @@ export function Hero3D() {
 
     // 3. Precision Node Points (Commits, AST, Grounding)
     const nodeCoords = [
-      { pos: new THREE.Vector3(-3.2, 1.4, 1.2), color: 0x3b82f6, label: 'COMMIT' },
-      { pos: new THREE.Vector3(3.0, -1.2, 0.8), color: 0x10b981, label: 'GROUNDED' },
-      { pos: new THREE.Vector3(-1.8, -2.4, -1.0), color: 0xf43f5e, label: 'VULN_RULE' },
-      { pos: new THREE.Vector3(2.4, 2.2, -1.2), color: 0xf59e0b, label: 'AST_SCAN' },
+      { pos: new THREE.Vector3(-3.2, 1.4, 1.2), color: 0x126B50, label: 'COMMIT' },
+      { pos: new THREE.Vector3(3.0, -1.2, 0.8), color: 0x16835B, label: 'GROUNDED' },
+      { pos: new THREE.Vector3(-1.8, -2.4, -1.0), color: 0xc43d4b, label: 'VULN_RULE' },
+      { pos: new THREE.Vector3(2.4, 2.2, -1.2), color: 0xb7791f, label: 'AST_SCAN' },
     ];
 
     const nodeMeshes: THREE.Mesh[] = [];
@@ -93,7 +93,7 @@ export function Hero3D() {
         color: item.color,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.6,
+        opacity: 0.7,
       });
       const rMesh = new THREE.Mesh(ringGeo, ringMat);
       rMesh.position.copy(item.pos);
@@ -115,7 +115,7 @@ export function Hero3D() {
         dashSize: 0.2,
         gapSize: 0.1,
         transparent: true,
-        opacity: 0.3,
+        opacity: 0.35,
       });
       const line = new THREE.Line(lineGeo, lineMat);
       line.computeLineDistances();
@@ -123,25 +123,25 @@ export function Hero3D() {
     });
 
     // 4. Subtle Architectural Grid Plane
-    const gridHelper = new THREE.GridHelper(10, 20, 0x1e2433, 0x111622);
+    const gridHelper = new THREE.GridHelper(10, 20, 0xc7e4d6, 0xe4eae6);
     gridHelper.position.y = -3.2;
     rootGroup.add(gridHelper);
 
     // 5. Precision Studio Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambientLight);
 
-    const topKeyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    const topKeyLight = new THREE.DirectionalLight(0xffffff, 2.0);
     topKeyLight.position.set(6, 10, 8);
     scene.add(topKeyLight);
 
-    const rimBlueLight = new THREE.PointLight(0x2563eb, 3.0, 30);
-    rimBlueLight.position.set(-6, 2, 4);
-    scene.add(rimBlueLight);
-
-    const rimEmeraldLight = new THREE.PointLight(0x10b981, 1.5, 20);
-    rimEmeraldLight.position.set(6, -4, 2);
+    const rimEmeraldLight = new THREE.PointLight(0x126b50, 3.5, 30);
+    rimEmeraldLight.position.set(-6, 2, 4);
     scene.add(rimEmeraldLight);
+
+    const softFillLight = new THREE.PointLight(0x16835b, 2.0, 20);
+    softFillLight.position.set(6, -4, 2);
+    scene.add(softFillLight);
 
     // Mouse Tracking with Damped Inertia
     let mouseX = 0;
@@ -209,35 +209,35 @@ export function Hero3D() {
   }, []);
 
   return (
-    <div className="relative w-full h-[400px] md:h-[460px] flex items-center justify-center">
+    <div className="relative w-full h-[400px] md:h-[480px] flex items-center justify-center">
       {hasWebGL ? (
         <>
           <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing select-none" />
           
           {/* Subtle Telemetry Overlay Tags */}
-          <div className="absolute bottom-4 left-4 flex items-center gap-2 font-mono text-[11px] text-zinc-400 bg-[#0B0D12]/90 border border-white/[0.08] px-3 py-1.5 rounded-md backdrop-blur-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>AST_PARSER: ACTIVE</span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-zinc-400">DIFF_DEPTH: 48 FILES</span>
+          <div className="absolute bottom-4 left-4 flex items-center gap-2 font-mono text-[11px] text-[#14211D] bg-white/95 border border-[#E4EAE6] px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-sleek-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#16835B] animate-pulse" />
+            <span className="font-semibold">AST_PARSER: ACTIVE</span>
+            <span className="text-[#C7E4D6]">|</span>
+            <span className="text-[#66736D]">DIFF_DEPTH: 48 FILES</span>
           </div>
 
-          <div className="absolute top-4 right-4 font-mono text-[11px] text-zinc-400 bg-[#0B0D12]/90 border border-white/[0.08] px-3 py-1.5 rounded-md backdrop-blur-md">
-            <span>GROUNDING: </span>
-            <span className="text-blue-400 font-semibold">ZERO-HALLUCINATION</span>
+          <div className="absolute top-4 right-4 font-mono text-[11px] text-[#14211D] bg-white/95 border border-[#E4EAE6] px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-sleek-md">
+            <span className="text-[#66736D]">GROUNDING: </span>
+            <span className="text-[#126B50] font-semibold">ZERO-HALLUCINATION</span>
           </div>
         </>
       ) : (
         <div className="w-full h-full flex items-center justify-center p-6">
-          <div className="w-80 surface-card rounded-xl p-5 border border-white/[0.08]">
-            <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-4">
-              <span>SECURITY_MONOLITH</span>
-              <span className="text-emerald-400">ONLINE</span>
+          <div className="w-80 bg-white rounded-2xl p-6 border border-[#E4EAE6] shadow-sleek-md">
+            <div className="flex items-center justify-between text-xs font-mono text-[#66736D] mb-4">
+              <span className="font-semibold text-[#14211D]">SECURITY_MONOLITH</span>
+              <span className="text-[#16835B]">ONLINE</span>
             </div>
-            <div className="space-y-2 text-xs font-mono text-zinc-500">
-              <div className="h-2 w-full bg-zinc-800 rounded" />
-              <div className="h-2 w-3/4 bg-blue-900/60 rounded" />
-              <div className="h-2 w-5/6 bg-zinc-800 rounded" />
+            <div className="space-y-2 text-xs font-mono text-zinc-400">
+              <div className="h-2 w-full bg-[#EAF5EF] rounded" />
+              <div className="h-2 w-3/4 bg-[#126B50]/30 rounded" />
+              <div className="h-2 w-5/6 bg-[#EAF5EF] rounded" />
             </div>
           </div>
         </div>
