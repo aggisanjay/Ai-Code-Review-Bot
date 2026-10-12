@@ -13,7 +13,7 @@ export class GeminiProvider implements ILlmProvider {
   private apiKey: string;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'gemini-1.5-pro-latest') {
+  constructor(apiKey: string, model: string = 'gemini-3.5-flash') {
     if (!apiKey || apiKey.trim() === '') {
       throw new Error(
         'GeminiProvider configuration error: GEMINI_API_KEY is not configured or empty.'
@@ -24,48 +24,64 @@ export class GeminiProvider implements ILlmProvider {
   }
 
   async generateReview(systemPrompt: string, userPrompt: string): Promise<LlmCompletionResult> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
-    const payload = {
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.1,
-        maxOutputTokens: 4096,
-      },
-    };
+    const candidateModels = [this.model, 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-3.5-flash', 'gemini-3.8-flash'].filter(
+      (m, idx, arr) => arr.indexOf(m) === idx
+    );
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45000);
+    let lastError: Error | null = null;
 
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
+    for (const targetModel of candidateModels) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${this.apiKey}`;
+      const payload = {
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.1,
+          maxOutputTokens: 4096,
+        },
+      };
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Google Gemini API request failed (HTTP ${res.status}): ${errorText}`);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 45000);
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          // If high-demand 503 or model not found 404, try next candidate model
+          if (res.status === 503 || res.status === 404) {
+            lastError = new Error(`Google Gemini (${targetModel}) unavailable (HTTP ${res.status}): ${errorText}`);
+            continue;
+          }
+          throw new Error(`Google Gemini API request failed (HTTP ${res.status}): ${errorText}`);
+        }
+
+        const data = await res.json();
+        let rawResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+
+        // Clean markdown code blocks if present
+        rawResponse = rawResponse.trim();
+        if (rawResponse.startsWith('```')) {
+          rawResponse = rawResponse.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        }
+
+        const tokensUsed = data.usageMetadata?.totalTokenCount || 2500;
+        return { rawResponse, tokensUsed };
+      } catch (err: any) {
+        lastError = err;
+      } finally {
+        clearTimeout(timeout);
       }
-
-      const data = await res.json();
-      let rawResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-      
-      // Clean markdown code blocks if present
-      rawResponse = rawResponse.trim();
-      if (rawResponse.startsWith('```')) {
-        rawResponse = rawResponse.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      }
-
-      const tokensUsed = data.usageMetadata?.totalTokenCount || 2500;
-
-      return { rawResponse, tokensUsed };
-    } finally {
-      clearTimeout(timeout);
     }
+
+    throw lastError || new Error('Google Gemini API request failed for all candidate models.');
   }
 }
 

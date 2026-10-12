@@ -1,4 +1,10 @@
-import { IGitHubAdapter, PullRequestDetails, ReviewCommentPayload, CheckRunUpdateParams } from './github-adapter';
+import {
+  IGitHubAdapter,
+  PullRequestDetails,
+  ReviewCommentPayload,
+  CheckRunUpdateParams,
+  GitHubPullRequestSummary,
+} from './github-adapter';
 
 export const SAMPLE_DIFF_JWT_AUTH = `diff --git a/src/services/token.service.ts b/src/services/token.service.ts
 index 1029384..5647382 100644
@@ -43,8 +49,54 @@ index 3456789..4567890 100644
 export class MockGitHubAdapter implements IGitHubAdapter {
   private postedReviews: Array<{ pullNumber: number; summary: string; comments: ReviewCommentPayload[] }> = [];
   private checkRuns: Map<string, { name: string; status: string; conclusion?: string }> = new Map();
+  private mockPullRequests: Map<number, GitHubPullRequestSummary> = new Map();
+
+  constructor() {
+    this.addMockPullRequest({
+      id: 991142,
+      number: 142,
+      title: 'feat(auth): Add JWT refresh token rotation and cookie session handler',
+      author: 'sarah-dev',
+      authorAvatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      sourceBranch: 'feat/refresh-tokens',
+      targetBranch: 'main',
+      headSha: '8f7a1c3e90b2d4f8a1e2c3b4a5d6e7f8a9b0c1d2',
+      state: 'open',
+      createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+      updatedAt: new Date(Date.now() - 1800000).toISOString(),
+    });
+  }
+
+  public addMockPullRequest(pr: GitHubPullRequestSummary) {
+    this.mockPullRequests.set(pr.number, pr);
+  }
+
+  async listPullRequests(
+    _owner: string,
+    _repo: string,
+    state: 'open' | 'closed' | 'all' = 'open',
+    _page: number = 1,
+    _perPage: number = 30
+  ): Promise<GitHubPullRequestSummary[]> {
+    const list = Array.from(this.mockPullRequests.values());
+    if (state === 'all') return list;
+    return list.filter((p) => p.state === state);
+  }
 
   async fetchPullRequest(owner: string, repo: string, pullNumber: number): Promise<PullRequestDetails> {
+    const mock = this.mockPullRequests.get(pullNumber);
+    if (mock) {
+      return {
+        id: mock.id,
+        number: mock.number,
+        title: mock.title,
+        body: 'Automated pull request imported for ReviewFlow AI verification.',
+        state: mock.state,
+        user: { login: mock.author, avatarUrl: mock.authorAvatarUrl },
+        head: { ref: mock.sourceBranch, sha: mock.headSha },
+        base: { ref: mock.targetBranch, sha: '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b' },
+      };
+    }
     return {
       id: 991000 + pullNumber,
       number: pullNumber,

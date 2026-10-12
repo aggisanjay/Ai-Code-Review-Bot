@@ -23,6 +23,7 @@ build/
 *.sqlite-journal
 *.db
 prisma/dev.db
+*.pem
 
 # Logs
 npm-debug.log*

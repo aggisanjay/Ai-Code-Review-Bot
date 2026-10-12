@@ -79,7 +79,7 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       const configuredProvider = process.env.AI_PROVIDER?.toLowerCase();
 
       if (geminiKey && geminiKey.trim() !== '') {
-        const model = process.env.AI_MODEL_GEMINI || 'gemini-1.5-pro-latest';
+        const model = process.env.AI_MODEL_GEMINI || 'gemini-3.5-flash';
         console.log(`[Worker] Using Google Gemini LLM provider (model: ${model})`);
         llmProvider = new GeminiProvider(geminiKey, model);
       } else if (openAiKey && openAiKey.trim() !== '') {
@@ -159,6 +159,14 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       policy = ReviewPolicySchema.parse({});
     }
 
+    // Validate diff line count against policy
+    const diffLineCount = diffText.split('\n').length;
+    if (policy.maxDiffLines && diffLineCount > policy.maxDiffLines) {
+      throw new Error(
+        `Diff exceeds policy limit (${diffLineCount} lines > ${policy.maxDiffLines} allowed lines). Review aborted.`
+      );
+    }
+
     // 8. Run AI + Deterministic Review Pipeline
     const pipelineResult = await runReviewPipeline({
       repoName: repository.fullName,
@@ -223,7 +231,42 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       });
     }
 
-    // 11. Publish to GitHub (Check Runs & Inline PR Comments)
+    // 11. Re-verify HEAD SHA before publishing to GitHub (never publish findings for outdated commit)
+    try {
+      const freshPr = await github.fetchPullRequest(repository.owner, repository.name, pullRequest.number);
+      if (freshPr.head.sha !== job.commitSha) {
+        console.warn(
+          `[Worker] PR HEAD changed from ${job.commitSha.substring(0, 7)} to ${freshPr.head.sha.substring(0, 7)} during review. Aborting publish and marking job SUPERSEDED.`
+        );
+        await prisma.pullRequest.update({
+          where: { id: pullRequest.id },
+          data: { headSha: freshPr.head.sha },
+        });
+        await prisma.reviewJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'SUPERSEDED',
+            statusMessage: `Review result outdated: PR received newer commit ${freshPr.head.sha.substring(0, 7)} before publishing.`,
+            completedAt: new Date(),
+          },
+        });
+        return;
+      }
+    } catch (err: any) {
+      console.warn(`[Worker] Pre-publish PR HEAD validation notice: ${err?.message}`);
+    }
+
+    // 12. Update status -> PUBLISHING
+    await prisma.reviewJob.update({
+      where: { id: job.id },
+      data: {
+        status: 'PUBLISHING',
+        progressPercent: 90,
+        statusMessage: 'Publishing Check Run and inline code review comments to GitHub...',
+      },
+    });
+
+    // 13. Publish to GitHub (Check Runs & Inline PR Comments)
     let checkRunId: string | undefined;
     if (policy.autoCreateCheckRun) {
       try {

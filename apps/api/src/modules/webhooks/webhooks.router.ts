@@ -85,9 +85,71 @@ webhooksRouter.post('/github', async (req: Request, res: Response) => {
     return;
   }
 
+  // Handle GitHub App Repository additions/removals
+  if (eventType === 'installation_repositories') {
+    const { action, installation, repositories_added, repositories_removed } = req.body;
+    if (installation?.id) {
+      const reg = await prisma.gitHubInstallation.findUnique({
+        where: { installationId: installation.id },
+      });
+      if (reg) {
+        if (action === 'added' && Array.isArray(repositories_added)) {
+          for (const r of repositories_added) {
+            await prisma.repository.upsert({
+              where: { githubRepoId: r.id },
+              create: {
+                organizationId: reg.organizationId,
+                githubRepoId: r.id,
+                fullName: r.full_name,
+                name: r.name,
+                owner: r.full_name.split('/')[0],
+                defaultBranch: 'main',
+                isPrivate: Boolean(r.private),
+                isActive: true,
+                autoReviewEnabled: true,
+              },
+              update: {
+                fullName: r.full_name,
+                name: r.name,
+                isActive: true,
+                autoReviewEnabled: true,
+              },
+            });
+          }
+          logger.info('Added repositories via webhook', { count: repositories_added.length, orgId: reg.organizationId });
+        } else if (action === 'removed' && Array.isArray(repositories_removed)) {
+          for (const r of repositories_removed) {
+            await prisma.repository.updateMany({
+              where: { githubRepoId: r.id, organizationId: reg.organizationId },
+              data: { autoReviewEnabled: false, isActive: false },
+            });
+          }
+          logger.info('Removed repositories via webhook', { count: repositories_removed.length, orgId: reg.organizationId });
+        }
+      }
+    }
+    res.status(200).json({ received: true });
+    return;
+  }
+
   // Handle Pull Request events
   if (eventType === 'pull_request') {
     const { action, pull_request, repository, installation } = req.body;
+
+    if (action === 'closed' && pull_request && repository) {
+      await prisma.pullRequest.updateMany({
+        where: {
+          repository: { fullName: repository.full_name },
+          number: pull_request.number,
+        },
+        data: {
+          state: pull_request.merged ? 'MERGED' : 'CLOSED',
+          updatedAt: new Date(),
+        },
+      });
+      res.status(200).json({ received: true, state: pull_request.merged ? 'MERGED' : 'CLOSED' });
+      return;
+    }
 
     if (['opened', 'reopened', 'synchronize'].includes(action) && pull_request && repository) {
       const repoFullName = repository.full_name;

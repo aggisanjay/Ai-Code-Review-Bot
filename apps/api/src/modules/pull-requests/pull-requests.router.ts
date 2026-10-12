@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '@reviewflow/database';
 import { authenticateToken, AuthenticatedRequest } from '../../common/auth.middleware';
+import { enqueueReviewJob } from '../../common/queue';
 
 export const pullRequestsRouter = Router();
 pullRequestsRouter.use(authenticateToken);
@@ -139,4 +140,81 @@ pullRequestsRouter.get('/:id', async (req: AuthenticatedRequest, res: Response) 
   }
 
   res.json({ data: pr });
+});
+
+// POST /api/v1/pull-requests/:id/review
+pullRequestsRouter.post('/:id/review', async (req: AuthenticatedRequest, res: Response) => {
+  const pr = await prisma.pullRequest.findFirst({
+    where: {
+      id: req.params.id,
+      repository: { organizationId: req.user!.organizationId },
+    },
+    include: { repository: true },
+  });
+
+  if (!pr) {
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Pull request not found.' } });
+    return;
+  }
+
+  const forceRerun = Boolean(req.body.forceRerun);
+  const existingJob = await prisma.reviewJob.findFirst({
+    where: {
+      pullRequestId: pr.id,
+      commitSha: pr.headSha,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!forceRerun && existingJob) {
+    if (['QUEUED', 'FETCHING_DIFF', 'ANALYZING', 'VALIDATING', 'PUBLISHING'].includes(existingJob.status)) {
+      res.status(409).json({
+        error: { code: 'REVIEW_ALREADY_RUNNING', message: 'Review already in progress.' },
+        data: { reviewJobId: existingJob.id },
+      });
+      return;
+    }
+    if (existingJob.status === 'COMPLETED') {
+      res.status(200).json({
+        data: { reviewJobId: existingJob.id, alreadyReviewed: true },
+      });
+      return;
+    }
+  }
+
+  // Supersede older jobs
+  await prisma.reviewJob.updateMany({
+    where: {
+      pullRequestId: pr.id,
+      status: { in: ['QUEUED', 'FETCHING_DIFF', 'ANALYZING', 'VALIDATING', 'PUBLISHING'] },
+    },
+    data: {
+      status: 'SUPERSEDED',
+      statusMessage: `Superseded by on-demand review for commit ${pr.headSha.substring(0, 7)}`,
+      completedAt: new Date(),
+    },
+  });
+
+  const idempotencyKey = forceRerun
+    ? `review-${pr.id}-${pr.headSha}-rerun-${Date.now()}`
+    : `review-${pr.id}-${pr.headSha}`;
+
+  const reviewJob = await prisma.reviewJob.create({
+    data: {
+      pullRequestId: pr.id,
+      commitSha: pr.headSha,
+      status: 'QUEUED',
+      idempotencyKey,
+      statusMessage: 'Review job queued on demand.',
+    },
+  });
+
+  await enqueueReviewJob(reviewJob.id);
+
+  res.status(202).json({
+    data: {
+      reviewJobId: reviewJob.id,
+      status: reviewJob.status,
+    },
+  });
 });

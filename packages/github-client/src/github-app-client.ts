@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Octokit } from '@octokit/rest';
 import { createAppAuth } from '@octokit/auth-app';
 import {
@@ -5,6 +7,7 @@ import {
   PullRequestDetails,
   CheckRunUpdateParams,
   ReviewCommentPayload,
+  GitHubPullRequestSummary,
 } from './github-adapter';
 
 export interface GitHubAppClientOptions {
@@ -25,10 +28,30 @@ export class GitHubAppClient implements IGitHubAdapter {
       );
     }
 
+    let resolvedKey = options.privateKey;
+    if (typeof resolvedKey === 'string' && !resolvedKey.includes('PRIVATE KEY')) {
+      const candidates = [
+        resolvedKey,
+        path.resolve(process.cwd(), resolvedKey),
+        path.resolve(process.cwd(), '..', resolvedKey),
+        path.resolve(process.cwd(), '../..', resolvedKey),
+      ];
+      for (const candidate of candidates) {
+        try {
+          if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+            resolvedKey = fs.readFileSync(candidate, 'utf8');
+            break;
+          }
+        } catch {
+          // Continue searching
+        }
+      }
+    }
+
     // Clean escaped newlines if passed through environment variables
-    const formattedPrivateKey = options.privateKey.includes('\\n')
-      ? options.privateKey.replace(/\\n/g, '\n')
-      : options.privateKey;
+    const formattedPrivateKey = resolvedKey.includes('\\n')
+      ? resolvedKey.replace(/\\n/g, '\n')
+      : resolvedKey;
 
     if (!formattedPrivateKey.includes('BEGIN') || !formattedPrivateKey.includes('PRIVATE KEY')) {
       throw new Error(
@@ -132,6 +155,43 @@ export class GitHubAppClient implements IGitHubAdapter {
   }
 
   /**
+   * List pull requests for a repository with pagination
+   */
+  public async listPullRequests(
+    owner: string,
+    repo: string,
+    state: 'open' | 'closed' | 'all' = 'open',
+    page: number = 1,
+    perPage: number = 30,
+    installationId?: number
+  ): Promise<GitHubPullRequestSummary[]> {
+    const octokit = this.getInstallationOctokit(installationId);
+    const { data } = await octokit.rest.pulls.list({
+      owner,
+      repo,
+      state,
+      page,
+      per_page: perPage,
+      sort: 'updated',
+      direction: 'desc',
+    });
+
+    return data.map((pr) => ({
+      id: pr.id,
+      number: pr.number,
+      title: pr.title,
+      author: pr.user?.login || 'unknown',
+      authorAvatarUrl: pr.user?.avatar_url,
+      sourceBranch: pr.head.ref,
+      targetBranch: pr.base.ref,
+      headSha: pr.head.sha,
+      state: pr.state as 'open' | 'closed',
+      createdAt: pr.created_at,
+      updatedAt: pr.updated_at,
+    }));
+  }
+
+  /**
    * Fetch the actual raw unified diff for a pull request
    */
   public async fetchPullRequestDiff(
@@ -229,20 +289,43 @@ export class GitHubAppClient implements IGitHubAdapter {
         body: c.body,
       }));
 
-    const response = await octokit.rest.pulls.createReview({
-      owner,
-      repo,
-      pull_number: pullNumber,
-      commit_id: commitSha,
-      body: summaryBody,
-      event: 'COMMENT',
-      comments: formattedComments.length > 0 ? formattedComments : undefined,
-    });
+    try {
+      const response = await octokit.rest.pulls.createReview({
+        owner,
+        repo,
+        pull_number: pullNumber,
+        commit_id: commitSha,
+        body: summaryBody,
+        event: 'COMMENT',
+        comments: formattedComments.length > 0 ? formattedComments : undefined,
+      });
 
-    return {
-      reviewId: String(response.data.id),
-      commentsCount: formattedComments.length,
-    };
+      return {
+        reviewId: String(response.data.id),
+        commentsCount: formattedComments.length,
+      };
+    } catch (err: any) {
+      if (formattedComments.length > 0 && err.status === 422) {
+        // Fallback: If line numbers are not in the diff hunks, post findings inside the review body
+        const fallbackBody = `${summaryBody}\n\n### Code Findings\n` +
+          formattedComments.map((c) => `* **\`${c.path}:${c.line}\`**:\n${c.body}`).join('\n\n');
+
+        const response = await octokit.rest.pulls.createReview({
+          owner,
+          repo,
+          pull_number: pullNumber,
+          commit_id: commitSha,
+          body: fallbackBody,
+          event: 'COMMENT',
+        });
+
+        return {
+          reviewId: String(response.data.id),
+          commentsCount: 0,
+        };
+      }
+      throw err;
+    }
   }
 
   /**
@@ -292,5 +375,14 @@ export class GitHubAppClient implements IGitHubAdapter {
       events: data.events,
       createdAt: data.created_at,
     };
+  }
+
+  /**
+   * List all installations for the authenticated GitHub App
+   */
+  public async listAppInstallations() {
+    const octokit = this.getAppOctokit();
+    const { data } = await octokit.rest.apps.listInstallations();
+    return data;
   }
 }

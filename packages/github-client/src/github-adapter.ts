@@ -23,6 +23,20 @@ export interface CheckRunUpdateParams {
   text?: string;
 }
 
+export interface GitHubPullRequestSummary {
+  id: number;
+  number: number;
+  title: string;
+  author: string;
+  authorAvatarUrl?: string;
+  sourceBranch: string;
+  targetBranch: string;
+  headSha: string;
+  state: 'open' | 'closed';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface IGitHubAdapter {
   fetchPullRequest(owner: string, repo: string, pullNumber: number): Promise<PullRequestDetails>;
   fetchPullRequestDiff(owner: string, repo: string, pullNumber: number): Promise<string>;
@@ -36,4 +50,11 @@ export interface IGitHubAdapter {
     summaryBody: string,
     comments: ReviewCommentPayload[]
   ): Promise<{ reviewId: string; commentsCount: number }>;
+  listPullRequests(
+    owner: string,
+    repo: string,
+    state?: 'open' | 'closed' | 'all',
+    page?: number,
+    perPage?: number
+  ): Promise<GitHubPullRequestSummary[]>;
 }
