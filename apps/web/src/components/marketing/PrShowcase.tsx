@@ -102,15 +102,15 @@ export function PrShowcase() {
       {/* GitHub PR Meta Header */}
       <div className="bg-white border border-[#E4EAE6] rounded-t-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-sleek-sm">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-[#126B50] shadow-sm">
-            <GitPullRequest className="w-4 h-4 text-[#126B50]" />
+          <div className="w-9 h-9 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-[#063B2C] shadow-sm">
+            <GitPullRequest className="w-4 h-4 text-[#063B2C]" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-xs text-[#66736D]">acme-cloud / auth-service</span>
               <span className="text-[#C7E4D6]">/</span>
               <span className="font-semibold text-xs text-[#14211D]">#142</span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-mono font-medium">
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#063B2C] border border-[#C7E4D6] font-mono font-medium">
                 Open PR
               </span>
               <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F7F9F8] text-[#66736D] border border-[#E4EAE6] font-mono font-medium">
@@ -147,7 +147,7 @@ export function PrShowcase() {
               <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#66736D]">
                 Identified Findings ({findings.length})
               </div>
-              <div className="text-[11px] font-mono text-[#126B50] font-semibold bg-[#EAF5EF] px-2 py-0.5 rounded-full border border-[#C7E4D6]">
+              <div className="text-[11px] font-mono text-[#063B2C] font-semibold bg-[#EAF5EF] px-2 py-0.5 rounded-full border border-[#C7E4D6]">
                 100% Grounded
               </div>
             </div>
@@ -165,7 +165,7 @@ export function PrShowcase() {
                     }}
                     className={`w-full text-left p-3.5 rounded-xl border transition-all text-xs ${
                       isSelected
-                        ? 'bg-white border-[#126B50] shadow-sleek-sm ring-1 ring-[#126B50]/20'
+                        ? 'bg-white border-[#063B2C] shadow-sleek-sm ring-1 ring-[#063B2C]/20'
                         : 'bg-white/80 border-[#E4EAE6] hover:bg-white hover:border-[#D5DFDA]'
                     }`}
                   >
@@ -177,7 +177,7 @@ export function PrShowcase() {
                               ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
                               : f.severity === 'HIGH'
                               ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
-                              : 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
+                              : 'bg-[#EAF5EF] text-[#063B2C] border border-[#C7E4D6]'
                           }`}
                         >
                           {f.severity}
@@ -197,7 +197,7 @@ export function PrShowcase() {
             <div className="pt-3 border-t border-[#E4EAE6] space-y-2.5">
               <div className="text-[11px] font-mono text-[#66736D] flex items-center justify-between">
                 <span>{current.cwe}</span>
-                <span className="text-[#126B50] font-semibold">Confidence: {current.confidence}%</span>
+                <span className="text-[#063B2C] font-semibold">Confidence: {current.confidence}%</span>
               </div>
               <p className="text-xs text-[#14211D] leading-relaxed bg-white p-3.5 rounded-xl border border-[#E4EAE6]">
                 {current.explanation}
@@ -215,13 +215,13 @@ export function PrShowcase() {
               disabled={applied}
               className={`px-3.5 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
                 applied
-                  ? 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-semibold'
+                  ? 'bg-[#EAF5EF] text-[#063B2C] border border-[#C7E4D6] font-semibold'
                   : 'btn-primary'
               }`}
             >
               {applied ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-[#126B50]" />
+                  <Check className="w-3.5 h-3.5 text-[#063B2C]" />
                   <span>Patch Committed</span>
                 </>
               ) : (
@@ -290,10 +290,10 @@ export function PrShowcase() {
               <div className="bg-[#F7F9F8] px-4 py-2.5 border-b border-[#E4EAE6] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 rounded-md bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center">
-                    <Sparkles className="w-3 h-3 text-[#126B50]" />
+                    <Sparkles className="w-3 h-3 text-[#063B2C]" />
                   </div>
                   <span className="font-semibold text-[#14211D] text-xs">ReviewFlow AI</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#EAF5EF] text-[#126B50] font-mono font-medium">
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#EAF5EF] text-[#063B2C] font-mono font-medium">
                     bot
                   </span>
                   <span className="text-[10px] text-[#66736D] font-mono">automated review</span>

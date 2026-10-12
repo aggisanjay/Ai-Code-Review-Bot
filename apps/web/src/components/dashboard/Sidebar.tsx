@@ -107,19 +107,19 @@ export function Sidebar() {
       : 0;
 
   return (
-    <aside className="w-64 border-r border-[#E4EAE6] bg-white flex flex-col justify-between shrink-0 h-screen sticky top-0 shadow-sleek-sm">
+    <aside className="w-64 border-r border-[#E2EDE6] bg-white flex flex-col justify-between shrink-0 h-screen sticky top-0 shadow-sm">
       <div>
         {/* Organization Brand Header */}
-        <div className="h-16 border-b border-[#E4EAE6] px-5 flex items-center justify-between">
+        <div className="h-16 border-b border-[#E2EDE6] px-5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center transition-transform group-hover:scale-105">
-              <GitPullRequest className="w-4 h-4 text-[#126B50]" />
+            <div className="w-8 h-8 rounded-full bg-[#063B2C] flex items-center justify-center transition-transform group-hover:scale-105 shadow-sm">
+              <GitPullRequest className="w-4 h-4 text-white" />
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-sm tracking-tight text-[#14211D] font-display">
+              <span className="font-bold text-sm tracking-tight text-[#111C18] font-display">
                 ReviewFlow
               </span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#EBF7F0] text-[#063B2C] font-mono font-bold border border-[#C3EBD7]">
                 AI
               </span>
             </div>
@@ -128,16 +128,16 @@ export function Sidebar() {
 
         {/* Active Organization Switcher Card */}
         <div className="p-3.5">
-          <div className="p-3 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between">
+          <div className="p-3 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-white border border-[#E4EAE6] flex items-center justify-center text-[#14211D] shadow-sm">
-                <Building2 className="w-3.5 h-3.5 text-[#126B50]" />
+              <div className="w-7 h-7 rounded-lg bg-white border border-[#E2EDE6] flex items-center justify-center text-[#111C18] shadow-sm">
+                <Building2 className="w-3.5 h-3.5 text-[#063B2C]" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-semibold text-[#14211D] truncate max-w-[130px]">
+                <span className="text-xs font-semibold text-[#111C18] truncate max-w-[130px]">
                   {org?.name || 'Workspace'}
                 </span>
-                <span className="text-[10px] text-[#126B50] font-mono font-semibold">
+                <span className="text-[10px] text-[#063B2C] font-mono font-semibold">
                   {org?.plan || 'FREE'} Tier Active
                 </span>
               </div>
@@ -153,13 +153,13 @@ export function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all duration-fast ${
                   isActive
-                    ? 'bg-[#EAF5EF] text-[#126B50] font-semibold border border-[#C7E4D6] shadow-sm'
-                    : 'text-[#66736D] hover:bg-[#F7F9F8] hover:text-[#14211D] border border-transparent'
+                    ? 'bg-[#EBF7F0] text-[#063B2C] font-semibold border border-[#C3EBD7] shadow-sm'
+                    : 'text-[#52635B] hover:bg-[#F8FCFA] hover:text-[#111C18] border border-transparent'
                 }`}
               >
-                <item.icon className={`w-4 h-4 ${isActive ? 'text-[#126B50]' : 'text-[#66736D]'}`} />
+                <item.icon className={`w-4 h-4 ${isActive ? 'text-[#063B2C]' : 'text-[#52635B]'}`} />
                 <span>{item.name}</span>
               </Link>
             );
@@ -168,21 +168,21 @@ export function Sidebar() {
       </div>
 
       {/* Bottom Monthly Usage Bar & User */}
-      <div className="p-3.5 border-t border-[#E4EAE6] space-y-3.5">
+      <div className="p-3.5 border-t border-[#E2EDE6] space-y-3.5">
         {/* Usage Quota Card */}
-        <div className="p-3 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6]">
+        <div className="p-3 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
           <div className="flex items-center justify-between text-[11px] mb-2 font-mono">
-            <span className="text-[#66736D] font-medium">Monthly Reviews</span>
-            <span className="text-[#14211D] font-bold">
+            <span className="text-[#52635B] font-medium">Monthly Reviews</span>
+            <span className="text-[#111C18] font-bold">
               {usage ? `${usage.reviewsUsed} / ${usage.reviewsLimit}` : '0 / 25'}
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[#E4EAE6] rounded-full overflow-hidden">
-            <div className="h-full bg-[#126B50] rounded-full transition-all duration-300" style={{ width: `${usagePercent}%` }} />
+          <div className="w-full h-2 bg-[#E2EDE6] rounded-full overflow-hidden">
+            <div className="h-full bg-[#063B2C] rounded-full transition-all duration-300" style={{ width: `${usagePercent}%` }} />
           </div>
-          <div className="mt-2 flex items-center justify-between text-[10px] text-[#66736D] font-mono">
+          <div className="mt-2 flex items-center justify-between text-[10px] text-[#52635B] font-mono">
             <span>{usage?.resetDate ? `Resets ${new Date(usage.resetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Quota Usage'}</span>
-            <Link href="/dashboard/settings" className="text-[#126B50] font-semibold hover:underline">
+            <Link href="/dashboard/settings" className="text-[#063B2C] font-semibold hover:underline">
               Plan Details
             </Link>
           </div>
@@ -191,18 +191,18 @@ export function Sidebar() {
         {/* User Card */}
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-xs font-bold text-[#126B50] font-mono shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-[#EBF7F0] border border-[#C3EBD7] flex items-center justify-center text-xs font-bold text-[#063B2C] font-mono shadow-sm">
               {userInitials}
             </div>
             <div className="flex flex-col truncate max-w-[130px]">
-              <span className="text-xs font-semibold text-[#14211D] truncate">{user?.name || 'User'}</span>
-              <span className="text-[10px] text-[#66736D] font-mono truncate">{user?.email || ''}</span>
+              <span className="text-xs font-semibold text-[#111C18] truncate">{user?.name || 'User'}</span>
+              <span className="text-[10px] text-[#52635B] font-mono truncate">{user?.email || ''}</span>
             </div>
           </div>
           <button
             onClick={handleLogout}
             title="Log out"
-            className="text-[#66736D] hover:text-[#C43D4B] p-1.5 rounded-lg hover:bg-[#FDE8E8] transition-colors"
+            className="text-[#52635B] hover:text-[#DC2626] p-1.5 rounded-lg hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>

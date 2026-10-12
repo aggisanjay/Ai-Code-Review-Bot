@@ -111,7 +111,7 @@ export function ArchitectureExplorer() {
     <div className="w-full">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-5 border-b border-[#E4EAE6] gap-4">
         <div>
-          <div className="text-[11px] font-mono text-[#126B50] font-semibold uppercase tracking-wider mb-1.5">
+          <div className="text-[11px] font-mono text-[#063B2C] font-semibold uppercase tracking-wider mb-1.5">
             End-To-End Systems Architecture
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-[#14211D] tracking-tight font-display">
@@ -119,7 +119,7 @@ export function ArchitectureExplorer() {
           </h2>
         </div>
         <div className="text-xs font-mono text-[#66736D] bg-[#F7F9F8] border border-[#E4EAE6] px-3.5 py-2 rounded-xl flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#126B50]" />
+          <Clock className="w-4 h-4 text-[#063B2C]" />
           <span>Average Total Pipeline Latency: </span>
           <span className="text-[#14211D] font-bold">~5.4s</span>
         </div>
@@ -135,12 +135,12 @@ export function ArchitectureExplorer() {
               onClick={() => setActiveStageId(stage.id)}
               className={`p-3.5 rounded-xl border text-left transition-all relative ${
                 isActive
-                  ? 'bg-[#EAF5EF] border-[#126B50] shadow-sleek-sm ring-1 ring-[#126B50]/30'
+                  ? 'bg-[#EAF5EF] border-[#063B2C] shadow-sleek-sm ring-1 ring-[#063B2C]/30'
                   : 'bg-white border-[#E4EAE6] hover:bg-[#F7F9F8] hover:border-[#D5DFDA]'
               }`}
             >
               <div className="flex items-center justify-between text-[11px] font-mono mb-1.5">
-                <span className={isActive ? 'text-[#126B50] font-bold' : 'text-[#66736D]'}>
+                <span className={isActive ? 'text-[#063B2C] font-bold' : 'text-[#66736D]'}>
                   {stage.stepNum}
                 </span>
                 <span className="text-[#66736D]">{stage.latency}</span>
@@ -157,7 +157,7 @@ export function ArchitectureExplorer() {
       <div className="bg-white border border-[#E4EAE6] rounded-2xl p-6 sm:p-8 shadow-sleek-md">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#E4EAE6] mb-6">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-bold">
+            <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-[#EAF5EF] text-[#063B2C] border border-[#C7E4D6] font-bold">
               STAGE {current.stepNum}
             </span>
             <h3 className="text-lg font-bold text-[#14211D] font-display">
@@ -166,7 +166,7 @@ export function ArchitectureExplorer() {
           </div>
           <div className="flex items-center gap-2 font-mono text-xs">
             <span className="text-[#66736D]">Step Budget:</span>
-            <span className="text-[#126B50] font-bold bg-[#EAF5EF] px-2 py-0.5 rounded-md border border-[#C7E4D6]">{current.latency}</span>
+            <span className="text-[#063B2C] font-bold bg-[#EAF5EF] px-2 py-0.5 rounded-md border border-[#C7E4D6]">{current.latency}</span>
           </div>
         </div>
 
@@ -178,13 +178,13 @@ export function ArchitectureExplorer() {
           {/* Technical Invariants */}
           <div className="bg-[#F7F9F8] p-5 rounded-xl border border-[#E4EAE6]">
             <div className="text-[11px] font-mono text-[#14211D] font-semibold uppercase tracking-wider mb-3.5 flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-[#126B50]" />
+              <Terminal className="w-4 h-4 text-[#063B2C]" />
               <span>Core Invariants & Technical Details</span>
             </div>
             <ul className="space-y-2.5 text-xs text-[#66736D]">
               {current.technicalDetails.map((detail, idx) => (
                 <li key={idx} className="flex items-start gap-2">
-                  <span className="text-[#126B50] font-bold text-xs leading-4">›</span>
+                  <span className="text-[#063B2C] font-bold text-xs leading-4">›</span>
                   <span className="leading-5 text-[#14211D]">{detail}</span>
                 </li>
               ))}

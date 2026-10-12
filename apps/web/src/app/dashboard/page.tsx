@@ -218,19 +218,19 @@ export default function DashboardOverviewPage() {
             return (
               <div
                 key={i}
-                className="p-5 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm hover:shadow-sleek-md hover:border-[#C7E4D6] transition-all"
+                className="p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm hover:shadow-md hover:border-[#B2E0C7] transition-all duration-fast"
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-mono text-[#66736D] uppercase tracking-wider font-semibold">
+                  <span className="text-xs font-mono text-[#52635B] uppercase tracking-wider font-semibold">
                     {stat.title}
                   </span>
                   <div className={`w-8 h-8 rounded-xl ${stat.iconBg} flex items-center justify-center`}>
                     <Icon className={`w-4 h-4 ${stat.iconColor}`} />
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-[#14211D] font-mono tracking-tight">{stat.value}</div>
-                <div className="text-[11px] text-[#66736D] mt-2 flex items-center gap-1.5 font-mono">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#16835B]" />
+                <div className="text-3xl font-bold text-[#111C18] font-mono tracking-tight">{stat.value}</div>
+                <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1.5 font-mono">
+                  <TrendingUp className="w-3.5 h-3.5 text-[#10B981]" />
                   <span>{stat.change}</span>
                 </div>
               </div>
@@ -241,18 +241,18 @@ export default function DashboardOverviewPage() {
         {/* Severity Distribution & Engine Status */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Finding Breakdown Card */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm">
+          <div className="p-6 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111C18]">
                 Findings by Severity
               </h3>
-              <span className="text-[11px] text-[#66736D] font-mono">Persisted</span>
+              <span className="text-[11px] text-[#52635B] font-mono">Persisted</span>
             </div>
 
             {totalFindings === 0 ? (
               <div className="py-10 text-center space-y-2">
-                <span className="text-xs text-[#14211D] font-mono font-medium block">Zero findings recorded</span>
-                <span className="text-[11px] text-[#66736D] font-mono block">
+                <span className="text-xs text-[#111C18] font-mono font-medium block">Zero findings recorded</span>
+                <span className="text-[11px] text-[#52635B] font-mono block">
                   Reviews will populate severity metrics automatically.
                 </span>
               </div>
@@ -260,14 +260,14 @@ export default function DashboardOverviewPage() {
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#C43D4B] font-semibold flex items-center gap-2 font-mono text-[11px]">
-                      <span className="w-2 h-2 rounded-full bg-[#C43D4B]" /> Critical
+                    <span className="text-[#DC2626] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#DC2626]" /> Critical
                     </span>
-                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.CRITICAL}</span>
+                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.CRITICAL}</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
                     <div
-                      className="h-full bg-[#C43D4B] rounded-full"
+                      className="h-full bg-[#DC2626] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.CRITICAL / totalFindings) * 100)}%` }}
                     />
                   </div>
@@ -275,14 +275,14 @@ export default function DashboardOverviewPage() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#B7791F] font-semibold flex items-center gap-2 font-mono text-[11px]">
-                      <span className="w-2 h-2 rounded-full bg-[#B7791F]" /> High
+                    <span className="text-[#D97706] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#D97706]" /> High
                     </span>
-                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.HIGH}</span>
+                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.HIGH}</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
                     <div
-                      className="h-full bg-[#B7791F] rounded-full"
+                      className="h-full bg-[#D97706] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.HIGH / totalFindings) * 100)}%` }}
                     />
                   </div>
@@ -290,14 +290,14 @@ export default function DashboardOverviewPage() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#126B50] font-semibold flex items-center gap-2 font-mono text-[11px]">
-                      <span className="w-2 h-2 rounded-full bg-[#126B50]" /> Medium
+                    <span className="text-[#063B2C] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#063B2C]" /> Medium
                     </span>
-                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.MEDIUM}</span>
+                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.MEDIUM}</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
                     <div
-                      className="h-full bg-[#126B50] rounded-full"
+                      className="h-full bg-[#063B2C] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.MEDIUM / totalFindings) * 100)}%` }}
                     />
                   </div>
@@ -305,14 +305,14 @@ export default function DashboardOverviewPage() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#66736D] font-semibold flex items-center gap-2 font-mono text-[11px]">
-                      <span className="w-2 h-2 rounded-full bg-[#66736D]" /> Low & Info
+                    <span className="text-[#52635B] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                      <span className="w-2 h-2 rounded-full bg-[#52635B]" /> Low & Info
                     </span>
-                    <span className="text-[#14211D] font-mono font-bold text-xs">{severity.LOW}</span>
+                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.LOW}</span>
                   </div>
-                  <div className="w-full h-1.5 bg-[#F7F9F8] rounded-full overflow-hidden border border-[#E4EAE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
                     <div
-                      className="h-full bg-[#66736D] rounded-full"
+                      className="h-full bg-[#10B981] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.LOW / totalFindings) * 100)}%` }}
                     />
                   </div>
@@ -322,45 +322,45 @@ export default function DashboardOverviewPage() {
           </div>
 
           {/* Actionable Setup & Review Controls */}
-          <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm flex flex-col justify-between">
+          <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3.5">
-                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#126B50]" />
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111C18] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#063B2C]" />
                   <span>Review Engine Status & Controls</span>
                 </h3>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-mono font-bold">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-mono font-bold">
                   Engine Ready
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-[#66736D] leading-relaxed mb-5">
+              <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed mb-5">
                 Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-3.8-flash'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6]">
-                  <span className="text-[#66736D] text-[11px] font-mono block mb-1.5">Active AI Model</span>
-                  <div className="flex items-center gap-2 text-[#14211D] font-semibold font-mono text-xs">
-                    <span className="w-2 h-2 rounded-full bg-[#126B50]" />
+                <div className="p-4 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
+                  <span className="text-[#52635B] text-[11px] font-mono block mb-1.5">Active AI Model</span>
+                  <div className="flex items-center gap-2 text-[#111C18] font-semibold font-mono text-xs">
+                    <span className="w-2 h-2 rounded-full bg-[#063B2C]" />
                     <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini (gemini-3.8-flash)'}</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6]">
-                  <span className="text-[#66736D] text-[11px] font-mono block mb-1.5">Policy Enforcement</span>
-                  <div className="flex items-center gap-2 text-[#14211D] font-semibold text-xs">
-                    <span className="w-2 h-2 rounded-full bg-[#C43D4B]" />
+                <div className="p-4 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
+                  <span className="text-[#52635B] text-[11px] font-mono block mb-1.5">Policy Enforcement</span>
+                  <div className="flex items-center gap-2 text-[#111C18] font-semibold text-xs">
+                    <span className="w-2 h-2 rounded-full bg-[#DC2626]" />
                     <span>Block PR on Critical Findings (Active)</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-[#E4EAE6] flex items-center justify-between text-xs text-[#66736D] font-mono">
+            <div className="mt-6 pt-4 border-t border-[#E2EDE6] flex items-center justify-between text-xs text-[#52635B] font-mono">
               <span>Tenant Isolation: Enforced</span>
               <Link
                 href="/dashboard/repositories"
-                className="text-[#126B50] hover:underline flex items-center gap-1 font-semibold"
+                className="text-[#063B2C] hover:underline flex items-center gap-1 font-semibold"
               >
                 <span>Manage Policies</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />

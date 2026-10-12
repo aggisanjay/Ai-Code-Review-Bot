@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500;1,6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,12 +6,15 @@
 
 :root {
   --background: #FFFFFF;
-  --foreground: #14211D;
-  --muted: #66736D;
-  --accent: #126B50;
-  --accent-hover: #0B523D;
-  --accent-surface: #EAF5EF;
-  --border: #E4EAE6;
+  --foreground: #111C18;
+  --muted: #52635B;
+  --forest: #063B2C;
+  --forest-hover: #0A4D3A;
+  --mint-accent: #10B981;
+  --mint-surface: #EBF7F0;
+  --mint-light: #F4FAF6;
+  --border: #E2EDE6;
+  --border-subtle: #EEF6F1;
   --card: #FFFFFF;
 }
 
@@ -20,9 +23,9 @@ html {
 }
 
 body {
-  color: #14211D;
+  color: #111C18;
   background: #FFFFFF;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -35,16 +38,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F7F9F8;
+  background: #F8FCFA;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D5DFDA;
+  background: #D4E3DB;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #126B50;
+  background: #063B2C;
 }
 
 /* Background grid & subtle dot pattern */
@@ -60,61 +63,127 @@ body {
   background-image: radial-gradient(rgba(20, 33, 29, 0.07) 1.2px, transparent 1.2px);
 }
 
+/* Fintara Ambient Mint Glow */
+.fintara-hero-glow {
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, #D8F3E5 0%, #EDF8F2 45%, #FFFFFF 90%);
+}
+
+.fintara-subtle-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(216, 243, 229, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+/* Fintara Floating Pill Navbar */
+.fintara-pill-nav {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(226, 237, 230, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 /* Sleek surface cards */
 .surface-card {
   background: #FFFFFF;
-  border: 1px solid #E4EAE6;
-  box-shadow: 0 1px 3px 0 rgba(16, 24, 40, 0.03), 0 1px 2px -1px rgba(16, 24, 40, 0.03);
+  border: 1px solid #E2EDE6;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px;
 }
 
 .surface-card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .surface-card-hover:hover {
-  border-color: #C7E4D6;
-  box-shadow: 0 10px 25px -5px rgba(18, 107, 80, 0.08), 0 4px 6px -2px rgba(16, 24, 40, 0.03);
+  border-color: #B2E0C7;
+  box-shadow: 0 10px 25px -5px rgba(6, 59, 44, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transform: translateY(-1px);
 }
 
-/* Sleek-inspired buttons */
-.btn-primary {
-  background: #126B50;
+/* Fintara Signature Forest Pill Buttons */
+.btn-forest-pill {
+  background: #063B2C;
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 1px 2px rgba(11, 82, 61, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  font-weight: 600;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-forest-pill:hover {
+  background: #0A4D3A;
+  box-shadow: 0 4px 14px rgba(6, 59, 44, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-forest-pill:active {
+  background: #04271D;
+  transform: translateY(0);
+}
+
+.btn-white-pill {
+  background: #FFFFFF;
+  color: #111C18;
+  border: 1px solid #DDE7E1;
+  border-radius: 9999px;
   font-weight: 500;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-white-pill:hover {
+  background: #F8FCFA;
+  border-color: #CADCD2;
+  color: #063B2C;
+  transform: translateY(-1px);
+}
+
+.btn-white-pill:active {
+  transform: translateY(0);
+}
+
+/* Backward compatibility aliases */
+.btn-primary {
+  background: #063B2C;
+  color: #FFFFFF;
+  border-radius: 9999px;
+  font-weight: 600;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-primary:hover {
-  background: #0B523D;
-  box-shadow: 0 4px 12px rgba(18, 107, 80, 0.22);
+  background: #0A4D3A;
+  box-shadow: 0 4px 14px rgba(6, 59, 44, 0.2);
   transform: translateY(-1px);
-}
-
-.btn-primary:active {
-  transform: translateY(0px);
 }
 
 .btn-secondary {
   background: #FFFFFF;
-  color: #14211D;
-  border: 1px solid #E4EAE6;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  color: #111C18;
+  border: 1px solid #DDE7E1;
+  border-radius: 9999px;
   font-weight: 500;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary:hover {
-  background: #F7F9F8;
-  border-color: #D5DFDA;
-  color: #0B523D;
+  background: #F8FCFA;
+  border-color: #CADCD2;
+  color: #063B2C;
   transform: translateY(-1px);
 }
 
-.btn-secondary:active {
-  transform: translateY(0px);
+/* Motion transition utilities requested by user */
+.duration-fast {
+  transition-duration: 0.15s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.duration-base {
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.duration-slow {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 /* Clean code diff syntax */
