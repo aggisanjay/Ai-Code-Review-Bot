@@ -19,9 +19,9 @@
     "test:security": "tsx --test tests/security/cross-tenant-isolation.test.ts tests/security/prompt-injection.test.ts",
     "test:integration": "tsx --test tests/integration/review-pipeline.test.ts tests/integration/real-review-flow.test.ts tests/integration/github-connection.test.ts tests/integration/webhook-delivery.test.ts tests/integration/manual-pr-review.test.ts",
     "lint": "npm run lint --workspaces --if-present",
-    "db:generate": "prisma generate --schema=packages/database/prisma/schema.prisma",
-    "db:push": "prisma db push --schema=packages/database/prisma/schema.prisma --skip-generate",
-    "db:migrate": "prisma migrate dev --schema=packages/database/prisma/schema.prisma",
+    "db:generate": "node packages/database/scripts/sync-schema.js && prisma generate --schema=packages/database/prisma/schema.prisma",
+    "db:push": "node packages/database/scripts/sync-schema.js && prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:migrate": "node packages/database/scripts/sync-schema.js && prisma migrate dev --schema=packages/database/prisma/schema.prisma",
     "db:seed": "tsx packages/database/src/seed.ts",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down"

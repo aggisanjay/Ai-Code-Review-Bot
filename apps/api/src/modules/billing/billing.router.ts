@@ -110,7 +110,6 @@ billingRouter.post('/checkout', requireRole(['OWNER', 'ADMIN']), async (req: Aut
     try {
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
-        payment_method_types: ['card'],
         client_reference_id: org.id,
         customer_email: req.user!.email,
         metadata: {

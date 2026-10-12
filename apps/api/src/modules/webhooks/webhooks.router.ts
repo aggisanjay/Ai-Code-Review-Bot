@@ -360,23 +360,32 @@ webhooksRouter.post('/stripe', async (req: Request, res: Response) => {
             },
           });
 
-          await prisma.subscription.upsert({
+          const existingSub = await prisma.subscription.findFirst({
             where: { organizationId: orgId },
-            create: {
-              organizationId: orgId,
-              stripeSubscriptionId: (session.subscription as string) || null,
-              plan: planTier,
-              status: 'ACTIVE',
-              currentPeriodStart: new Date(),
-              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000),
-            },
-            update: {
-              plan: planTier,
-              status: 'ACTIVE',
-              stripeSubscriptionId: (session.subscription as string) || undefined,
-              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000),
-            },
           });
+
+          if (existingSub) {
+            await prisma.subscription.update({
+              where: { id: existingSub.id },
+              data: {
+                plan: planTier,
+                status: 'ACTIVE',
+                stripeSubscriptionId: (session.subscription as string) || undefined,
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+              },
+            });
+          } else {
+            await prisma.subscription.create({
+              data: {
+                organizationId: orgId,
+                stripeSubscriptionId: (session.subscription as string) || null,
+                plan: planTier,
+                status: 'ACTIVE',
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+              },
+            });
+          }
         }
         break;
       }

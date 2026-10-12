@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -83,7 +83,7 @@ model GitHubInstallation {
 model Repository {
   id                 String       @id @default(cuid())
   organizationId     String
-  githubRepoId       Int          @unique
+  githubRepoId       BigInt       @unique
   fullName           String       @unique // e.g. "acme/api-core"
   name               String
   owner              String
@@ -125,7 +125,7 @@ model ReviewPolicy {
 model PullRequest {
   id               String              @id @default(cuid())
   repositoryId     String
-  githubPrId       Int                 // GitHub's internal PR ID
+  githubPrId       BigInt              // GitHub's internal PR ID (can exceed 2^31 - 1)
   number           Int                 // PR number (e.g., #42)
   title            String
   author           String
@@ -305,3 +305,17 @@ model ApiKey {
 
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
+
+model InstallationState {
+  id             String    @id @default(cuid())
+  state          String    @unique
+  organizationId String
+  userId         String
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([state])
+  @@index([organizationId])
+}
+

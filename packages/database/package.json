@@ -4,9 +4,10 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "generate": "prisma generate",
-    "migrate": "prisma migrate dev",
-    "db:push": "prisma db push --skip-generate",
+    "sync-schema": "node scripts/sync-schema.js",
+    "generate": "node scripts/sync-schema.js && prisma generate",
+    "migrate": "node scripts/sync-schema.js && prisma migrate dev",
+    "db:push": "node scripts/sync-schema.js && prisma db push",
     "seed": "tsx src/seed.ts"
   },
   "dependencies": {

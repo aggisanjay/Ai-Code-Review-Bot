@@ -45,6 +45,8 @@ reviewsRouter.get('/:id/stream', async (req: AuthenticatedRequest, res: Response
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
+  let timer: NodeJS.Timeout | null = null;
+
   const sendUpdate = async () => {
     try {
       const job = await prisma.reviewJob.findFirst({
@@ -69,24 +71,28 @@ reviewsRouter.get('/:id/stream', async (req: AuthenticatedRequest, res: Response
 
         // If job has finalized, close stream gracefully
         if (['COMPLETED', 'FAILED', 'SUPERSEDED'].includes(job.status)) {
-          clearInterval(timer);
+          if (timer) clearInterval(timer);
           res.end();
         }
       } else {
         res.write(`event: error\ndata: ${JSON.stringify({ error: 'NOT_FOUND' })}\n\n`);
-        clearInterval(timer);
+        if (timer) clearInterval(timer);
         res.end();
       }
     } catch (_err) {
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
     }
   };
 
   await sendUpdate();
-  const timer = setInterval(sendUpdate, 1500);
+
+  // If the stream is still open, begin polling updates
+  if (!res.writableEnded) {
+    timer = setInterval(sendUpdate, 1500);
+  }
 
   req.on('close', () => {
-    clearInterval(timer);
+    if (timer) clearInterval(timer);
   });
 });
 

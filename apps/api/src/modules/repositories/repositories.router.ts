@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Router, Response } from 'express';
 import { prisma } from '@reviewflow/database';
 import { ReviewPolicySchema } from '@reviewflow/shared';
@@ -31,13 +32,22 @@ function getGitHubAppClient(installationId?: number): GitHubAppClient | null {
 
 // GET /api/v1/repositories/app-info
 repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Response) => {
-  const appSlug = process.env.GITHUB_APP_SLUG || 'reviewflow-pr-assistant';
+  let appSlug = process.env.GITHUB_APP_SLUG || 'reviewflow-ai';
+  let appName = 'ReviewFlow AI';
   const appId = process.env.GITHUB_APP_ID;
-  const isConfigured = Boolean(appId && (process.env.GITHUB_PRIVATE_KEY || true));
+  const isConfigured = Boolean(appId && process.env.GITHUB_PRIVATE_KEY);
 
   let availableInstallations: Array<{ id: number; accountLogin: string; accountType: string }> = [];
   const client = getGitHubAppClient();
   if (client) {
+    try {
+      const appInfo = await client.getAppInfo();
+      if (appInfo.slug) appSlug = appInfo.slug;
+      if (appInfo.name) appName = appInfo.name;
+    } catch {
+      // ignore
+    }
+
     try {
       const list = await client.listAppInstallations();
       availableInstallations = list.map((i) => ({
@@ -53,6 +63,7 @@ repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Resp
   res.json({
     data: {
       appSlug,
+      appName,
       appId: appId || null,
       installUrl: `https://github.com/apps/${appSlug}/installations/new`,
       isConfigured,
@@ -86,13 +97,71 @@ repositoriesRouter.get('/installations', async (req: AuthenticatedRequest, res: 
   });
 });
 
+// POST /api/v1/repositories/installations/initiate
+// Generates a cryptographically secure, single-use state token bound to (userId, orgId)
+repositoriesRouter.post(
+  '/installations/initiate',
+  requireRole(['OWNER', 'ADMIN']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const orgId = req.user!.organizationId;
+    const userId = req.user!.id;
+
+    if (!orgId) {
+      res.status(400).json({ error: { code: 'NO_ORG', message: 'User must belong to an organization.' } });
+      return;
+    }
+
+    const client = getGitHubAppClient();
+    let appSlug = process.env.GITHUB_APP_SLUG || 'reviewflow-ai';
+    if (client) {
+      try {
+        const appInfo = await client.getAppInfo();
+        if (appInfo.slug) {
+          appSlug = appInfo.slug;
+        }
+      } catch (err: any) {
+        logger.warn('Could not retrieve app slug dynamically from GitHub', { error: err.message });
+      }
+    }
+
+    const state = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes TTL
+
+    await prisma.installationState.create({
+      data: {
+        state,
+        organizationId: orgId,
+        userId,
+        expiresAt,
+      },
+    });
+
+    const installUrl = `https://github.com/apps/${appSlug}/installations/new?state=${state}`;
+
+    logger.info('Initiated secure GitHub installation flow', {
+      orgId,
+      userId,
+      appSlug,
+      statePrefix: state.substring(0, 8),
+    });
+
+    res.json({
+      data: {
+        state,
+        installUrl,
+        expiresAt,
+      },
+    });
+  }
+);
+
 // POST /api/v1/repositories/installations/claim
 repositoriesRouter.post(
   '/installations/claim',
   requireRole(['OWNER', 'ADMIN']),
   async (req: AuthenticatedRequest, res: Response) => {
     const orgId = req.user!.organizationId;
-    const { installationId } = req.body;
+    const { installationId, state } = req.body;
 
     const numericInstallationId = parseInt(String(installationId), 10);
     if (isNaN(numericInstallationId) || numericInstallationId <= 0) {
@@ -127,14 +196,106 @@ repositoriesRouter.post(
       }
     }
 
+    // Cryptographic state verification
+    if (state) {
+      const stateRecord = await prisma.installationState.findUnique({
+        where: { state: String(state) },
+      });
+
+      if (!stateRecord) {
+        res.status(400).json({
+          error: {
+            code: 'INVALID_STATE',
+            message: 'Invalid installation state token. Please restart connection from ReviewFlow AI.',
+          },
+        });
+        return;
+      }
+
+      if (stateRecord.organizationId !== orgId) {
+        logger.warn('Tenant mismatch during installation claim', {
+          stateOrgId: stateRecord.organizationId,
+          activeOrgId: orgId,
+        });
+        res.status(403).json({
+          error: {
+            code: 'TENANT_MISMATCH',
+            message: 'Installation state does not match your active organization.',
+          },
+        });
+        return;
+      }
+
+      if (new Date() > stateRecord.expiresAt) {
+        res.status(400).json({
+          error: {
+            code: 'STATE_EXPIRED',
+            message: 'Installation state has expired. Please initiate connection again.',
+          },
+        });
+        return;
+      }
+
+      // Check for idempotent retry if state was already used
+      if (stateRecord.usedAt) {
+        const existingInst = await prisma.gitHubInstallation.findUnique({
+          where: { installationId: targetInstallationId },
+        });
+
+        if (existingInst && existingInst.organizationId === orgId) {
+          // Idempotent callback retry: fetch repos and return existing installation
+          try {
+            const availableRepos = await client.listInstallationRepositories(targetInstallationId);
+            return res.status(200).json({
+              data: {
+                installation: existingInst,
+                availableRepositories: availableRepos,
+                idempotent: true,
+              },
+            });
+          } catch {
+            return res.status(200).json({
+              data: {
+                installation: existingInst,
+                availableRepositories: [],
+                idempotent: true,
+              },
+            });
+          }
+        }
+
+        res.status(400).json({
+          error: {
+            code: 'STATE_ALREADY_USED',
+            message: 'This installation authorization has already been claimed.',
+          },
+        });
+        return;
+      }
+
+      // Mark single-use state as consumed
+      await prisma.installationState.update({
+        where: { id: stateRecord.id },
+        data: { usedAt: new Date() },
+      });
+    } else if (process.env.NODE_ENV === 'production') {
+      res.status(400).json({
+        error: {
+          code: 'MISSING_STATE',
+          message: 'Cryptographically secure state token is required for installation claim in production.',
+        },
+      });
+      return;
+    }
+
     try {
-      // 1. Verify existence of installation with GitHub API
+      // 1. Verify existence of installation with GitHub API & verify app_id ownership
       const details = await client.getInstallationDetails(targetInstallationId);
       const accountLogin = (details.account as any)?.login || 'unknown';
       const accountType = (details.account as any)?.type || 'Organization';
       const avatarUrl = (details.account as any)?.avatar_url || null;
 
-      // 2. Check if already claimed by another organization
+      // 2. Prevent cross-tenant claim hijacking
       const existing = await prisma.gitHubInstallation.findUnique({
         where: { installationId: targetInstallationId },
       });
@@ -284,7 +445,7 @@ repositoriesRouter.get('/github-available', async (req: AuthenticatedRequest, re
     try {
       const repos = await client.listInstallationRepositories(inst.installationId);
       for (const r of repos) {
-        const existing = connectedRepoMap.get(r.id);
+        const existing = connectedRepoMap.get(BigInt(r.id));
         allAvailable.push({
           id: r.id,
           name: r.name,

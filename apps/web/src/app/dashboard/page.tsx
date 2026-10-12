@@ -13,6 +13,8 @@ import {
   Sparkles,
   FolderGit2,
   Plus,
+  Github,
+  ExternalLink,
 } from 'lucide-react';
 import { Header } from '../../components/dashboard/Header';
 
@@ -23,6 +25,7 @@ export default function DashboardOverviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [analytics, setAnalytics] = useState<any>(null);
   const [pullRequests, setPullRequests] = useState<any[]>([]);
+  const [installations, setInstallations] = useState<any[]>([]);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string>('Just now');
 
@@ -37,11 +40,14 @@ export default function DashboardOverviewPage() {
 
     const fetchData = async () => {
       try {
-        const [analyticsRes, prsRes] = await Promise.all([
+        const [analyticsRes, prsRes, instRes] = await Promise.all([
           fetch(`${API_URL}/analytics/overview`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_URL}/pull-requests?limit=5`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_URL}/repositories/installations`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -60,6 +66,11 @@ export default function DashboardOverviewPage() {
         if (prsRes.ok && isMounted) {
           const prsJson = await prsRes.json();
           setPullRequests(prsJson.data || []);
+        }
+
+        if (instRes.ok && isMounted) {
+          const instJson = await instRes.json();
+          setInstallations(instJson.data || []);
         }
 
         if (isMounted) {
@@ -158,6 +169,34 @@ export default function DashboardOverviewPage() {
       />
 
       <div className="px-6 pt-6 space-y-6 max-w-7xl">
+        {/* Prominent Connect GitHub Banner when disconnected */}
+        {!isLoading && installations.length === 0 && (
+          <div className="p-5 rounded-xl bg-gradient-to-r from-blue-950/40 via-[#0E1017] to-purple-950/30 border border-blue-500/30 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/[0.1] flex items-center justify-center shrink-0">
+                <Github className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <span>Connect Your GitHub Account or Organization</span>
+                  <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[10px] font-mono border border-blue-500/30">Action Required</span>
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5 max-w-2xl">
+                  Install the official ReviewFlow AI GitHub App on your repositories to enable automated pull request code reviews and security scanning. No personal access tokens or Gemini keys needed.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/repositories"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg btn-primary text-xs font-medium shrink-0 shadow-lg hover:shadow-blue-500/20"
+            >
+              <Github className="w-3.5 h-3.5" />
+              <span>Connect GitHub</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
+
         {/* Metric Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           {stats.map((stat, i) => {

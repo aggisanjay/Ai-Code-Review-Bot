@@ -368,12 +368,38 @@ export class GitHubAppClient implements IGitHubAdapter {
       installation_id: targetId,
     });
 
+    // Validate that the installation belongs to our configured GitHub App
+    if (data.app_id && String(data.app_id) !== String(this.appId)) {
+      throw new Error(
+        `Security verification failed: Installation ${targetId} belongs to GitHub App ID ${data.app_id}, but this platform is configured for App ID ${this.appId}.`
+      );
+    }
+
     return {
       id: data.id,
+      appId: data.app_id,
       account: data.account,
       permissions: data.permissions,
       events: data.events,
       createdAt: data.created_at,
+    };
+  }
+
+  /**
+   * Retrieve official GitHub App details from GitHub API using JWT
+   */
+  public async getAppInfo() {
+    const octokit = this.getAppOctokit();
+    const { data } = await octokit.rest.apps.getAuthenticated();
+    if (!data) {
+      throw new Error('Failed to retrieve GitHub App info from API');
+    }
+    return {
+      id: data.id,
+      slug: data.slug || '',
+      name: data.name,
+      htmlUrl: data.html_url,
+      installUrl: `https://github.com/apps/${data.slug || 'reviewflow-ai'}/installations/new`,
     };
   }
 

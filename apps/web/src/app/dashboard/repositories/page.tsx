@@ -199,7 +199,7 @@ function RepositoriesPageContent() {
     } catch {}
   }, []);
 
-  const claimInstallation = useCallback(async (installationId: number) => {
+  const claimInstallation = useCallback(async (installationId: number, state?: string) => {
     const token = getToken();
     if (!token) return;
 
@@ -213,7 +213,7 @@ function RepositoriesPageContent() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ installationId }),
+        body: JSON.stringify({ installationId, state }),
       });
 
       const json = await res.json();
@@ -236,13 +236,40 @@ function RepositoriesPageContent() {
   // Handle URL callback param from GitHub installation redirect
   useEffect(() => {
     const queryInstallId = searchParams.get('installation_id');
+    const queryState = searchParams.get('state');
     if (queryInstallId) {
       const numericId = parseInt(queryInstallId, 10);
       if (!isNaN(numericId) && numericId > 0) {
-        claimInstallation(numericId);
+        claimInstallation(numericId, queryState || undefined);
       }
     }
   }, [searchParams, claimInstallation]);
+
+  const handleConnectGitHub = async () => {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    setIsClaiming(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/repositories/installations/initiate`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (res.ok && json.data?.installUrl) {
+        window.location.href = json.data.installUrl;
+      } else {
+        window.location.href = appInfo?.installUrl || 'https://github.com/apps';
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to initiate secure GitHub App installation.');
+      setIsClaiming(false);
+    }
+  };
 
   useEffect(() => {
     fetchRepositories();
@@ -493,16 +520,15 @@ function RepositoriesPageContent() {
                 <span>Select Repositories</span>
               </button>
             )}
-            <a
-              href={appInfo?.installUrl || 'https://github.com/apps'}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={handleConnectGitHub}
+              disabled={isClaiming}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs font-medium"
             >
               <Github className="w-3.5 h-3.5" />
-              <span>{installations.length > 0 ? 'Add GitHub Account' : 'Install GitHub App'}</span>
+              <span>{installations.length > 0 ? 'Add GitHub Account' : 'Connect GitHub App'}</span>
               <ExternalLink className="w-3 h-3 opacity-70" />
-            </a>
+            </button>
           </div>
         }
       />

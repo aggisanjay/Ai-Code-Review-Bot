@@ -1,5 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+
+// Enable automatic JSON serialization for Prisma BigInt fields
+if (typeof BigInt !== 'undefined' && !(BigInt.prototype as any).toJSON) {
+  (BigInt.prototype as any).toJSON = function () {
+    return Number(this);
+  };
+}
+
 import { config } from './common/config';
 import { logger } from './common/logger';
 import { createRateLimiter } from './common/rate-limiter';
@@ -37,11 +45,17 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server webhook forwards)
+      if (!origin) {
         callback(null, true);
+        return;
+      }
+      if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        callback(null, true);
+      } else if (config.isProduction) {
+        callback(new Error(`CORS blocked: Origin "${origin}" is not authorized.`));
       } else {
-        callback(null, true); // Permissive in dev, logged
+        callback(null, true); // Permissive in development only
       }
     },
     credentials: true,

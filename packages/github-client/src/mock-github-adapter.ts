@@ -4,6 +4,7 @@ import {
   ReviewCommentPayload,
   CheckRunUpdateParams,
   GitHubPullRequestSummary,
+  GitHubAppInfo,
 } from './github-adapter';
 
 export const SAMPLE_DIFF_JWT_AUTH = `diff --git a/src/services/token.service.ts b/src/services/token.service.ts
@@ -142,6 +143,16 @@ export class MockGitHubAdapter implements IGitHubAdapter {
     this.postedReviews.push({ pullNumber, summary: summaryBody, comments });
     console.log(`[MockGitHub] Posted review ${reviewId} on ${owner}/${repo}#${pullNumber} with ${comments.length} inline comments.`);
     return { reviewId, commentsCount: comments.length };
+  }
+
+  async getAppInfo(): Promise<GitHubAppInfo> {
+    return {
+      id: 5282602,
+      slug: 'reviewflow-ai',
+      name: 'ReviewFlow AI',
+      htmlUrl: 'https://github.com/apps/reviewflow-ai',
+      installUrl: 'https://github.com/apps/reviewflow-ai/installations/new',
+    };
   }
 
   getHistory() {

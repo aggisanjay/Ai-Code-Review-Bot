@@ -37,6 +37,14 @@ export interface GitHubPullRequestSummary {
   updatedAt: string;
 }
 
+export interface GitHubAppInfo {
+  id: number;
+  slug: string;
+  name: string;
+  htmlUrl: string;
+  installUrl: string;
+}
+
 export interface IGitHubAdapter {
   fetchPullRequest(owner: string, repo: string, pullNumber: number): Promise<PullRequestDetails>;
   fetchPullRequestDiff(owner: string, repo: string, pullNumber: number): Promise<string>;
@@ -57,4 +65,5 @@ export interface IGitHubAdapter {
     page?: number,
     perPage?: number
   ): Promise<GitHubPullRequestSummary[]>;
+  getAppInfo?(): Promise<GitHubAppInfo>;
 }

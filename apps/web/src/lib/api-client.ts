@@ -95,6 +95,89 @@ class ApiClient {
     return this.fetch<any[]>('/repositories');
   }
 
+  async getAppInfo() {
+    return this.fetch<{
+      appSlug: string;
+      appName: string;
+      appId: number | null;
+      installUrl: string;
+      isConfigured: boolean;
+      availableInstallations: Array<{ id: number; accountLogin: string; accountType: string }>;
+    }>('/repositories/app-info');
+  }
+
+  async initiateInstallation() {
+    return this.fetch<{
+      state: string;
+      installUrl: string;
+      expiresAt: string;
+    }>('/repositories/installations/initiate', {
+      method: 'POST',
+    });
+  }
+
+  async claimInstallation(installationId: number, state?: string) {
+    return this.fetch<{
+      installation: any;
+      availableRepositories?: any[];
+      idempotent?: boolean;
+    }>('/repositories/installations/claim', {
+      method: 'POST',
+      body: JSON.stringify({ installationId, state }),
+    });
+  }
+
+  async getInstallations() {
+    return this.fetch<any[]>('/repositories/installations');
+  }
+
+  async disconnectInstallation(installationId: number) {
+    return this.fetch<{ disconnected: boolean }>(`/repositories/installations/${installationId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getAvailableRepositories() {
+    return this.fetch<any[]>('/repositories/github-available');
+  }
+
+  async toggleRepository(params: {
+    githubRepoId: number;
+    fullName: string;
+    name: string;
+    owner?: string;
+    defaultBranch?: string;
+    isPrivate?: boolean;
+    enabled: boolean;
+  }) {
+    return this.fetch<{ enabled: boolean; repository?: any }>('/repositories/toggle', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getRepositoryPullRequests(repoId: string, state: string = 'open', page: number = 1, limit: number = 20) {
+    return this.fetch<{
+      pullRequests: any[];
+      page: number;
+      limit: number;
+      hasMore: boolean;
+    }>(`/repositories/${repoId}/pull-requests?state=${state}&page=${page}&limit=${limit}`);
+  }
+
+  async triggerPrReview(repoId: string, prNumber: number, forceRerun: boolean = false) {
+    return this.fetch<{
+      reviewJobId: string;
+      status: string;
+      alreadyReviewed?: boolean;
+      overallRisk?: string;
+      message?: string;
+    }>(`/repositories/${repoId}/pull-requests/${prNumber}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ forceRerun }),
+    });
+  }
+
   async updateRepositoryPolicy(repoId: string, policy: any) {
     return this.fetch<any>(`/repositories/${repoId}/policy`, {
       method: 'PATCH',
@@ -119,3 +202,4 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
+
