@@ -37,7 +37,7 @@ export const config = {
   githubWebhookSecret: process.env.GITHUB_WEBHOOK_SECRET || 'development_webhook_secret_key',
   githubMockMode: isProduction ? false : process.env.GITHUB_MOCK_MODE === 'true',
   billingMockMode: isProduction ? false : process.env.BILLING_MOCK_MODE !== 'false',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  corsOrigin: process.env.CORS_ORIGIN || process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   appUrl: process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   apiUrl: process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1',
 };
