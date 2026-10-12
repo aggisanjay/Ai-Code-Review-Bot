@@ -1,11 +1,24 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { prisma } from '@reviewflow/database';
 import { processReviewJob } from './processors/review-job-processor';
+import { startBullMqWorker } from './queue';
 
 let isRunning = true;
 
 async function runWorkerLoop() {
   console.log('👷 ReviewFlow AI Background Worker started.');
-  console.log('   Polling for QUEUED review jobs...');
+  console.log('   Environment:', process.env.NODE_ENV || 'development');
+  console.log('   AI Provider:', process.env.AI_PROVIDER || (process.env.GEMINI_API_KEY ? 'gemini' : 'mock'));
+
+  // Start BullMQ Worker
+  const bullWorker = startBullMqWorker();
+  if (bullWorker) {
+    console.log('   BullMQ Redis Queue listener: ACTIVE');
+  }
+
+  console.log('   Durable database queue listener: ACTIVE');
 
   while (isRunning) {
     try {
@@ -19,12 +32,12 @@ async function runWorkerLoop() {
         if (!isRunning) break;
         await processReviewJob(job.id);
       }
-    } catch (err) {
-      console.error('[Worker] Polling error:', err);
+    } catch (err: any) {
+      console.error('[Worker] Polling loop notice:', err?.message || err);
     }
 
-    // Wait 3 seconds between polling loops
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // Wait 2.5 seconds between polling iterations
+    await new Promise((resolve) => setTimeout(resolve, 2500));
   }
 }
 

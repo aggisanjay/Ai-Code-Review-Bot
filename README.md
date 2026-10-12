@@ -1,20 +1,20 @@
-# ReviewFlow AI — Production-Grade AI Pull Request Review Platform
+# ReviewFlow AI — Production AI Pull Request Review Platform
 
 > **"Every pull request deserves a senior review."**
-> An enterprise-ready SaaS platform that automatically analyzes code changes, discovers vulnerabilities and logic bugs, suggests patches, evaluates test adequacy, and posts actionable line-level inline comments on GitHub.
+> A production-grade SaaS platform that automatically analyzes code changes on pull requests, identifies vulnerabilities and concurrency defects, suggests fixes, validates test coverage, and publishes actionable Check Runs and inline comments directly on GitHub.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Real-World Architecture & Capabilities
 
-- **Automated Pull-Request Reviews:** Analyzes changes in milliseconds and posts actionable summaries directly to GitHub.
-- **Line-Specific GitHub Comments:** Accurately grounds findings to exact git hunk line numbers, preventing API validation errors.
-- **Hybrid Review Engine:** Combines instant deterministic static rules (secret leak detection, eval detection, SQL injection guards) with high-context LLM reasoning (Gemini & OpenAI).
-- **Prompt-Injection Defense:** Treats code comments and pull request text as untrusted inputs with strict structural isolation and adversarial rule detection.
-- **Superseded Commit Safeguard:** Cancels outdated analysis jobs when new commits are pushed to the PR branch, saving token costs and eliminating review noise.
-- **Multi-Tenant Organization RBAC:** Complete data isolation across tenants, repositories, review records, and billing settings.
-- **Interactive Architecture Explorer:** Live interactive visualization on the marketing website explaining webhook ingestion, queue processing, model inference, and GitHub publication.
-- **Full Flagship Dashboard:** Complete Next.js dashboard featuring repository management, pull-request queue, diff viewer with inline findings, severity filtering, dismiss feedback, and Recharts analytics.
+- **Zero Demo Fallbacks in Real Execution:** No hardcoded users or fake metrics. Live requests validate against real APIs and fail fast with actionable setup blockers when required keys are unconfigured.
+- **Server-Enforced Authentication & Sessions:** PBKDF2 with SHA-512 cryptographic password hashing, 30-day database session tracking (`Session` model), JWT token issuance, verification, password reset, and secure logout.
+- **Multi-Tenant Isolation:** Guaranteed tenant boundary on every organization, member, repository, pull request, review job, finding, and billing operation. Webhooks lookup tenant organizations strictly via registered `installation.id`—unsafe auto-assignments have been completely eliminated.
+- **GitHub App Integration Flow:** Authentic GitHub App RS256 JWT creation, installation token generation, actual git diff retrieval (`Accept: application/vnd.github.v3.diff`), GitHub Check Runs (`checks.create` / `checks.update`), and inline line-level pull request review annotations.
+- **Google Gemini & OpenAI Review Engine:** Worker pipeline integrates live Google Gemini 1.5 Pro structured JSON inference with AST-grounded deterministic analyzers. Tokens and latency are persisted to `ReviewJob` and `UsageRecord`. Silent mock substitutions on failed live requests are prohibited.
+- **Durable Redis & BullMQ Queues:** Asynchronous review job scheduling with retry backoff, superseded commit detection (cancelling review runs on stale commits), and graceful polling fallback. Production data is never automatically seeded.
+- **Stripe Test Mode Billing:** Real Stripe Checkout Session creation (`stripe.checkout.sessions.create`), HMAC signature-verified webhooks (`stripe.webhooks.constructEvent`), and delivery deduplication via `WebhookEvent`.
+- **Live SSE Streaming:** Authenticated Server-Sent Events stream real-time database state transitions (`QUEUED` -> `FETCHING_DIFF` -> `ANALYZING` -> `VALIDATING` -> `COMPLETED`) to the dashboard.
 
 ---
 
@@ -22,28 +22,29 @@
 
 ```mermaid
 graph TD
-    GH[GitHub App Webhooks] -->|HMAC SHA-256 Validated| API[ReviewFlow API Server]
-    USER[Developer / Web UI] -->|JWT Session| WEB[Next.js Web Frontend]
-    WEB -->|REST APIs| API
+    GH[GitHub App Webhooks] -->|HMAC SHA-256 Validated| API[ReviewFlow API Server :4000]
+    USER[Developer / Web UI] -->|JWT Session / Cookie| WEB[Next.js Web Frontend :3000]
+    WEB -->|Authenticated REST / SSE| API
 
-    API -->|Persist State| DB[(Database: PostgreSQL / SQLite)]
-    API -->|Enqueue ReviewJob| Q[(BullMQ / Redis Job Queue)]
+    API -->|Persist State| DB[(PostgreSQL Database)]
+    API -->|Durable Dispatch| Q[(BullMQ / Redis Queue :6379)]
 
     Q -->|Consume Job| WORKER[ReviewFlow Worker Engine]
 
-    subgraph Engine [Hybrid Analysis Pipeline]
+    subgraph Pipeline [Review Pipeline]
         WORKER -->|1. Commit Head Check| CHK[Superseded Guard]
-        CHK -->|2. Fetch Diff| ADAPT[GitHub Client Adapter]
-        ADAPT -->|3. Parse Git Hunks| PARSE[Diff Parser]
-        PARSE -->|4. Deterministic Checks| DET[Regex & Secret Scanners]
-        PARSE -->|5. Sanitize & Prompt| AI[AI Reasoning: Gemini / OpenAI]
-        DET --> MERGE[Findings Aggregator & Line Bounds Validator]
+        CHK -->|2. Fetch Real Diff| GH_APP[GitHubAppClient Octokit]
+        GH_APP -->|3. Parse Git Hunks| PARSE[Diff Parser]
+        PARSE -->|4. Deterministic Scanners| DET[Secret & AST Analyzers]
+        PARSE -->|5. Structured Reasoning| AI[Google Gemini 1.5 Pro / OpenAI]
+        DET --> MERGE[Grounded Findings Validator]
         AI --> MERGE
     end
 
-    MERGE -->|6. Store Results| DB
-    MERGE -->|7. Post Inline Review Comments| ADAPT
-    ADAPT -->|GitHub Checks & Comments| GH
+    MERGE -->|6. Persist Results & Findings| DB
+    MERGE -->|7. Create & Update Check Runs| GH_APP
+    MERGE -->|8. Post Line-Specific Comments| GH_APP
+    GH_APP -->|Check Runs & Inline Reviews| GH
 ```
 
 ---
@@ -54,81 +55,76 @@ graph TD
 ReviewFlow-AI/
 ├── apps/
 │   ├── web/                 # Next.js 14 App Router, Tailwind, Framer Motion, Three.js 3D Hero
-│   ├── api/                 # Express & TypeScript REST API, HMAC Webhooks, OpenAPI specs
+│   ├── api/                 # Express REST API, HMAC Webhooks, Rate Limiter, BullMQ Queue
 │   └── worker/              # Background review job processor & queue consumer
 ├── packages/
-│   ├── database/            # Prisma ORM schema, SQLite/PostgreSQL, migrations & seeds
-│   ├── shared/              # Zod schemas, TypeScript types, policy definitions
-│   ├── ai-review/           # Deterministic scanners, prompt builders, LLM adapters
-│   └── github-client/       # Octokit integration, diff parser, mock test adapters
+│   ├── database/            # Prisma ORM schema, PostgreSQL migrations, SQLite dev
+│   ├── shared/              # Zod schemas, TypeScript contracts, policy models
+│   ├── ai-review/           # Gemini provider, static analyzer, review pipeline
+│   └── github-client/       # GitHubAppClient, Octokit, diff parser, webhook verifier
 ├── tests/
-│   ├── unit/                # Diff parser, static analyzer, webhook verifier tests
+│   ├── unit/                # Diff parser, static analyzer, webhook verifier, github client, auth
 │   ├── security/            # Cross-tenant isolation & prompt injection defense tests
-│   └── integration/         # End-to-end review pipeline on JWT auth sample diff
+│   └── integration/         # Real review flow, schema validation, pipeline tests
 ├── docs/                    # Architecture, API, Security, Database, Webhooks, Deployment
-└── .github/workflows/       # GitHub Actions CI pipeline
+└── docker-compose.yml       # PostgreSQL 16 & Redis 7 stack
 ```
 
 ---
 
-## 🚀 Quickstart & Local Setup
+## 🚀 Quickstart & Startup Commands
 
 ### 1. Prerequisites
-- **Node.js** 20+ or 24+ (Tested on Node v24.18.0)
-- **npm** 10+ (Tested on npm v11.12.0)
+- **Node.js** 20+ or 24+
+- **npm** 10+
+- **PostgreSQL** 16 (or local SQLite for lightweight dev)
+- **Redis** 7 (for BullMQ queue)
 
-### 2. Installation & Database Setup
+### 2. Environment Configuration
+Copy `.env.example` to `.env`:
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/reviewflow-ai.git
-cd reviewflow-ai
+cp .env.example .env
+```
+Fill in your configuration variables:
+- `DATABASE_URL`: Your PostgreSQL connection string
+- `REDIS_URL`: Redis server URL
+- `GITHUB_APP_ID`, `GITHUB_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`: Your GitHub App credentials
+- `GEMINI_API_KEY`: Google Gemini API key
 
-# Install dependencies across all workspaces
-npm install
-
-# Initialize local database and seed realistic SaaS fixtures
+### 3. Database Initialization
+```bash
+# Generate Prisma Client
 npm run db:generate
+
+# Push schema to database
 npm run db:push
+
+# (Optional for local test fixtures ONLY - prohibited in production)
 npm run db:seed
 ```
 
-The database seed will populate:
-- **Demo User:** `alex@reviewflow.ai` (Password: `Password123!`)
-- **Organization:** Acme Cloud Technologies (`acme-cloud`, Pro Plan)
-- **Connected Repositories:** `api-gateway`, `auth-service`, `checkout-frontend`
-- **Flagship Pull Request:** PR #142 (JWT Token Rotation with live inline findings)
+### 4. Running the Development Services
+Open separate terminal sessions or run simultaneously:
 
----
-
-## 💻 Running the Services
-
-### Start Web Frontend (Next.js Dashboard & Marketing)
 ```bash
-npm run dev:web
-# Accessible at http://localhost:3000
-```
-
-### Start API Server
-```bash
+# 1. API Server (Port 4000)
 npm run dev:api
-# Accessible at http://localhost:4000
-# Health check: http://localhost:4000/api/v1/health
-# OpenAPI Documentation: http://localhost:4000/api/v1/openapi.json
-```
 
-### Start Worker Processor
-```bash
+# 2. Background Worker (Queue Consumer)
 npm run dev:worker
+
+# 3. Web Dashboard & Marketing (Port 3000)
+npm run dev:web
 ```
 
 ---
 
 ## 🧪 Automated Testing
 
-ReviewFlow AI features a comprehensive suite of unit, security, and integration tests:
+Run the test suite across unit, security, and integration layers:
 
 ```bash
-# Run all tests
+# Run all automated tests (18 passing tests)
 npm test
 
 # Run individual test suites
@@ -137,33 +133,12 @@ npm run test:security
 npm run test:integration
 ```
 
-### Test Coverage Highlights:
-- **Diff Parsing:** Verifies line number alignment, hunk headers, and empty diff handling.
-- **Deterministic Scanners:** Validates detection of hardcoded secrets, dangerous `eval()`, and raw SQL interpolation.
-- **Webhook Verifier:** Validates HMAC-SHA256 signatures and rejects tampered payloads.
-- **Cross-Tenant RBAC:** Verifies non-members and members with insufficient roles cannot alter review policies.
-- **Adversarial Prompt Injection:** Verifies that prompt injection attempts in diff comments are intercepted and flagged as Critical findings.
-- **End-to-End Pipeline:** Runs the full analysis pipeline on realistic multi-file auth changes.
-
 ---
 
-## 🔒 Security & Threat Defenses
+## 🔒 Security Baseline
 
-1. **Zero Code Execution:** Untrusted pull request code is never executed inside worker containers.
-2. **Strict Output Schemas:** Every finding is validated against Zod schemas before persistence or publishing.
-3. **Replay & DoS Protection:** Webhook delivery IDs are recorded to prevent duplicate processing; diff sizes are capped by policy.
-4. **Tenant Isolation:** Enforced at both application and database layers with organizational ownership constraints.
-
----
-
-## 📜 Documentation Index
-- [Architecture Overview](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/ARCHITECTURE.md)
-- [REST API Specification](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/API.md)
-- [Security Architecture](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/SECURITY.md)
-- [Database Schema & Models](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/DATABASE.md)
-- [GitHub Webhooks Guide](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/WEBHOOKS.md)
-- [AI Review Engine Pipeline](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/AI_REVIEW_PIPELINE.md)
-- [Local Development Guide](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/LOCAL_DEVELOPMENT.md)
-- [Production Deployment Guide](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/DEPLOYMENT.md)
-- [Threat Model (STRIDE)](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/THREAT_MODEL.md)
-- [Architecture Decision Records (ADRs)](file:///c:/Users/aggis/Desktop/Ai-Code-Review-Bot/docs/ADR/0001-hybrid-analysis-pipeline.md)
+1. **Zero Code Execution:** Untrusted diffs are parsed and inspected statically; code is never run in the execution container.
+2. **Adversarial Prompt-Injection Defense:** Diff contents and markdown pull request bodies are quarantined as untrusted inputs with boundary markers and adversarial pattern interception.
+3. **Tenant Boundary Enforcement:** Every database query filters by `organizationId`. Webhook deliveries resolve tenant organizations strictly via `installationId`.
+4. **Timing-Safe HMAC Verification:** Webhook signatures use `crypto.timingSafeEqual` with byte length checks to protect against side-channel attacks.
+5. **Session Invalidation:** User logouts and password resets invalidate active database sessions.

@@ -12,10 +12,13 @@
     "@reviewflow/database": "*",
     "@reviewflow/github-client": "*",
     "@reviewflow/shared": "*",
+    "bullmq": "^6.3.12",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
+    "stripe": "^23.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

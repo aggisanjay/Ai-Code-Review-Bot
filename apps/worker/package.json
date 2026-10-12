@@ -13,7 +13,9 @@
     "@reviewflow/database": "*",
     "@reviewflow/github-client": "*",
     "@reviewflow/shared": "*",
-    "dotenv": "^16.4.5"
+    "bullmq": "^6.3.12",
+    "dotenv": "^16.4.5",
+    "ioredis": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.5",

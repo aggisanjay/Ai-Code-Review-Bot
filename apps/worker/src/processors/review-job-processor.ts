@@ -1,22 +1,30 @@
 import { prisma } from '@reviewflow/database';
-import { runReviewPipeline } from '@reviewflow/ai-review';
-import { MockGitHubAdapter, IGitHubAdapter } from '@reviewflow/github-client';
+import { runReviewPipeline, ILlmProvider, GeminiProvider, OpenAiProvider, MockLlmProvider } from '@reviewflow/ai-review';
+import {
+  IGitHubAdapter,
+  GitHubAppClient,
+  MockGitHubAdapter,
+} from '@reviewflow/github-client';
 import { ReviewPolicy, ReviewPolicySchema } from '@reviewflow/shared';
 
 export interface ProcessReviewJobOptions {
   githubAdapter?: IGitHubAdapter;
+  llmProvider?: ILlmProvider;
 }
 
 export async function processReviewJob(jobId: string, options?: ProcessReviewJobOptions): Promise<void> {
-  const github = options?.githubAdapter || new MockGitHubAdapter();
-
   const job = await prisma.reviewJob.findUnique({
     where: { id: jobId },
     include: {
       pullRequest: {
         include: {
           repository: {
-            include: { reviewPolicies: true },
+            include: {
+              reviewPolicies: true,
+              organization: {
+                include: { installations: true },
+              },
+            },
           },
         },
       },
@@ -24,7 +32,7 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
   });
 
   if (!job) {
-    console.error(`[Worker] Job ${jobId} not found.`);
+    console.error(`[Worker] ReviewJob ${jobId} not found.`);
     return;
   }
 
@@ -34,20 +42,77 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
   console.log(`[Worker] Processing ReviewJob ${job.id} for ${repository.fullName}#${pullRequest.number}`);
 
   try {
-    // 1. Commit SHA Validation: ensure the job's commit SHA is still the latest on the PR
+    // 1. Resolve GitHub Adapter
+    let github: IGitHubAdapter;
+    if (options?.githubAdapter) {
+      github = options.githubAdapter;
+    } else {
+      const appId = process.env.GITHUB_APP_ID;
+      const privateKey = process.env.GITHUB_PRIVATE_KEY;
+      const installation = repository.organization?.installations?.[0];
+
+      if (appId && privateKey) {
+        github = new GitHubAppClient({
+          appId,
+          privateKey,
+          installationId: installation?.installationId,
+        });
+      } else if (process.env.GITHUB_MOCK_MODE !== 'false' && process.env.NODE_ENV !== 'production') {
+        console.warn(
+          `[Worker] Using MockGitHubAdapter (GITHUB_APP_ID/GITHUB_PRIVATE_KEY not configured in development).`
+        );
+        github = new MockGitHubAdapter();
+      } else {
+        throw new Error(
+          'Configuration Error: Missing GITHUB_APP_ID or GITHUB_PRIVATE_KEY. Production/live mode requires real GitHub App credentials.'
+        );
+      }
+    }
+
+    // 2. Resolve LLM Provider (Never silently substitute mock if real provider fails)
+    let llmProvider: ILlmProvider;
+    if (options?.llmProvider) {
+      llmProvider = options.llmProvider;
+    } else {
+      const geminiKey = process.env.GEMINI_API_KEY;
+      const openAiKey = process.env.OPENAI_API_KEY;
+      const configuredProvider = process.env.AI_PROVIDER?.toLowerCase();
+
+      if (geminiKey && geminiKey.trim() !== '') {
+        const model = process.env.AI_MODEL_GEMINI || 'gemini-1.5-pro-latest';
+        console.log(`[Worker] Using Google Gemini LLM provider (model: ${model})`);
+        llmProvider = new GeminiProvider(geminiKey, model);
+      } else if (openAiKey && openAiKey.trim() !== '') {
+        const model = process.env.AI_MODEL_OPENAI || 'gpt-4o';
+        console.log(`[Worker] Using OpenAI LLM provider (model: ${model})`);
+        llmProvider = new OpenAiProvider(openAiKey, model);
+      } else if (configuredProvider === 'mock' && process.env.NODE_ENV !== 'production') {
+        console.warn(`[Worker] Using MockLlmProvider for local testing.`);
+        llmProvider = new MockLlmProvider();
+      } else {
+        throw new Error(
+          'Configuration Error: No AI provider credentials configured. Please set GEMINI_API_KEY (or OPENAI_API_KEY) in environment.'
+        );
+      }
+    }
+
+    // 3. Commit SHA Validation: ensure the job's commit SHA is still the latest on the PR
     if (pullRequest.headSha !== job.commitSha) {
-      console.warn(`[Worker] Commit SHA mismatch: job commit ${job.commitSha.substring(0, 7)} superseded by PR HEAD ${pullRequest.headSha.substring(0, 7)}`);
+      console.warn(
+        `[Worker] Commit SHA mismatch: job commit ${job.commitSha.substring(0, 7)} superseded by PR HEAD ${pullRequest.headSha.substring(0, 7)}`
+      );
       await prisma.reviewJob.update({
         where: { id: job.id },
         data: {
           status: 'SUPERSEDED',
           statusMessage: 'Review cancelled because a newer commit was pushed to the pull request.',
+          completedAt: new Date(),
         },
       });
       return;
     }
 
-    // 2. Update status -> FETCHING_DIFF
+    // 4. Update status -> FETCHING_DIFF
     await prisma.reviewJob.update({
       where: { id: job.id },
       data: {
@@ -58,58 +123,71 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       },
     });
 
-    // 3. Fetch PR diff
+    // 5. Fetch PR diff
     const diffText = await github.fetchPullRequestDiff(repository.owner, repository.name, pullRequest.number);
 
-    // 4. Update status -> ANALYZING
+    // 6. Update status -> ANALYZING
     await prisma.reviewJob.update({
       where: { id: job.id },
       data: {
         status: 'ANALYZING',
         progressPercent: 50,
-        statusMessage: 'Running deterministic static analysis & AI evaluation...',
+        statusMessage: `Running deterministic static analysis & ${llmProvider.name} reasoning...`,
       },
     });
 
-    // 5. Load and parse repository policy
+    // 7. Load and parse repository policy
     const policyRecord = repository.reviewPolicies[0];
     let policy: ReviewPolicy;
     if (policyRecord) {
-      policy = {
-        enabledCategories: JSON.parse(policyRecord.enabledCategories),
-        severityThreshold: policyRecord.severityThreshold as ReviewPolicy['severityThreshold'],
-        blockPrOnCritical: policyRecord.blockPrOnCritical,
-        autoPostInlineComments: policyRecord.autoPostInlineComments,
-        autoCreateCheckRun: policyRecord.autoCreateCheckRun,
-        requireTestsForNewCode: policyRecord.requireTestsForNewCode,
-        maxDiffLines: policyRecord.maxDiffLines,
-        customInstructions: policyRecord.customInstructions,
-        excludedPaths: JSON.parse(policyRecord.excludedPaths),
-      };
+      try {
+        policy = {
+          enabledCategories: JSON.parse(policyRecord.enabledCategories),
+          severityThreshold: policyRecord.severityThreshold as ReviewPolicy['severityThreshold'],
+          blockPrOnCritical: policyRecord.blockPrOnCritical,
+          autoPostInlineComments: policyRecord.autoPostInlineComments,
+          autoCreateCheckRun: policyRecord.autoCreateCheckRun,
+          requireTestsForNewCode: policyRecord.requireTestsForNewCode,
+          maxDiffLines: policyRecord.maxDiffLines,
+          customInstructions: policyRecord.customInstructions,
+          excludedPaths: JSON.parse(policyRecord.excludedPaths),
+        };
+      } catch {
+        policy = ReviewPolicySchema.parse({});
+      }
     } else {
       policy = ReviewPolicySchema.parse({});
     }
 
-    // 6. Run AI + Deterministic Review Pipeline
+    // 8. Run AI + Deterministic Review Pipeline
     const pipelineResult = await runReviewPipeline({
       repoName: repository.fullName,
       prNumber: pullRequest.number,
       prTitle: pullRequest.title,
       diffText,
       policy,
+      llmProvider,
     });
 
-    // 7. Update status -> VALIDATING
+    // 9. Update status -> VALIDATING
     await prisma.reviewJob.update({
       where: { id: job.id },
       data: {
         status: 'VALIDATING',
         progressPercent: 80,
-        statusMessage: 'Validating findings and grounding evidence...',
+        statusMessage: 'Validating findings and grounding evidence against diff hunk boundaries...',
       },
     });
 
-    // 8. Persist ReviewResult and Findings
+    // Clean up previous results for this job if retrying
+    await prisma.finding.deleteMany({
+      where: { reviewResult: { reviewJobId: job.id } },
+    });
+    await prisma.reviewResult.deleteMany({
+      where: { reviewJobId: job.id },
+    });
+
+    // 10. Persist ReviewResult and Findings
     const reviewResult = await prisma.reviewResult.create({
       data: {
         reviewJobId: job.id,
@@ -137,47 +215,55 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
           explanation: f.explanation,
           evidence: f.evidence,
           remediation: f.remediation,
-          suggestedPatch: f.suggestedPatch,
-          ruleId: f.ruleId,
+          suggestedPatch: f.suggestedPatch || null,
+          ruleId: f.ruleId || null,
           source: f.source,
           dismissed: false,
         })),
       });
     }
 
-    // 9. Publish to GitHub (Check Runs & Inline PR Comments)
+    // 11. Publish to GitHub (Check Runs & Inline PR Comments)
     let checkRunId: string | undefined;
     if (policy.autoCreateCheckRun) {
-      const isBlocked = policy.blockPrOnCritical && pipelineResult.summary.overallRisk === 'CRITICAL';
-      checkRunId = await github.createCheckRun(repository.owner, repository.name, job.commitSha, 'ReviewFlow AI');
-      await github.updateCheckRun(repository.owner, repository.name, checkRunId, {
-        status: 'completed',
-        conclusion: isBlocked ? 'failure' : 'success',
-        title: `ReviewFlow AI: ${pipelineResult.summary.overallRisk} (${pipelineResult.summary.findings.length} findings)`,
-        summary: pipelineResult.summary.summary,
-      });
+      try {
+        const isBlocked = policy.blockPrOnCritical && pipelineResult.summary.overallRisk === 'CRITICAL';
+        checkRunId = await github.createCheckRun(repository.owner, repository.name, job.commitSha, 'ReviewFlow AI');
+        await github.updateCheckRun(repository.owner, repository.name, checkRunId, {
+          status: 'completed',
+          conclusion: isBlocked ? 'failure' : 'success',
+          title: `ReviewFlow AI: ${pipelineResult.summary.overallRisk} (${pipelineResult.summary.findings.length} findings)`,
+          summary: pipelineResult.summary.summary,
+        });
+      } catch (err: any) {
+        console.warn(`[Worker] GitHub Check Run creation notice: ${err?.message}`);
+      }
     }
 
     if (policy.autoPostInlineComments && pipelineResult.summary.findings.length > 0) {
-      const inlineComments = pipelineResult.summary.findings.slice(0, 5).map((f) => ({
-        path: f.filePath,
-        line: f.startLine,
-        body: `### [${f.severity}] ${f.title}\n\n${f.explanation}\n\n**Remediation:**\n${f.remediation}${
-          f.suggestedPatch ? `\n\n\`\`\`suggestion\n${f.suggestedPatch}\n\`\`\`` : ''
-        }`,
-      }));
+      try {
+        const inlineComments = pipelineResult.summary.findings.slice(0, 10).map((f) => ({
+          path: f.filePath,
+          line: f.startLine,
+          body: `### [${f.severity}] ${f.title}\n\n${f.explanation}\n\n**Remediation:**\n${f.remediation}${
+            f.suggestedPatch ? `\n\n\`\`\`suggestion\n${f.suggestedPatch}\n\`\`\`` : ''
+          }`,
+        }));
 
-      await github.postReview(
-        repository.owner,
-        repository.name,
-        pullRequest.number,
-        job.commitSha,
-        pipelineResult.summary.summary,
-        inlineComments
-      );
+        await github.postReview(
+          repository.owner,
+          repository.name,
+          pullRequest.number,
+          job.commitSha,
+          pipelineResult.summary.summary,
+          inlineComments
+        );
+      } catch (err: any) {
+        console.warn(`[Worker] GitHub inline review comments notice: ${err?.message}`);
+      }
     }
 
-    // 10. Update Usage record
+    // 12. Update Organization Usage record
     const year = new Date().getFullYear();
     const month = new Date().getMonth() + 1;
     await prisma.usageRecord.upsert({
@@ -203,7 +289,7 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       },
     });
 
-    // 11. Complete Job
+    // 13. Complete Job with real duration and telemetry
     await prisma.reviewJob.update({
       where: { id: job.id },
       data: {
@@ -214,21 +300,25 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
         durationSeconds: pipelineResult.durationSeconds,
         tokensUsed: pipelineResult.tokensUsed,
         estimatedCostUsd: pipelineResult.estimatedCostUsd,
-        publishedToGitHub: true,
-        githubCheckRunId: checkRunId,
+        publishedToGitHub: Boolean(checkRunId),
+        githubCheckRunId: checkRunId || null,
+        errorMessage: null,
       },
     });
 
-    console.log(`[Worker] ✅ Finished ReviewJob ${job.id} in ${pipelineResult.durationSeconds}s (${pipelineResult.summary.findings.length} findings)`);
+    console.log(
+      `[Worker] ✅ Finished ReviewJob ${job.id} in ${pipelineResult.durationSeconds}s (${pipelineResult.summary.findings.length} findings)`
+    );
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error(`[Worker] ❌ Failed ReviewJob ${job.id}:`, err);
+    console.error(`[Worker] ❌ Failed ReviewJob ${job.id}:`, errorMsg);
     await prisma.reviewJob.update({
       where: { id: job.id },
       data: {
         status: 'FAILED',
         progressPercent: 100,
         errorMessage: errorMsg,
+        statusMessage: `Review failed: ${errorMsg}`,
         completedAt: new Date(),
       },
     });

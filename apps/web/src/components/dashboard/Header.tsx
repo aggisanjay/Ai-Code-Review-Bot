@@ -8,9 +8,10 @@ interface HeaderProps {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  isConnected?: boolean;
 }
 
-export function Header({ title, description, action }: HeaderProps) {
+export function Header({ title, description, action, isConnected }: HeaderProps) {
   return (
     <header className="h-14 border-b border-white/[0.08] bg-[#090B0E]/80 px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md">
       <div>
@@ -20,10 +21,22 @@ export function Header({ title, description, action }: HeaderProps) {
 
       <div className="flex items-center gap-3">
         {/* Status Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-mono">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>GitHub App Connected</span>
-        </div>
+        {isConnected !== undefined && (
+          <div
+            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono ${
+              isConnected
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                : 'bg-zinc-800/60 border-white/[0.08] text-zinc-400'
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'
+              }`}
+            />
+            <span>{isConnected ? 'GitHub App Connected' : 'GitHub App Standby'}</span>
+          </div>
+        )}
 
         {action}
 

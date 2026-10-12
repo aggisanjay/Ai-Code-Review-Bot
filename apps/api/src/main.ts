@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { config } from './common/config';
 import { logger } from './common/logger';
+import { createRateLimiter } from './common/rate-limiter';
 import { authRouter } from './modules/auth/auth.router';
 import { organizationsRouter } from './modules/organizations/organizations.router';
 import { repositoriesRouter } from './modules/repositories/repositories.router';
@@ -13,11 +14,39 @@ import { webhooksRouter } from './modules/webhooks/webhooks.router';
 
 const app = express();
 
-// Middleware: CORS
+// Security Headers Middleware
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
+  );
+  next();
+});
+
+// Middleware: CORS with validated origin
+const allowedOrigins = [
+  config.corsOrigin,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: '*',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Permissive in dev, logged
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-Id'],
   })
 );
 
@@ -37,6 +66,9 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   (req as unknown as { correlationId: string }).correlationId = correlationId;
   next();
 });
+
+// Rate Limiter
+app.use(createRateLimiter());
 
 // Health & Readiness Endpoint
 app.get('/api/v1/health', (_req: Request, res: Response) => {

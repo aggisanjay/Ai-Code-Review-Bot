@@ -1,130 +1,79 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Search,
-  GitPullRequest,
-  ShieldAlert,
+  FolderGit2,
   ArrowUpRight,
-  CheckCircle2,
+  Plus,
 } from 'lucide-react';
 import { Header } from '../../../components/dashboard/Header';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
 export default function PullRequestsPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
-  const [selectedState, setSelectedState] = useState<'ALL' | 'OPEN' | 'MERGED'>('ALL');
   const [selectedSeverity, setSelectedSeverity] = useState<'ALL' | 'CRITICAL' | 'HIGH' | 'SAFE'>('ALL');
-
-  const pullRequests = [
-    {
-      id: 'pr-142',
-      number: 142,
-      repo: 'acme-cloud/auth-service',
-      title: 'feat(auth): Add JWT refresh token rotation and cookie session handler',
-      author: 'sarah-dev',
-      authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-      state: 'OPEN',
-      headBranch: 'feat/refresh-tokens',
-      commitSha: '8f7a1c3',
-      risk: 'CRITICAL',
-      findingsCount: 4,
-      criticalCount: 1,
-      duration: '11.4s',
-      updatedAt: '20m ago',
-    },
-    {
-      id: 'pr-156',
-      number: 156,
-      repo: 'acme-cloud/api-gateway',
-      title: 'fix(billing): Update Stripe webhook idempotency check & subscription sync',
-      author: 'david-k',
-      authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      state: 'OPEN',
-      headBranch: 'fix/stripe-idempotency',
-      commitSha: 'c4e2a8b',
-      risk: 'HIGH',
-      findingsCount: 2,
-      criticalCount: 0,
-      duration: '8.7s',
-      updatedAt: '2h ago',
-    },
-    {
-      id: 'pr-168',
-      number: 168,
-      repo: 'acme-cloud/checkout-frontend',
-      title: 'refactor(ui): Optimize bundle size with dynamic imports and lazy hydration',
-      author: 'elena-ui',
-      authorAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
-      state: 'OPEN',
-      headBranch: 'perf/dynamic-imports',
-      commitSha: 'e9a1b2c',
-      risk: 'SAFE',
-      findingsCount: 1,
-      criticalCount: 0,
-      duration: '6.2s',
-      updatedAt: '5h ago',
-    },
-  ];
-
-  const [livePrs, setLivePrs] = useState(pullRequests);
+  const [pullRequests, setPullRequests] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
-    const fetchLiveData = async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    const fetchPrs = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/v1/pull-requests');
-        if (res.ok) {
+        const res = await fetch(`${API_URL}/pull-requests?limit=50`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('reviewflow_token');
+          router.push('/login');
+          return;
+        }
+
+        if (res.ok && isMounted) {
           const json = await res.json();
-          if (json && json.data && json.data.length > 0 && isMounted) {
-            setLivePrs(
-              json.data.map((pr: any) => ({
-                id: pr.id,
-                number: pr.number,
-                repo: pr.repository?.fullName || 'acme-cloud/auth-service',
-                title: pr.title,
-                author: pr.author,
-                authorAvatar:
-                  pr.authorAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-                state: pr.state || 'OPEN',
-                headBranch: pr.headBranch || 'main',
-                commitSha: pr.headSha ? pr.headSha.substring(0, 7) : '8f7a1c3',
-                risk: pr.reviewJobs?.[0]?.result?.overallRisk || 'CRITICAL',
-                findingsCount: pr.reviewJobs?.[0]?.result?.findings?.length || 3,
-                criticalCount: pr.reviewJobs?.[0]?.result?.overallRisk === 'CRITICAL' ? 1 : 0,
-                duration: pr.reviewJobs?.[0]?.durationSeconds
-                  ? `${pr.reviewJobs[0].durationSeconds}s`
-                  : '8.4s',
-                updatedAt: 'Live',
-              }))
-            );
-            setIsLiveConnected(true);
-          }
+          setPullRequests(json.data || []);
+          setIsLiveConnected(true);
+          setIsLoading(false);
         }
       } catch {
-        if (isMounted) setIsLiveConnected(false);
+        if (isMounted) {
+          setIsLiveConnected(false);
+          setIsLoading(false);
+        }
       }
     };
 
-    fetchLiveData();
-    const timer = setInterval(fetchLiveData, 3500);
+    fetchPrs();
+    const interval = setInterval(fetchPrs, 5000);
+
     return () => {
       isMounted = false;
-      clearInterval(timer);
+      clearInterval(interval);
     };
-  }, []);
+  }, [router]);
 
-  const filtered = livePrs.filter((pr) => {
-    if (selectedState !== 'ALL' && pr.state !== selectedState) return false;
-    if (selectedSeverity !== 'ALL' && pr.risk !== selectedSeverity) return false;
+  const filtered = pullRequests.filter((pr) => {
+    const risk = pr.latestReview?.overallRisk || 'SAFE';
+    if (selectedSeverity !== 'ALL' && risk !== selectedSeverity) return false;
     if (search) {
       const q = search.toLowerCase();
-      return (
-        pr.title.toLowerCase().includes(q) ||
-        pr.repo.toLowerCase().includes(q) ||
-        pr.author.toLowerCase().includes(q)
-      );
+      const title = (pr.title || '').toLowerCase();
+      const repo = (pr.repoFullName || pr.repoName || '').toLowerCase();
+      const author = (pr.author || '').toLowerCase();
+      return title.includes(q) || repo.includes(q) || author.includes(q);
     }
     return true;
   });
@@ -134,6 +83,7 @@ export default function PullRequestsPage() {
       <Header
         title="Pull Requests"
         description="Monitor automated reviews, risk assessments, and line-level findings across all repositories."
+        isConnected={isLiveConnected}
       />
 
       <div className="px-6 pt-6 space-y-4 max-w-7xl">
@@ -179,67 +129,105 @@ export default function PullRequestsPage() {
             </span>
             <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-500">
               <span className={`w-1.5 h-1.5 rounded-full ${isLiveConnected ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
-              <span>{isLiveConnected ? 'Live GitHub Sync' : 'Static Seed'}</span>
+              <span>{isLiveConnected ? 'Live GitHub Sync' : 'Connecting...'}</span>
             </div>
           </div>
 
-          <div className="divide-y divide-white/[0.04]">
-            {filtered.map((pr) => (
+          {filtered.length === 0 ? (
+            /* Honest Empty State */
+            <div className="py-14 px-4 text-center">
+              <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-white/[0.06] flex items-center justify-center mx-auto mb-3 text-zinc-500">
+                <FolderGit2 className="w-5 h-5 text-zinc-400" />
+              </div>
+              <h4 className="text-sm font-medium text-zinc-200">No pull requests found</h4>
+              <p className="text-xs text-zinc-500 max-w-md mx-auto mt-1 mb-4 font-mono">
+                {search
+                  ? 'No pull requests match your search criteria.'
+                  : 'Open a pull request in one of your connected repositories to trigger an automated AI review.'}
+              </p>
               <Link
-                key={pr.id}
-                href={`/dashboard/reviews/${pr.id}`}
-                className="p-4 flex items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors block group"
+                href="/dashboard/repositories"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs font-medium"
               >
-                <div className="flex items-start gap-3">
-                  <img
-                    src={pr.authorAvatar}
-                    alt={pr.author}
-                    className="w-7 h-7 rounded-full border border-white/[0.08] mt-0.5"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-mono text-zinc-400">{pr.repo}#{pr.number}</span>
-                      <span
-                        className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${
-                          pr.risk === 'CRITICAL'
-                            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                            : pr.risk === 'HIGH'
-                            ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
-                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        }`}
-                      >
-                        {pr.risk}
-                      </span>
-                    </div>
-                    <h3 className="text-xs font-medium text-zinc-200 group-hover:text-white transition-colors">
-                      {pr.title}
-                    </h3>
-                    <div className="flex items-center gap-2 text-[11px] text-zinc-500 mt-1 font-mono">
-                      <span>@{pr.author}</span>
-                      <span>•</span>
-                      <span>{pr.headBranch}</span>
-                      <span>•</span>
-                      <span>SHA: {pr.commitSha}</span>
-                      <span>•</span>
-                      <span>{pr.updatedAt}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-xs font-mono">
-                    <span className="text-[11px] text-zinc-400">{pr.findingsCount} findings</span>
-                    {pr.criticalCount > 0 && (
-                      <span className="px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[10px] font-bold">
-                        {pr.criticalCount} CRITICAL
-                      </span>
-                    )}
-                  </div>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-colors" />
-                </div>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Connect Repositories</span>
               </Link>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/[0.04]">
+              {filtered.map((pr) => {
+                const latestJob = pr.latestReview;
+                const risk = latestJob?.overallRisk || 'SAFE';
+                const totalFindings = latestJob?.totalFindings || 0;
+                const criticalCount = latestJob?.findingCounts?.CRITICAL || 0;
+                const duration = latestJob?.durationSeconds ? `${latestJob.durationSeconds}s` : '—';
+
+                return (
+                  <Link
+                    key={pr.id}
+                    href={`/dashboard/reviews/${latestJob?.id || pr.id}`}
+                    className="p-4 flex items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors block group"
+                  >
+                    <div className="flex items-start gap-3">
+                      {pr.authorAvatarUrl ? (
+                        <img
+                          src={pr.authorAvatarUrl}
+                          alt={pr.author}
+                          className="w-7 h-7 rounded-full border border-white/[0.08] mt-0.5"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-zinc-800 border border-white/[0.08] mt-0.5 flex items-center justify-center text-[10px] font-mono text-zinc-300">
+                          {pr.author.substring(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-mono text-zinc-400">
+                            {pr.repoFullName || pr.repoName}#{pr.number}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${
+                              risk === 'CRITICAL'
+                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                : risk === 'HIGH'
+                                ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            }`}
+                          >
+                            {risk}
+                          </span>
+                        </div>
+                        <h3 className="text-xs font-medium text-zinc-200 group-hover:text-white transition-colors">
+                          {pr.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-[11px] text-zinc-500 mt-1 font-mono">
+                          <span>@{pr.author}</span>
+                          <span>•</span>
+                          <span>Branch: {pr.headBranch}</span>
+                          <span>•</span>
+                          <span>SHA: {pr.headSha?.substring(0, 7) || 'HEAD'}</span>
+                          <span>•</span>
+                          <span>Review: {duration}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs font-mono">
+                        <span className="text-[11px] text-zinc-400">{totalFindings} findings</span>
+                        {criticalCount > 0 && (
+                          <span className="px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[10px] font-bold">
+                            {criticalCount} CRITICAL
+                          </span>
+                        )}
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white transition-colors" />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

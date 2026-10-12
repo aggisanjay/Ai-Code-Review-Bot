@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { prisma } from '@reviewflow/database';
 import { FindingFeedbackSchema } from '@reviewflow/shared';
 import { authenticateToken, AuthenticatedRequest } from '../../common/auth.middleware';
+import { enqueueReviewJob } from '../../common/queue';
 
 export const reviewsRouter = Router();
 reviewsRouter.use(authenticateToken);
@@ -12,7 +13,7 @@ reviewsRouter.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
     where: {
       id: req.params.id,
       pullRequest: {
-        repository: { organizationId: req.user!.organizationId },
+        repository: { organizationId: req.user!.organizationId }, // Tenant isolation
       },
     },
     include: {
@@ -30,14 +31,14 @@ reviewsRouter.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   });
 
   if (!reviewJob) {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Review job not found.' } });
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Review job not found or access denied.' } });
     return;
   }
 
   res.json({ data: reviewJob });
 });
 
-// GET /api/v1/reviews/:id/stream - Server-Sent Events (SSE) for Real-Time Review Updates
+// GET /api/v1/reviews/:id/stream - Authenticated Server-Sent Events (SSE) for Real-Time Review Updates
 reviewsRouter.get('/:id/stream', async (req: AuthenticatedRequest, res: Response) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -47,7 +48,12 @@ reviewsRouter.get('/:id/stream', async (req: AuthenticatedRequest, res: Response
   const sendUpdate = async () => {
     try {
       const job = await prisma.reviewJob.findFirst({
-        where: { id: req.params.id },
+        where: {
+          id: req.params.id,
+          pullRequest: {
+            repository: { organizationId: req.user!.organizationId },
+          },
+        },
         include: {
           pullRequest: { include: { repository: true } },
           result: {
@@ -60,9 +66,19 @@ reviewsRouter.get('/:id/stream', async (req: AuthenticatedRequest, res: Response
 
       if (job) {
         res.write(`data: ${JSON.stringify(job)}\n\n`);
+
+        // If job has finalized, close stream gracefully
+        if (['COMPLETED', 'FAILED', 'SUPERSEDED'].includes(job.status)) {
+          clearInterval(timer);
+          res.end();
+        }
+      } else {
+        res.write(`event: error\ndata: ${JSON.stringify({ error: 'NOT_FOUND' })}\n\n`);
+        clearInterval(timer);
+        res.end();
       }
     } catch (_err) {
-      // client disconnected
+      clearInterval(timer);
     }
   };
 
@@ -126,63 +142,27 @@ reviewsRouter.post('/:id/retry', async (req: AuthenticatedRequest, res: Response
     return;
   }
 
-  // Update existing job to initiate real-time re-review progression
-  await prisma.reviewJob.update({
+  // Durable reset to QUEUED state for worker processing
+  const updatedJob = await prisma.reviewJob.update({
     where: { id: existingJob.id },
     data: {
-      status: 'FETCHING_DIFF',
-      progressPercent: 25,
-      statusMessage: 'Fetching latest git diff & hunk boundaries...',
+      status: 'QUEUED',
+      progressPercent: 0,
+      statusMessage: 'Review job re-queued for execution.',
+      errorMessage: null,
+      startedAt: null,
+      completedAt: null,
     },
   });
 
-  // Stage 2: Analyzing (1.2s)
-  setTimeout(async () => {
-    try {
-      await prisma.reviewJob.update({
-        where: { id: existingJob.id },
-        data: {
-          status: 'ANALYZING',
-          progressPercent: 60,
-          statusMessage: 'Running deterministic scanners & LLM evaluation...',
-        },
-      });
-    } catch {}
-  }, 1400);
-
-  // Stage 3: Validating (2.8s)
-  setTimeout(async () => {
-    try {
-      await prisma.reviewJob.update({
-        where: { id: existingJob.id },
-        data: {
-          status: 'VALIDATING',
-          progressPercent: 85,
-          statusMessage: 'Grounding findings against diff lines & applying review policies...',
-        },
-      });
-    } catch {}
-  }, 2800);
-
-  // Stage 4: Completed (4.2s)
-  setTimeout(async () => {
-    try {
-      await prisma.reviewJob.update({
-        where: { id: existingJob.id },
-        data: {
-          status: 'COMPLETED',
-          progressPercent: 100,
-          statusMessage: 'Review analysis complete with 3 verified findings.',
-          completedAt: new Date(),
-        },
-      });
-    } catch {}
-  }, 4200);
+  // Enqueue to durable BullMQ queue
+  await enqueueReviewJob(updatedJob.id);
 
   res.status(202).json({
     data: {
-      message: 'Re-review running in real-time.',
-      jobId: existingJob.id,
+      message: 'Review job successfully re-queued for worker processing.',
+      jobId: updatedJob.id,
+      status: updatedJob.status,
     },
   });
 });

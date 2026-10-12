@@ -14,7 +14,12 @@ export class GeminiProvider implements ILlmProvider {
   private model: string;
 
   constructor(apiKey: string, model: string = 'gemini-1.5-pro-latest') {
-    this.apiKey = apiKey;
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error(
+        'GeminiProvider configuration error: GEMINI_API_KEY is not configured or empty.'
+      );
+    }
+    this.apiKey = apiKey.trim();
     this.model = model;
   }
 
@@ -43,11 +48,18 @@ export class GeminiProvider implements ILlmProvider {
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`Gemini API error (Status ${res.status}): ${errorText}`);
+        throw new Error(`Google Gemini API request failed (HTTP ${res.status}): ${errorText}`);
       }
 
       const data = await res.json();
-      const rawResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+      let rawResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+      
+      // Clean markdown code blocks if present
+      rawResponse = rawResponse.trim();
+      if (rawResponse.startsWith('```')) {
+        rawResponse = rawResponse.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      }
+
       const tokensUsed = data.usageMetadata?.totalTokenCount || 2500;
 
       return { rawResponse, tokensUsed };
@@ -63,7 +75,12 @@ export class OpenAiProvider implements ILlmProvider {
   private model: string;
 
   constructor(apiKey: string, model: string = 'gpt-4o') {
-    this.apiKey = apiKey;
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error(
+        'OpenAiProvider configuration error: OPENAI_API_KEY is not configured or empty.'
+      );
+    }
+    this.apiKey = apiKey.trim();
     this.model = model;
   }
 

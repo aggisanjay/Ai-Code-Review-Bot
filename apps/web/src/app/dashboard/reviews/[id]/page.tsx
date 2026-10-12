@@ -1,324 +1,235 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ShieldAlert,
   CheckCircle2,
-  GitPullRequest,
   GitBranch,
   RefreshCw,
   ExternalLink,
   ChevronLeft,
   Sparkles,
   Clock,
-  Layers,
-  Cpu,
+  AlertCircle,
 } from 'lucide-react';
 import { Header } from '../../../../components/dashboard/Header';
 import { DiffViewer } from '../../../../components/reviews/DiffViewer';
-import { ReviewFinding } from '@reviewflow/shared';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 export default function ReviewDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const [job, setJob] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryMessage, setRetryMessage] = useState<string | null>(null);
-  const [liveStatus, setLiveStatus] = useState<'QUEUED' | 'FETCHING_DIFF' | 'ANALYZING' | 'VALIDATING' | 'COMPLETED'>('COMPLETED');
-  const [progressPercent, setProgressPercent] = useState<number>(100);
-  const [statusMessage, setStatusMessage] = useState<string>('Review analysis verified with 3 findings.');
   const [sseConnected, setSseConnected] = useState<boolean>(false);
 
-  React.useEffect(() => {
+  // Fetch initial review job data
+  useEffect(() => {
+    let isMounted = true;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    const fetchJob = async () => {
+      try {
+        const res = await fetch(`${API_URL}/reviews/${params.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('reviewflow_token');
+          router.push('/login');
+          return;
+        }
+
+        if (res.status === 404) {
+          if (isMounted) {
+            setNotFound(true);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        if (res.ok && isMounted) {
+          const json = await res.json();
+          setJob(json.data);
+          setIsLoading(false);
+        }
+      } catch {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchJob();
+
+    // Authenticated SSE stream for live updates
     let eventSource: EventSource | null = null;
     try {
-      eventSource = new EventSource(`http://localhost:4000/api/v1/reviews/${params.id}/stream`);
-      eventSource.onopen = () => setSseConnected(true);
+      eventSource = new EventSource(`${API_URL}/reviews/${params.id}/stream?token=${encodeURIComponent(token)}`);
+      eventSource.onopen = () => {
+        if (isMounted) setSseConnected(true);
+      };
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data && data.status) {
-            setLiveStatus(data.status);
-            setProgressPercent(data.progressPercent || 100);
-            if (data.statusMessage) setStatusMessage(data.statusMessage);
-            if (data.status === 'COMPLETED') setIsRetrying(false);
+          if (data && data.id && isMounted) {
+            setJob(data);
+            if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+              setIsRetrying(false);
+            }
           }
         } catch {}
       };
-      eventSource.onerror = () => setSseConnected(false);
+
+      eventSource.onerror = () => {
+        if (isMounted) setSseConnected(false);
+      };
     } catch {}
 
     return () => {
+      isMounted = false;
       if (eventSource) eventSource.close();
     };
-  }, [params.id]);
-
-  // Realistic Flagship PR Review State (PR #142)
-  const [reviewData, setReviewData] = useState({
-    pr: {
-      id: 'pr-142',
-      number: 142,
-      repo: 'acme-cloud/auth-service',
-      title: 'feat(auth): Add JWT refresh token rotation and cookie session handler',
-      author: 'sarah-dev',
-      authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-      baseBranch: 'main',
-      headBranch: 'feat/refresh-tokens',
-      commitSha: '8f7a1c3e90b2d4f8a1e2c3b4a5d6e7f8a9b0c1d2',
-      githubUrl: 'https://github.com/acme-cloud/auth-service/pull/142',
-    },
-    job: {
-      id: 'job_81920',
-      status: 'COMPLETED',
-      startedAt: '12 minutes ago',
-      durationSeconds: 11.4,
-      tokensUsed: 3840,
-      estimatedCostUsd: 0.0192,
-      publishedToGitHub: true,
-      githubCheckRunId: 'check_run_9918237',
-    },
-    summary: {
-      summary:
-        'Analyzed 4 modified files (+184, -32 lines). Identified 1 CRITICAL security vulnerability, 1 HIGH severity race condition in token revocation, and 1 MEDIUM maintainability issue. Pull request should NOT be merged until cryptographic fallback and Redis atomic transactions are resolved.',
-      overallRisk: 'CRITICAL',
-      riskRationale:
-        'Critical vulnerability: Hardcoded insecure fallback secret detected in JWT verification function, allowing token forgery in non-production or misconfigured environments. High risk: Non-atomic Redis token blacklist check prone to TOCTOU race conditions.',
-      keyStrengths: [
-        'Good adoption of HttpOnly and SameSite=Strict cookie headers',
-        'Clean modular separation between session service and controller',
-        'Comprehensive TypeScript interfaces for token payloads',
-      ],
-      blockers: [
-        'Fix hardcoded JWT fallback secret (Vulnerability RF-SEC-01)',
-        'Wrap Redis blacklist revocation in an atomic Lua script or MULTI/EXEC transaction',
-      ],
-      testCoverageAssessment:
-        'Inadequate: New rotation endpoint lacks test cases for expired refresh tokens and concurrent rotation requests.',
-      estimatedReviewTimeSavedMinutes: 45,
-    },
-    files: [
-      {
-        path: 'src/services/token.service.ts',
-        additions: 45,
-        deletions: 12,
-        lines: [
-          { type: 'context', oldLine: 38, newLine: 38, content: 'export class TokenService {' },
-          { type: 'context', oldLine: 39, newLine: 39, content: '  private readonly jwtSecret: string;' },
-          { type: 'context', oldLine: 40, newLine: 40, content: '  ' },
-          { type: 'context', oldLine: 41, newLine: 41, content: '  public verifyRefreshToken(token: string): TokenPayload {' },
-          {
-            type: 'delete',
-            oldLine: 42,
-            content: '-   const secret = process.env.JWT_REFRESH_SECRET || "default-secret-do-not-use-in-prod";',
-          },
-          { type: 'delete', oldLine: 43, content: '-   return jwt.verify(token, secret) as TokenPayload;' },
-          { type: 'add', newLine: 42, content: '+   const secret = process.env.JWT_REFRESH_SECRET;' },
-          { type: 'add', newLine: 43, content: '+   if (!secret) {' },
-          {
-            type: 'add',
-            newLine: 44,
-            content: '+     throw new ConfigurationError("FATAL: JWT_REFRESH_SECRET is not configured");',
-          },
-          { type: 'add', newLine: 45, content: '+   }' },
-          { type: 'add', newLine: 46, content: '+   return jwt.verify(token, secret) as TokenPayload;' },
-          { type: 'context', oldLine: 44, newLine: 47, content: '  }' },
-        ] as any,
-      },
-      {
-        path: 'src/services/session.service.ts',
-        additions: 68,
-        deletions: 14,
-        lines: [
-          { type: 'context', oldLine: 108, newLine: 108, content: 'export class SessionService {' },
-          { type: 'context', oldLine: 109, newLine: 109, content: '  constructor(private readonly redis: RedisClient) {}' },
-          { type: 'context', oldLine: 110, newLine: 110, content: '  ' },
-          {
-            type: 'context',
-            oldLine: 111,
-            newLine: 111,
-            content: '  public async revokeToken(tokenId: string): Promise<void> {',
-          },
-          {
-            type: 'delete',
-            oldLine: 112,
-            content: '-   const isRevoked = await this.redis.get(`blacklist:${tokenId}`);',
-          },
-          {
-            type: 'delete',
-            oldLine: 113,
-            content: '-   if (isRevoked) throw new UnauthorizedException("Token already revoked");',
-          },
-          {
-            type: 'delete',
-            oldLine: 114,
-            content: '-   await this.redis.set(`blacklist:${tokenId}`, "1", "EX", 86400);',
-          },
-          {
-            type: 'add',
-            newLine: 112,
-            content:
-              '+   const wasSet = await this.redis.set(`blacklist:${tokenId}`, "1", "EX", 86400, "NX");',
-          },
-          { type: 'add', newLine: 113, content: '+   if (!wasSet) {' },
-          {
-            type: 'add',
-            newLine: 114,
-            content:
-              '+     throw new UnauthorizedException("Token already consumed or invalidated");',
-          },
-          { type: 'add', newLine: 115, content: '+   }' },
-          { type: 'context', oldLine: 115, newLine: 116, content: '  }' },
-        ] as any,
-      },
-      {
-        path: 'src/controllers/auth.controller.ts',
-        additions: 71,
-        deletions: 6,
-        lines: [
-          { type: 'context', oldLine: 73, newLine: 73, content: '@Controller("auth")' },
-          { type: 'context', oldLine: 74, newLine: 74, content: 'export class AuthController {' },
-          { type: 'context', oldLine: 75, newLine: 75, content: '  ' },
-          {
-            type: 'context',
-            oldLine: 76,
-            newLine: 76,
-            content: '  @Post("refresh")',
-          },
-          {
-            type: 'context',
-            oldLine: 77,
-            newLine: 77,
-            content: '  async refreshToken(@Req() req: Request, @Res() res: Response) {',
-          },
-          {
-            type: 'context',
-            oldLine: 78,
-            newLine: 78,
-            content: '    const token = req.cookies["refresh_token"];',
-          },
-        ] as any,
-      },
-    ],
-    findings: [
-      {
-        id: 'finding-01',
-        severity: 'CRITICAL',
-        confidence: 99,
-        filePath: 'src/services/token.service.ts',
-        startLine: 42,
-        endLine: 45,
-        title: 'Hardcoded Cryptographic Fallback Secret in JWT Verification',
-        explanation:
-          'When process.env.JWT_REFRESH_SECRET is unset, the verification method falls back to a static string literal ("default-secret-do-not-use-in-prod"). An adversary could forge arbitrary administrator tokens if the environment variable is omitted.',
-        evidence: 'const secret = process.env.JWT_REFRESH_SECRET || "default-secret-do-not-use-in-prod";',
-        remediation:
-          'Throw a fatal ConfigurationError exception during startup if JWT_REFRESH_SECRET is unset. Never permit hardcoded fallback secrets.',
-        suggestedPatch: `const secret = process.env.JWT_REFRESH_SECRET;\nif (!secret) {\n  throw new ConfigurationError("FATAL: JWT_REFRESH_SECRET is not configured");\n}\nreturn jwt.verify(token, secret);`,
-        ruleId: 'SEC-JWT-001',
-        source: 'DETERMINISTIC_STATIC',
-        dismissed: false,
-      },
-      {
-        id: 'finding-02',
-        severity: 'HIGH',
-        confidence: 94,
-        filePath: 'src/services/session.service.ts',
-        startLine: 112,
-        endLine: 115,
-        title: 'TOCTOU Race Condition in Redis Token Invalidation',
-        explanation:
-          'Separate asynchronous GET and SET instructions on Redis permit concurrent requests with the same refresh token to pass verification before revocation is written.',
-        evidence: 'const isRevoked = await this.redis.get(`blacklist:${tokenId}`);\nif (isRevoked) throw new UnauthorizedException();',
-        remediation:
-          'Use Redis atomic transaction (SET NX) to check and invalidate the token in a single instruction.',
-        suggestedPatch: `const wasSet = await this.redis.set(\`blacklist:\${tokenId}\`, "1", "EX", 86400, "NX");\nif (!wasSet) {\n  throw new UnauthorizedException("Token already consumed or invalidated");\n}`,
-        ruleId: 'RACE-REDIS-001',
-        source: 'LLM_REASONING',
-        dismissed: false,
-      },
-      {
-        id: 'finding-03',
-        severity: 'MEDIUM',
-        confidence: 88,
-        filePath: 'src/controllers/auth.controller.ts',
-        startLine: 76,
-        endLine: 80,
-        title: 'Missing Rate Limiting on Token Refresh Endpoint',
-        explanation:
-          'The /auth/refresh endpoint triggers database lookups and asymmetric crypto verification on every call but lacks rate limiting, making it vulnerable to denial-of-service and credential stuffing attacks.',
-        evidence: '@Post("refresh")\nasync refreshToken(@Req() req: Request, @Res() res: Response) {',
-        remediation:
-          'Apply the strict rate limit middleware (e.g., @Throttle({ default: { limit: 10, ttl: 60000 } })) to prevent brute-force attacks.',
-        suggestedPatch: `@Throttle({ default: { limit: 10, ttl: 60000 } })\n@Post("refresh")\nasync refreshToken(@Req() req: Request, @Res() res: Response) {`,
-        ruleId: 'PERF-RATE-002',
-        source: 'DETERMINISTIC_STATIC',
-        dismissed: false,
-      },
-    ] as ReviewFinding[],
-  });
+  }, [params.id, router]);
 
   const handleRetryReview = async () => {
     setIsRetrying(true);
-    setLiveStatus('FETCHING_DIFF');
-    setProgressPercent(25);
-    setStatusMessage('Fetching latest git diff & hunk boundaries from GitHub...');
-    setRetryMessage('Re-review queued. Running real-time static analysis and LLM validation...');
+    setRetryMessage('Review job re-queued in durable worker queue...');
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) return;
 
     try {
-      await fetch(`http://localhost:4000/api/v1/reviews/${params.id}/retry`, { method: 'POST' });
-    } catch {
-      // Local fallback simulation if API server is offline
-    }
+      const res = await fetch(`${API_URL}/reviews/${params.id}/retry`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    setTimeout(() => {
-      setLiveStatus('ANALYZING');
-      setProgressPercent(60);
-      setStatusMessage('Running deterministic static scanners & LLM reasoning engine...');
-    }, 1200);
-
-    setTimeout(() => {
-      setLiveStatus('VALIDATING');
-      setProgressPercent(85);
-      setStatusMessage('Grounding findings against diff line numbers and checking policy rules...');
-    }, 2600);
-
-    setTimeout(() => {
-      setLiveStatus('COMPLETED');
-      setProgressPercent(100);
-      setStatusMessage('Review analysis complete with 3 verified findings.');
+      if (res.ok) {
+        setRetryMessage('Job re-queued successfully. Worker executing analysis in real-time...');
+      } else {
+        const errJson = await res.json();
+        setRetryMessage(errJson.error?.message || 'Failed to re-queue review job.');
+        setIsRetrying(false);
+      }
+    } catch (err: any) {
+      setRetryMessage(`Failed to contact API server: ${err.message}`);
       setIsRetrying(false);
-      setRetryMessage('Review refreshed! 3 findings verified in real-time.');
-    }, 4200);
+    }
   };
 
-  const handleDismissFinding = (findingId: string, reason: string) => {
-    setReviewData((prev) => ({
-      ...prev,
-      findings: prev.findings.map((f) =>
-        f.id === findingId ? { ...f, dismissed: true, dismissReason: reason } : f
-      ),
-    }));
+  const handleDismissFinding = async (findingId: string, reason: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) return;
+
+    try {
+      await fetch(`${API_URL}/reviews/findings/${findingId}/dismiss`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      setJob((prev: any) => {
+        if (!prev || !prev.result) return prev;
+        return {
+          ...prev,
+          result: {
+            ...prev.result,
+            findings: prev.result.findings.map((f: any) =>
+              f.id === findingId ? { ...f, dismissed: true, dismissReason: reason } : f
+            ),
+          },
+        };
+      });
+    } catch {}
   };
 
-  const { pr, job, summary, files, findings } = reviewData;
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <div className="flex items-center gap-3 text-zinc-400 font-mono text-xs">
+          <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />
+          <span>Loading pull request review analysis...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound || !job) {
+    return (
+      <div className="flex-1 pb-16">
+        <Header title="Review Details" />
+        <div className="max-w-2xl mx-auto mt-20 p-8 rounded-xl bg-[#0B0D12] border border-white/[0.08] text-center space-y-4">
+          <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
+          <h2 className="text-base font-bold text-white">Review Job Not Found</h2>
+          <p className="text-xs text-zinc-400 font-mono">
+            The requested review ID does not exist or belongs to another tenant organization.
+          </p>
+          <Link
+            href="/dashboard/pull-requests"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg btn-primary text-xs font-medium"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Return to Pull Requests</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const pr = job.pullRequest || {};
+  const repo = pr.repository || {};
+  const result = job.result || null;
+  const findings = result?.findings || [];
+  const status = job.status || 'QUEUED';
+  const progressPercent = job.progressPercent || (status === 'COMPLETED' ? 100 : 25);
+  const statusMessage = job.statusMessage || (status === 'COMPLETED' ? 'Review analysis complete.' : 'Processing...');
+  const overallRisk = result?.overallRisk || (job.errorMessage ? 'FAILED' : 'QUEUED');
+
+  // Parse JSON fields
+  let keyStrengths: string[] = [];
+  let blockers: string[] = [];
+  try {
+    keyStrengths = result?.keyStrengths ? JSON.parse(result.keyStrengths) : [];
+  } catch {}
+  try {
+    blockers = result?.blockers ? JSON.parse(result.blockers) : [];
+  } catch {}
+
+  const githubPrUrl = `https://github.com/${repo.fullName || repo.name}/pull/${pr.number}`;
 
   return (
     <div className="flex-1 pb-16">
       <Header
-        title={`Review: ${pr.repo}#${pr.number}`}
+        title={`Review: ${repo.fullName || repo.name}#${pr.number}`}
         description="Pull request review analysis with inline code annotations and check run status."
+        isConnected={sseConnected}
         action={
           <button
             onClick={handleRetryReview}
-            disabled={isRetrying}
+            disabled={isRetrying || status === 'QUEUED'}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-secondary text-xs font-medium"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin text-blue-400' : ''}`} />
-            <span>{isRetrying ? 'Re-reviewing...' : 'Re-Run Review'}</span>
+            <span>{isRetrying ? 'Re-Queueing...' : 'Re-Run Review'}</span>
           </button>
         }
       />
 
       <div className="px-6 pt-5 space-y-5 max-w-7xl">
-        {/* Back navigation & GitHub PR Link */}
+        {/* Navigation & GitHub PR Link */}
         <div className="flex items-center justify-between">
           <Link
             href="/dashboard/pull-requests"
@@ -329,7 +240,7 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
           </Link>
 
           <a
-            href={pr.githubUrl}
+            href={githubPrUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-400 hover:underline font-mono flex items-center gap-1"
@@ -343,12 +254,20 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
         <div className="p-4 rounded-xl bg-[#0B0D12] border border-white/[0.08] shadow-lg space-y-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${isRetrying ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  status === 'COMPLETED'
+                    ? 'bg-emerald-400'
+                    : status === 'FAILED'
+                    ? 'bg-rose-400'
+                    : 'bg-amber-400 animate-pulse'
+                }`}
+              />
               <span className="text-xs font-semibold font-mono text-zinc-200 uppercase tracking-wider">
-                {isRetrying ? `Processing Stage: ${liveStatus}` : 'Pipeline Engine: Live & Synchronized'}
+                Pipeline Status: {status}
               </span>
               <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-white/[0.06]">
-                {sseConnected ? 'SSE Live Stream: Connected' : 'Real-time WebSocket / SSE Ready'}
+                {sseConnected ? 'SSE Live Stream: Connected' : 'Live Sync Active'}
               </span>
             </div>
             <span className="text-xs font-mono font-semibold text-blue-400">{progressPercent}%</span>
@@ -356,16 +275,25 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
 
           <div className="w-full h-1.5 rounded-full bg-zinc-900 overflow-hidden border border-white/[0.06]">
             <div
-              className="h-full bg-blue-500 transition-all duration-500 rounded-full"
+              className={`h-full transition-all duration-500 rounded-full ${
+                status === 'FAILED' ? 'bg-rose-500' : 'bg-blue-500'
+              }`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-zinc-400 font-mono">
             <span>{statusMessage}</span>
-            <span className="text-zinc-500">Target Commit: {pr.commitSha.substring(0, 7)}</span>
+            <span className="text-zinc-500">Target Commit: {job.commitSha?.substring(0, 7) || 'HEAD'}</span>
           </div>
         </div>
+
+        {job.errorMessage && (
+          <div className="p-3.5 rounded-lg bg-rose-950/30 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 font-mono">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>Failure Notice: {job.errorMessage}</span>
+          </div>
+        )}
 
         {retryMessage && (
           <div className="p-3 rounded-lg bg-blue-950/30 border border-blue-500/30 text-blue-300 text-xs flex items-center gap-2 font-mono">
@@ -379,29 +307,43 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
           <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
             <div>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-xs font-mono text-zinc-400">{pr.repo}#{pr.number}</span>
+                <span className="text-xs font-mono text-zinc-400">
+                  {repo.fullName || repo.name}#{pr.number}
+                </span>
                 <span
                   className={`text-[10px] font-bold px-2 py-0.2 rounded font-mono ${
-                    summary.overallRisk === 'CRITICAL'
+                    overallRisk === 'CRITICAL'
                       ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      : overallRisk === 'HIGH'
+                      ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                      : overallRisk === 'SAFE'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      : 'bg-zinc-800 text-zinc-300 border border-white/[0.08]'
                   }`}
                 >
-                  OVERALL RISK: {summary.overallRisk}
+                  OVERALL RISK: {overallRisk}
                 </span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 font-mono border border-white/[0.06]">
-                  Check Run: Action Required
-                </span>
+                {job.publishedToGitHub && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/20">
+                    GitHub Checks Published
+                  </span>
+                )}
               </div>
               <h2 className="text-lg font-bold text-white tracking-tight">{pr.title}</h2>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <img
-                src={pr.authorAvatar}
-                alt={pr.author}
-                className="w-7 h-7 rounded-full border border-white/[0.1]"
-              />
+              {pr.authorAvatarUrl ? (
+                <img
+                  src={pr.authorAvatarUrl}
+                  alt={pr.author}
+                  className="w-7 h-7 rounded-full border border-white/[0.1]"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-zinc-800 border border-white/[0.1] flex items-center justify-center text-[10px] font-mono text-zinc-300">
+                  {(pr.author || 'U').substring(0, 2).toUpperCase()}
+                </div>
+              )}
               <div className="text-xs">
                 <span className="text-zinc-200 font-medium block">@{pr.author}</span>
                 <span className="text-zinc-500 font-mono text-[10px]">Author</span>
@@ -419,88 +361,168 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
             <span className="text-zinc-600">•</span>
             <div>
               <span>Commit: </span>
-              <span className="text-zinc-200">{pr.commitSha.substring(0, 7)}</span>
+              <span className="text-zinc-200">{job.commitSha?.substring(0, 7) || 'HEAD'}</span>
             </div>
-            <span className="text-zinc-600">•</span>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-zinc-400" />
-              <span>Processed in {job.durationSeconds}s</span>
-            </div>
-            <span className="text-zinc-600">•</span>
-            <div className="flex items-center gap-1 text-emerald-400">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Inline Comments Published</span>
-            </div>
+            {job.durationSeconds && (
+              <>
+                <span className="text-zinc-600">•</span>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Processed in {job.durationSeconds}s</span>
+                </div>
+              </>
+            )}
+            {job.tokensUsed > 0 && (
+              <>
+                <span className="text-zinc-600">•</span>
+                <span>{job.tokensUsed.toLocaleString()} tokens used</span>
+              </>
+            )}
           </div>
         </div>
 
         {/* AI Senior Reviewer Assessment Summary */}
-        <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-3.5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300 flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              <span>Assessment Summary & Findings</span>
-            </h3>
-            <span className="text-[11px] font-mono text-zinc-500">
-              Saved ~{summary.estimatedReviewTimeSavedMinutes} mins of engineering review
-            </span>
-          </div>
-
-          <p className="text-xs text-zinc-300 leading-relaxed bg-[#0E1017] p-3.5 rounded-lg border border-white/[0.05]">
-            {summary.summary}
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-            {/* Blockers */}
-            <div className="p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-rose-300 mb-2 flex items-center gap-1.5 font-mono">
-                <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                <span>Merge Blockers ({summary.blockers.length})</span>
-              </h4>
-              <ul className="space-y-1 text-xs text-rose-200">
-                {summary.blockers.map((b, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5">
-                    <span className="text-rose-400 font-bold">•</span>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
+        {result && (
+          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-3.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300 flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                <span>Assessment Summary & Findings</span>
+              </h3>
+              <span className="text-[11px] font-mono text-zinc-500">
+                Saved ~{result.estimatedReviewTimeSavedMinutes || 15} mins of review
+              </span>
             </div>
 
-            {/* Strengths */}
-            <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-1.5 font-mono">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Architectural Strengths</span>
-              </h4>
-              <ul className="space-y-1 text-xs text-emerald-200">
-                {summary.keyStrengths.map((s, idx) => (
-                  <li key={idx} className="flex items-start gap-1.5">
-                    <span className="text-emerald-400 font-bold">•</span>
-                    <span>{s}</span>
-                  </li>
-                ))}
-              </ul>
+            <p className="text-xs text-zinc-300 leading-relaxed bg-[#0E1017] p-3.5 rounded-lg border border-white/[0.05]">
+              {result.summary}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {/* Blockers */}
+              {blockers.length > 0 && (
+                <div className="p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-rose-300 mb-2 flex items-center gap-1.5 font-mono">
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Merge Blockers ({blockers.length})</span>
+                  </h4>
+                  <ul className="space-y-1 text-xs text-rose-200">
+                    {blockers.map((b, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-rose-400 font-bold">•</span>
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Strengths */}
+              {keyStrengths.length > 0 && (
+                <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-1.5 font-mono">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Architectural Strengths</span>
+                  </h4>
+                  <ul className="space-y-1 text-xs text-emerald-200">
+                    {keyStrengths.map((s, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-emerald-400 font-bold">•</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Interactive Git Diff Viewer with Inline Findings */}
+        {/* Changed Files & Inline Findings */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
-              Changed Files & Inline Review Findings
+              Inline Review Findings ({findings.length})
             </h3>
-            <span className="text-[11px] text-zinc-500 font-mono">
-              {files.length} changed files • {findings.length} findings
-            </span>
           </div>
 
-          <DiffViewer
-            files={files}
-            findings={findings}
-            onDismissFinding={handleDismissFinding}
-          />
+          {findings.length === 0 ? (
+            <div className="p-8 rounded-xl bg-[#0B0D12] border border-white/[0.07] text-center space-y-2">
+              <CheckCircle2 className="w-6 h-6 text-emerald-400 mx-auto" />
+              <h4 className="text-sm font-semibold text-white">No Issues Detected</h4>
+              <p className="text-xs text-zinc-400 font-mono">
+                The pull request changes passed all deterministic scanners and review policies.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {findings.map((f: any) => (
+                <div
+                  key={f.id}
+                  className={`p-4 rounded-xl bg-[#0B0D12] border transition-all ${
+                    f.dismissed
+                      ? 'opacity-60 border-white/[0.04]'
+                      : f.severity === 'CRITICAL'
+                      ? 'border-rose-500/30'
+                      : f.severity === 'HIGH'
+                      ? 'border-orange-500/30'
+                      : 'border-white/[0.08]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded ${
+                          f.severity === 'CRITICAL'
+                            ? 'bg-rose-500/20 text-rose-300'
+                            : f.severity === 'HIGH'
+                            ? 'bg-orange-500/20 text-orange-300'
+                            : 'bg-blue-500/20 text-blue-300'
+                        }`}
+                      >
+                        {f.severity}
+                      </span>
+                      <span className="text-xs font-semibold text-white">{f.title}</span>
+                    </div>
+
+                    {!f.dismissed ? (
+                      <button
+                        onClick={() => handleDismissFinding(f.id, 'Dismissed by reviewer')}
+                        className="text-[11px] text-zinc-500 hover:text-zinc-300 font-mono"
+                      >
+                        Dismiss
+                      </button>
+                    ) : (
+                      <span className="text-[11px] text-zinc-500 font-mono italic">
+                        Dismissed ({f.dismissReason || 'Reviewed'})
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-zinc-300 mb-2 leading-relaxed">{f.explanation}</p>
+
+                  <div className="bg-[#08090C] p-2.5 rounded-lg border border-white/[0.05] font-mono text-[11px] mb-2 space-y-1">
+                    <div className="text-zinc-500">
+                      File: {f.filePath}:{f.startLine}
+                    </div>
+                    {f.evidence && (
+                      <pre className="text-rose-300 overflow-x-auto whitespace-pre-wrap">{f.evidence}</pre>
+                    )}
+                  </div>
+
+                  <div className="text-xs text-emerald-400 font-mono bg-emerald-950/20 p-2.5 rounded-lg border border-emerald-500/20">
+                    <span className="font-semibold block mb-0.5">Remediation:</span>
+                    <span>{f.remediation}</span>
+                    {f.suggestedPatch && (
+                      <pre className="mt-2 text-zinc-300 bg-[#08090C] p-2 rounded border border-white/[0.06] overflow-x-auto whitespace-pre-wrap">
+                        {f.suggestedPatch}
+                      </pre>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
