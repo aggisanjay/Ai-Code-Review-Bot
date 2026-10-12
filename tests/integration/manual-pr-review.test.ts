@@ -181,12 +181,12 @@ test('manual-pr-review: duplicate prevention blocks duplicate in-flight jobs and
     },
   });
 
-  // First job created
+  // First job created in-flight
   const firstJob = await prisma.reviewJob.create({
     data: {
       pullRequestId: pr.id,
       commitSha: pr.headSha,
-      status: 'QUEUED',
+      status: 'ANALYZING',
       idempotencyKey: `review-${pr.id}-${pr.headSha}`,
     },
   });
@@ -219,14 +219,14 @@ test('manual-pr-review: duplicate prevention blocks duplicate in-flight jobs and
     data: {
       pullRequestId: pr.id,
       commitSha: pr.headSha,
-      status: 'QUEUED',
+      status: 'ANALYZING',
       idempotencyKey: `review-${pr.id}-${pr.headSha}-rerun-${Date.now()}`,
     },
   });
 
   const olderJobStatus = await prisma.reviewJob.findUnique({ where: { id: firstJob.id } });
   assert.equal(olderJobStatus?.status, 'SUPERSEDED');
-  assert.equal(rerunJob.status, 'QUEUED');
+  assert.equal(rerunJob.status, 'ANALYZING');
 });
 
 test('manual-pr-review: detects changed head SHA and marks old job as SUPERSEDED without publishing', async () => {
