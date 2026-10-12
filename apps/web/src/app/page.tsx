@@ -219,7 +219,7 @@ export default function HomePage() {
       </section>
 
       {/* Interactive PR Showcase Section */}
-      <section id="showcase" className="py-20 px-6 max-w-7xl mx-auto">
+      <section id="showcase" className="scroll-mt-20 py-20 px-6 max-w-7xl mx-auto">
         <div className="mb-6">
           <div className="text-[11px] font-mono text-[#126B50] font-semibold uppercase tracking-wider mb-1.5">
             Interactive Product Inspection
@@ -236,12 +236,12 @@ export default function HomePage() {
       </section>
 
       {/* Architecture Explorer Section */}
-      <section id="architecture" className="py-20 px-6 max-w-7xl mx-auto border-t border-[#E4EAE6]">
+      <section id="architecture" className="scroll-mt-20 py-20 px-6 max-w-7xl mx-auto border-t border-[#E4EAE6]">
         <ArchitectureExplorer />
       </section>
 
       {/* Core Engineering Capabilities Section */}
-      <section id="features" className="py-20 px-6 max-w-7xl mx-auto border-t border-[#E4EAE6]">
+      <section id="features" className="scroll-mt-20 py-20 px-6 max-w-7xl mx-auto border-t border-[#E4EAE6]">
         <div className="mb-12">
           <div className="text-[11px] font-mono text-[#126B50] font-semibold uppercase tracking-wider mb-1.5">
             Production Engineering Rigor
@@ -318,7 +318,7 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-6 max-w-7xl mx-auto border-t border-[#E4EAE6]">
+      <section id="pricing" className="scroll-mt-20 py-20 px-6 max-w-7xl mx-auto border-t border-[#E4EAE6]">
         <div className="mb-12">
           <div className="text-[11px] font-mono text-[#126B50] font-semibold uppercase tracking-wider mb-1.5">
             Pricing Plans

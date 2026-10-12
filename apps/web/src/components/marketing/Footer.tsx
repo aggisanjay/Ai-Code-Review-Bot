@@ -33,14 +33,14 @@ export function Footer() {
             </h5>
             <ul className="space-y-2.5 text-xs">
               <li>
-                <a href="#showcase" className="hover:text-[#126B50] transition-colors">
+                <Link href="/#showcase" className="hover:text-[#126B50] transition-colors">
                   Showcase
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#architecture" className="hover:text-[#126B50] transition-colors">
+                <Link href="/#architecture" className="hover:text-[#126B50] transition-colors">
                   Architecture
-                </a>
+                </Link>
               </li>
               <li>
                 <Link href="/decisions" className="hover:text-[#126B50] transition-colors">

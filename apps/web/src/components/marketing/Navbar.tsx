@@ -25,25 +25,19 @@ export function Navbar() {
           </div>
         </Link>
 
-        {/* Navigation Links */}
-        <div className="hidden md:flex items-center gap-8 text-[13px] font-medium text-[#66736D]">
-          <a href="#showcase" className="hover:text-[#126B50] transition-colors">
+        {/* Navigation Links (5 well-placed, focused links) */}
+        <div className="hidden md:flex items-center gap-7 lg:gap-8 text-[13px] font-medium text-[#66736D]">
+          <Link href="/#showcase" className="hover:text-[#126B50] transition-colors">
             Showcase
-          </a>
-          <a href="#architecture" className="hover:text-[#126B50] transition-colors">
+          </Link>
+          <Link href="/#architecture" className="hover:text-[#126B50] transition-colors">
             Architecture
-          </a>
-          <a href="#features" className="hover:text-[#126B50] transition-colors">
-            Security & AST
-          </a>
-          <a href="#pricing" className="hover:text-[#126B50] transition-colors">
+          </Link>
+          <Link href="/#features" className="hover:text-[#126B50] transition-colors">
+            Features
+          </Link>
+          <Link href="/#pricing" className="hover:text-[#126B50] transition-colors">
             Pricing
-          </a>
-          <a href="#faq" className="hover:text-[#126B50] transition-colors">
-            FAQ
-          </a>
-          <Link href="/decisions" className="hover:text-[#126B50] transition-colors">
-            Decisions
           </Link>
           <Link href="/docs" className="hover:text-[#126B50] transition-colors">
             Docs
@@ -59,12 +53,12 @@ export function Navbar() {
             Sign In
           </Link>
 
-          <a
-            href="#showcase"
+          <Link
+            href="/#showcase"
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-secondary text-xs font-medium"
           >
             Live Demo
-          </a>
+          </Link>
 
           <Link
             href="/connect-github"
@@ -90,54 +84,40 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-[#E4EAE6] bg-white px-6 py-4 space-y-3 animate-in slide-in-from-top duration-200">
           <div className="flex flex-col space-y-2.5 text-sm font-medium text-[#66736D]">
-            <a
-              href="#showcase"
+            <Link
+              href="/#showcase"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#126B50]"
             >
               Showcase
-            </a>
-            <a
-              href="#architecture"
+            </Link>
+            <Link
+              href="/#architecture"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#126B50]"
             >
               Architecture
-            </a>
-            <a
-              href="#features"
+            </Link>
+            <Link
+              href="/#features"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#126B50]"
             >
-              Security & AST
-            </a>
-            <a
-              href="#pricing"
+              Features
+            </Link>
+            <Link
+              href="/#pricing"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#126B50]"
             >
               Pricing
-            </a>
-            <a
-              href="#faq"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#126B50]"
-            >
-              FAQ
-            </a>
-            <Link
-              href="/decisions"
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-1 hover:text-[#126B50]"
-            >
-              Decisions
             </Link>
             <Link
               href="/docs"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1 hover:text-[#126B50]"
             >
-              Documentation
+              Docs
             </Link>
           </div>
           <div className="pt-3 border-t border-[#E4EAE6] flex items-center justify-between">

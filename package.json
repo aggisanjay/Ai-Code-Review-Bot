@@ -13,7 +13,7 @@
     "dev:web": "npm run dev --workspace=@reviewflow/web",
     "dev:api": "npm run dev --workspace=@reviewflow/api",
     "dev:worker": "npm run dev --workspace=@reviewflow/worker",
-    "build": "npm run build --workspace=@reviewflow/web",
+    "build": "npm --workspace=@reviewflow/web run build",
     "test": "tsx --test tests/unit/diff-parser.test.ts tests/unit/static-analyzer.test.ts tests/unit/webhook-verifier.test.ts tests/unit/github-app-client.test.ts tests/unit/auth-security.test.ts tests/unit/quota-enforcement.test.ts tests/unit/stripe-billing.test.ts tests/security/cross-tenant-isolation.test.ts tests/security/prompt-injection.test.ts tests/integration/review-pipeline.test.ts tests/integration/real-review-flow.test.ts tests/integration/github-connection.test.ts tests/integration/webhook-delivery.test.ts tests/integration/manual-pr-review.test.ts",
     "test:unit": "tsx --test tests/unit/diff-parser.test.ts tests/unit/static-analyzer.test.ts tests/unit/webhook-verifier.test.ts tests/unit/github-app-client.test.ts tests/unit/auth-security.test.ts tests/unit/quota-enforcement.test.ts tests/unit/stripe-billing.test.ts",
     "test:security": "tsx --test tests/security/cross-tenant-isolation.test.ts tests/security/prompt-injection.test.ts",
