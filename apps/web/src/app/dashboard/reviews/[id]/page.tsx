@@ -378,6 +378,8 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
                 <span>{job.tokensUsed.toLocaleString()} tokens used</span>
               </>
             )}
+            <span className="text-zinc-600">•</span>
+            <span className="text-blue-400">Model: gemini-3.8-flash</span>
           </div>
         </div>
 

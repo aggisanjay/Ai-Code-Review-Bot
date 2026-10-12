@@ -102,6 +102,8 @@ class ApiClient {
       appId: number | null;
       installUrl: string;
       isConfigured: boolean;
+      aiProvider: string;
+      aiModel: string;
       availableInstallations: Array<{ id: number; accountLogin: string; accountType: string }>;
     }>('/repositories/app-info');
   }

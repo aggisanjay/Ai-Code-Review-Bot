@@ -336,6 +336,7 @@ export class GitHubAppClient implements IGitHubAdapter {
       id: number;
       name: string;
       fullName: string;
+      owner: string;
       private: boolean;
       defaultBranch: string;
     }>
@@ -349,6 +350,7 @@ export class GitHubAppClient implements IGitHubAdapter {
       id: r.id,
       name: r.name,
       fullName: r.full_name,
+      owner: r.owner?.login || r.full_name.split('/')[0],
       private: r.private,
       defaultBranch: r.default_branch,
     }));

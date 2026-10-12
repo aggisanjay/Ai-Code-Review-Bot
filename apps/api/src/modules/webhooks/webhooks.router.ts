@@ -80,6 +80,27 @@ webhooksRouter.post('/github', async (req: Request, res: Response) => {
         where: { installationId: installation.id },
       });
       logger.info('GitHub installation uninstalled', { installationId: installation.id });
+    } else if ((action === 'created' || action === 'new_permissions_accepted' || action === 'unsuspend') && installation?.id) {
+      const accountLogin = installation.account?.login || 'unknown';
+      const existing = await prisma.gitHubInstallation.findFirst({
+        where: { accountLogin },
+      });
+      if (existing) {
+        await prisma.gitHubInstallation.update({
+          where: { id: existing.id },
+          data: {
+            installationId: installation.id,
+            avatarUrl: installation.account?.avatar_url || null,
+            permissions: JSON.stringify(installation.permissions || {}),
+            updatedAt: new Date(),
+          },
+        });
+        logger.info('Updated GitHub installation from webhook', {
+          oldId: existing.installationId,
+          newId: installation.id,
+          account: accountLogin,
+        });
+      }
     }
     res.status(200).json({ received: true });
     return;

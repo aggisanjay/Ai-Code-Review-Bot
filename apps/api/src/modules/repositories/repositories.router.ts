@@ -30,6 +30,78 @@ function getGitHubAppClient(installationId?: number): GitHubAppClient | null {
   }
 }
 
+/**
+ * Automatically sync and resolve the active GitHub installation ID for an account/owner.
+ * If an installation was deleted/recreated on GitHub, this queries GitHub App API (via JWT),
+ * finds the new installation, updates the database, and returns the fresh installation ID.
+ */
+async function resolveActiveInstallation(
+  orgId: string,
+  accountLoginOrOwner?: string,
+  failedInstallationId?: number
+): Promise<number | null> {
+  const rootClient = getGitHubAppClient();
+  if (!rootClient) return null;
+
+  try {
+    const activeInstallations = await rootClient.listAppInstallations();
+    if (!activeInstallations || activeInstallations.length === 0) {
+      return null;
+    }
+
+    let matched = activeInstallations.find((inst) =>
+      accountLoginOrOwner
+        ? inst.account?.login?.toLowerCase() === accountLoginOrOwner.toLowerCase()
+        : false
+    );
+
+    // If only one installation exists for this app, fallback to it
+    if (!matched && activeInstallations.length === 1) {
+      matched = activeInstallations[0];
+    }
+
+    if (matched) {
+      logger.info('Auto-resolved and synchronized GitHub installation ID', {
+        orgId,
+        oldId: failedInstallationId,
+        newId: matched.id,
+        account: matched.account?.login,
+      });
+
+      if (failedInstallationId && failedInstallationId !== matched.id) {
+        await prisma.gitHubInstallation.deleteMany({
+          where: { installationId: failedInstallationId },
+        });
+      }
+
+      await prisma.gitHubInstallation.upsert({
+        where: { installationId: matched.id },
+        create: {
+          organizationId: orgId,
+          installationId: matched.id,
+          accountLogin: matched.account?.login || accountLoginOrOwner || 'unknown',
+          accountType: matched.account?.type || 'User',
+          avatarUrl: matched.account?.avatar_url || null,
+          permissions: JSON.stringify(matched.permissions || {}),
+        },
+        update: {
+          organizationId: orgId,
+          accountLogin: matched.account?.login || accountLoginOrOwner || 'unknown',
+          avatarUrl: matched.account?.avatar_url || null,
+          permissions: JSON.stringify(matched.permissions || {}),
+          updatedAt: new Date(),
+        },
+      });
+
+      return matched.id;
+    }
+  } catch (err: any) {
+    logger.warn('Failed to auto-resolve active GitHub installation', { error: err.message });
+  }
+
+  return null;
+}
+
 // GET /api/v1/repositories/app-info
 repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Response) => {
   let appSlug = process.env.GITHUB_APP_SLUG || 'reviewflow-ai';
@@ -60,6 +132,12 @@ repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Resp
     }
   }
 
+  const aiProvider = process.env.AI_PROVIDER || 'gemini';
+  const aiModel =
+    process.env.AI_PROVIDER === 'openai'
+      ? process.env.AI_MODEL_OPENAI || 'gpt-4o'
+      : process.env.AI_MODEL_GEMINI || 'gemini-3.8-flash';
+
   res.json({
     data: {
       appSlug,
@@ -67,6 +145,8 @@ repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Resp
       appId: appId || null,
       installUrl: `https://github.com/apps/${appSlug}/installations/new`,
       isConfigured,
+      aiProvider,
+      aiModel,
       availableInstallations,
     },
   });
@@ -442,26 +522,43 @@ repositoriesRouter.get('/github-available', async (req: AuthenticatedRequest, re
   const allAvailable: any[] = [];
 
   for (const inst of installations) {
+    let currentId = inst.installationId;
+    let repos: any[] = [];
+
     try {
-      const repos = await client.listInstallationRepositories(inst.installationId);
-      for (const r of repos) {
-        const existing = connectedRepoMap.get(BigInt(r.id));
-        allAvailable.push({
-          id: r.id,
-          name: r.name,
-          fullName: r.fullName,
-          private: r.private,
-          defaultBranch: r.defaultBranch,
-          installationId: inst.installationId,
-          accountLogin: inst.accountLogin,
-          isConnected: Boolean(existing && existing.isActive && existing.autoReviewEnabled),
-          existingRepositoryId: existing?.id || null,
-        });
-      }
+      repos = await client.listInstallationRepositories(currentId);
     } catch (err: any) {
-      logger.warn('Failed to fetch repositories for installation', {
-        installationId: inst.installationId,
+      logger.warn('Failed to fetch repositories for installation, attempting auto-sync', {
+        installationId: currentId,
         error: err.message,
+      });
+
+      const freshId = await resolveActiveInstallation(orgId, inst.accountLogin, currentId);
+      if (freshId && freshId !== currentId) {
+        currentId = freshId;
+        try {
+          repos = await client.listInstallationRepositories(currentId);
+        } catch (retryErr: any) {
+          logger.warn('Retry after installation sync failed', {
+            installationId: currentId,
+            error: retryErr.message,
+          });
+        }
+      }
+    }
+
+    for (const r of repos) {
+      const existing = connectedRepoMap.get(BigInt(r.id));
+      allAvailable.push({
+        id: r.id,
+        name: r.name,
+        fullName: r.fullName,
+        private: r.private,
+        defaultBranch: r.defaultBranch,
+        installationId: currentId,
+        accountLogin: inst.accountLogin,
+        isConnected: Boolean(existing && existing.isActive && existing.autoReviewEnabled),
+        existingRepositoryId: existing?.id || null,
       });
     }
   }
@@ -685,8 +782,12 @@ repositoriesRouter.get('/:id/pull-requests', async (req: AuthenticatedRequest, r
     return;
   }
 
-  const installation = repo.organization.installations[0];
-  const client = getGitHubAppClient(installation?.installationId);
+  const targetInstallation =
+    repo.organization.installations.find(
+      (i) => i.accountLogin.toLowerCase() === repo.owner.toLowerCase()
+    ) || repo.organization.installations[0];
+
+  const client = getGitHubAppClient(targetInstallation?.installationId);
   const adapter: IGitHubAdapter | null = client || (process.env.GITHUB_MOCK_MODE === 'true' ? new MockGitHubAdapter() : null);
 
   if (!adapter) {
@@ -701,7 +802,39 @@ repositoriesRouter.get('/:id/pull-requests', async (req: AuthenticatedRequest, r
   const limit = Math.min(parseInt((req.query.limit as string) || '20', 10), 100);
 
   try {
-    const ghPullRequests = await adapter.listPullRequests(repo.owner, repo.name, state, page, limit);
+    let ghPullRequests: any[] = [];
+    try {
+      ghPullRequests = await adapter.listPullRequests(repo.owner, repo.name, state, page, limit);
+  } catch (err: any) {
+    if ((err.status === 404 || err.message?.includes('Not Found')) && client) {
+      logger.warn('404 fetching PRs, attempting to auto-sync active GitHub installation', {
+        repo: repo.fullName,
+        owner: repo.owner,
+      });
+      const freshInstallationId = await resolveActiveInstallation(
+        orgId,
+        repo.owner,
+        targetInstallation?.installationId
+      );
+      if (freshInstallationId && freshInstallationId !== targetInstallation?.installationId) {
+        const freshClient = getGitHubAppClient(freshInstallationId);
+        if (freshClient) {
+          try {
+            ghPullRequests = await freshClient.listPullRequests(repo.owner, repo.name, state, page, limit);
+          } catch (retryErr: any) {
+            logger.error('Failed to list GitHub pull requests after sync', { error: retryErr.message });
+            throw retryErr;
+          }
+        } else {
+          throw err;
+        }
+      } else {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
 
     // Fetch matching pull requests and their latest review jobs from DB
     const dbPrs = await prisma.pullRequest.findMany({
@@ -825,8 +958,12 @@ repositoriesRouter.post(
       return;
     }
 
-    const installation = repo.organization.installations[0];
-    const client = getGitHubAppClient(installation?.installationId);
+    const targetInstallation =
+      repo.organization.installations.find(
+        (i) => i.accountLogin.toLowerCase() === repo.owner.toLowerCase()
+      ) || repo.organization.installations[0];
+
+    const client = getGitHubAppClient(targetInstallation?.installationId);
     const adapter: IGitHubAdapter | null = client || (process.env.GITHUB_MOCK_MODE === 'true' ? new MockGitHubAdapter() : null);
 
     if (!adapter) {
@@ -836,9 +973,31 @@ repositoriesRouter.post(
       return;
     }
 
+    let prDetails: any;
     try {
-      // 1. Fetch real-time PR details directly from GitHub API
-      const prDetails = await adapter.fetchPullRequest(repo.owner, repo.name, prNumber);
+      try {
+        prDetails = await adapter.fetchPullRequest(repo.owner, repo.name, prNumber);
+      } catch (err: any) {
+        if ((err.status === 404 || err.message?.includes('Not Found')) && client) {
+          logger.warn('404 fetching PR details for review, attempting to auto-sync installation', {
+            repo: repo.fullName,
+            prNumber,
+          });
+          const freshId = await resolveActiveInstallation(orgId, repo.owner, targetInstallation?.installationId);
+          if (freshId && freshId !== targetInstallation?.installationId) {
+            const freshClient = getGitHubAppClient(freshId);
+            if (freshClient) {
+              prDetails = await freshClient.fetchPullRequest(repo.owner, repo.name, prNumber);
+            } else {
+              throw err;
+            }
+          } else {
+            throw err;
+          }
+        } else {
+          throw err;
+        }
+      }
 
       if (prDetails.state !== 'open') {
         res.status(400).json({

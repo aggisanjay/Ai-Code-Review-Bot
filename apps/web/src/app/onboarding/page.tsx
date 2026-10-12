@@ -289,7 +289,7 @@ function OnboardingContent() {
     try {
       const res = await api.triggerPrReview(selectedRepoId, prNumber, true);
       if (res.data?.reviewJobId) {
-        setSuccessMessage(`Review queued for PR #${prNumber}. Running real Gemini code analysis...`);
+        setSuccessMessage(`Review queued for PR #${prNumber}. Running real Gemini (${appInfo?.aiModel || 'gemini-3.8-flash'}) code analysis...`);
         // Poll for review completion
         setTimeout(() => {
           if (selectedRepoId) fetchPrsForRepo(selectedRepoId);
@@ -635,7 +635,7 @@ function OnboardingContent() {
                 <div>
                   <h2 className="text-base font-bold text-white mb-0.5">Step 4: Real Open Pull Requests</h2>
                   <p className="text-xs text-zinc-400">
-                    Fetched directly from GitHub. Trigger an on-demand AI review with Gemini to inspect live findings.
+                    Fetched directly from GitHub. Trigger an on-demand AI review with Google Gemini ({appInfo?.aiModel || 'gemini-3.8-flash'}) to inspect live findings.
                   </p>
                 </div>
                 <button

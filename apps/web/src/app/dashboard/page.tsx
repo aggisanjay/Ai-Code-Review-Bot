@@ -26,6 +26,7 @@ export default function DashboardOverviewPage() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [pullRequests, setPullRequests] = useState<any[]>([]);
   const [installations, setInstallations] = useState<any[]>([]);
+  const [appInfo, setAppInfo] = useState<any>(null);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string>('Just now');
 
@@ -40,7 +41,7 @@ export default function DashboardOverviewPage() {
 
     const fetchData = async () => {
       try {
-        const [analyticsRes, prsRes, instRes] = await Promise.all([
+        const [analyticsRes, prsRes, instRes, appInfoRes] = await Promise.all([
           fetch(`${API_URL}/analytics/overview`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -48,6 +49,9 @@ export default function DashboardOverviewPage() {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_URL}/repositories/installations`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_URL}/repositories/app-info`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -71,6 +75,11 @@ export default function DashboardOverviewPage() {
         if (instRes.ok && isMounted) {
           const instJson = await instRes.json();
           setInstallations(instJson.data || []);
+        }
+
+        if (appInfoRes.ok && isMounted) {
+          const appInfoJson = await appInfoRes.json();
+          setAppInfo(appInfoJson.data);
         }
 
         if (isMounted) {
@@ -318,15 +327,15 @@ export default function DashboardOverviewPage() {
                 </span>
               </div>
               <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-                Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models. Webhook events trigger asynchronous review jobs without blocking developer workflow.
+                Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-3.8-flash'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-lg bg-[#0E1017] border border-white/[0.05]">
-                  <span className="text-zinc-500 text-[11px] font-mono block mb-1">Active AI Provider</span>
-                  <div className="flex items-center gap-2 text-zinc-200 font-medium">
+                  <span className="text-zinc-500 text-[11px] font-mono block mb-1">Active AI Model</span>
+                  <div className="flex items-center gap-2 text-zinc-200 font-medium font-mono text-[11px]">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                    <span>Google Gemini 1.5 Pro</span>
+                    <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini (gemini-3.8-flash)'}</span>
                   </div>
                 </div>
 

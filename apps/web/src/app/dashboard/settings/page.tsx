@@ -34,6 +34,7 @@ export default function SettingsPage() {
 
   // AI Settings
   const [aiProvider, setAiProvider] = useState('gemini');
+  const [appInfo, setAppInfo] = useState<any>(null);
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
@@ -80,6 +81,16 @@ export default function SettingsPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         if (json?.data) setBilling(json.data);
+      })
+      .catch(() => {});
+
+    // Fetch system app & AI model info
+    fetch(`${API_URL}/repositories/app-info`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.data) setAppInfo(json.data);
       })
       .catch(() => {});
   }, [router]);
@@ -253,31 +264,34 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               <div className="p-4 rounded-lg border bg-[#121622] border-blue-500/50">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-zinc-200">Google Gemini 1.5 Pro</span>
+                  <span className="font-semibold text-zinc-200">
+                    {appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini (gemini-3.8-flash)'}
+                  </span>
                   <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 font-mono">
-                    2M Context
+                    Active Model
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-400">
-                  Default production LLM engine. Uses structured output mode to analyze large repository pull request diffs.
+                  Active production LLM model. Uses structured JSON schema output to evaluate repository pull request diffs with senior engineering precision.
                 </p>
               </div>
 
               <div className="p-4 rounded-lg border bg-[#0E1017] border-white/[0.05]">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-zinc-200">Deterministic Static Rules</span>
+                  <span className="font-semibold text-zinc-200">Deterministic AST Scanner</span>
                   <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-mono">
                     Zero-latency
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-400">
-                  Pre-flight AST checks for cryptographic secret fallbacks, eval execution, and prompt injection defense.
+                  Pre-flight Abstract Syntax Tree checks for hardcoded cryptographic secrets, unsafe code execution, and prompt-injection defense.
                 </p>
               </div>
             </div>
 
             <div className="p-3 rounded-lg bg-[#08090C] border border-white/[0.06] font-mono text-xs text-zinc-400 space-y-1">
-              <div>Provider Status: Configured via environment variables</div>
+              <div>Active Model: <span className="text-zinc-200 font-semibold">{appInfo?.aiModel || 'gemini-3.8-flash'}</span></div>
+              <div>AI Provider: <span className="text-zinc-200 font-semibold">{appInfo?.aiProvider ? appInfo.aiProvider.toUpperCase() : 'GEMINI'}</span></div>
               <div>Worker Execution Path: Durable BullMQ + Background Processor</div>
             </div>
           </div>

@@ -49,7 +49,10 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
     } else {
       const appId = process.env.GITHUB_APP_ID;
       const privateKey = process.env.GITHUB_PRIVATE_KEY;
-      const installation = repository.organization?.installations?.[0];
+      const installation =
+        repository.organization?.installations?.find(
+          (i) => i.accountLogin.toLowerCase() === repository.owner.toLowerCase()
+        ) || repository.organization?.installations?.[0];
 
       if (appId && privateKey) {
         github = new GitHubAppClient({
@@ -79,7 +82,7 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       const configuredProvider = process.env.AI_PROVIDER?.toLowerCase();
 
       if (geminiKey && geminiKey.trim() !== '') {
-        const model = process.env.AI_MODEL_GEMINI || 'gemini-3.5-flash';
+        const model = process.env.AI_MODEL_GEMINI || 'gemini-3.8-flash';
         console.log(`[Worker] Using Google Gemini LLM provider (model: ${model})`);
         llmProvider = new GeminiProvider(geminiKey, model);
       } else if (openAiKey && openAiKey.trim() !== '') {
