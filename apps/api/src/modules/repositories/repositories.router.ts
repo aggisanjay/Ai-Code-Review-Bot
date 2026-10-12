@@ -6,6 +6,7 @@ import { GitHubAppClient, MockGitHubAdapter, IGitHubAdapter } from '@reviewflow/
 import { authenticateToken, requireRole, AuthenticatedRequest } from '../../common/auth.middleware';
 import { logger } from '../../common/logger';
 import { enqueueReviewJob } from '../../common/queue';
+import { checkAndIncrementReviewQuota } from '../billing/quota.service';
 
 export const repositoriesRouter = Router();
 repositoriesRouter.use(authenticateToken);
@@ -109,24 +110,12 @@ repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Resp
   const appId = process.env.GITHUB_APP_ID;
   const isConfigured = Boolean(appId && process.env.GITHUB_PRIVATE_KEY);
 
-  let availableInstallations: Array<{ id: number; accountLogin: string; accountType: string }> = [];
   const client = getGitHubAppClient();
   if (client) {
     try {
       const appInfo = await client.getAppInfo();
       if (appInfo.slug) appSlug = appInfo.slug;
       if (appInfo.name) appName = appInfo.name;
-    } catch {
-      // ignore
-    }
-
-    try {
-      const list = await client.listAppInstallations();
-      availableInstallations = list.map((i) => ({
-        id: i.id,
-        accountLogin: (i.account as any)?.login || 'unknown',
-        accountType: (i.account as any)?.type || 'User',
-      }));
     } catch {
       // ignore
     }
@@ -147,7 +136,6 @@ repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Resp
       isConfigured,
       aiProvider,
       aiModel,
-      availableInstallations,
     },
   });
 });
@@ -257,22 +245,32 @@ repositoriesRouter.post(
       return;
     }
 
-    let targetInstallationId = numericInstallationId;
-    const configuredAppId = parseInt(String(process.env.GITHUB_APP_ID || ''), 10);
+    const targetInstallationId = numericInstallationId;
 
-    // If user entered their GitHub App ID instead of Installation ID, auto-resolve
-    if (configuredAppId && numericInstallationId === configuredAppId) {
-      try {
-        const appInstallations = await client.listAppInstallations();
-        if (appInstallations.length === 1) {
-          targetInstallationId = appInstallations[0].id;
-          logger.info('Auto-resolved App ID to unique Installation ID', {
-            appId: configuredAppId,
-            resolvedInstallationId: targetInstallationId,
-          });
-        }
-      } catch (err: any) {
-        logger.warn('Could not auto-list app installations when App ID was provided', { error: err.message });
+    // Check if installation is already linked to prevent duplicate setup and cross-tenant hijacking
+    const existing = await prisma.gitHubInstallation.findUnique({
+      where: { installationId: targetInstallationId },
+    });
+
+    if (existing) {
+      if (existing.organizationId === orgId) {
+        // Idempotent: already linked to current organization, return connected repos
+        const availableRepos = await client.listInstallationRepositories(targetInstallationId).catch(() => []);
+        return res.status(200).json({
+          data: {
+            installation: existing,
+            availableRepositories: availableRepos,
+            alreadyConnected: true,
+            message: 'GitHub installation is already connected to your organization.',
+          },
+        });
+      } else {
+        return res.status(409).json({
+          error: {
+            code: 'ALREADY_CLAIMED',
+            message: 'This GitHub installation is already linked to another ReviewFlow organization.',
+          },
+        });
       }
     }
 
@@ -873,8 +871,8 @@ repositoriesRouter.get('/:id/pull-requests', async (req: AuthenticatedRequest, r
         githubPrId: ghPr.id,
         number: ghPr.number,
         title: ghPr.title,
-        author: ghPr.author,
-        authorAvatarUrl: ghPr.authorAvatarUrl || null,
+        author: (ghPr.author && ghPr.author !== 'unknown') ? ghPr.author : (dbPr?.author || 'unknown'),
+        authorAvatarUrl: ghPr.authorAvatarUrl || dbPr?.authorAvatarUrl || null,
         sourceBranch: ghPr.sourceBranch,
         targetBranch: ghPr.targetBranch,
         headSha: ghPr.headSha,
@@ -1035,6 +1033,8 @@ repositoriesRouter.post(
           baseBranch: prDetails.base?.ref,
           headBranch: prDetails.head?.ref,
           state: 'OPEN',
+          author: prDetails.user?.login || undefined,
+          authorAvatarUrl: prDetails.user?.avatarUrl || undefined,
           updatedAt: new Date(),
         },
       });
@@ -1096,7 +1096,23 @@ repositoriesRouter.post(
         },
       });
 
-      // 5. Create new ReviewJob
+      // 5. Atomic Monthly Quota Enforcement
+      const quotaCheck = await checkAndIncrementReviewQuota(repo.organizationId, { isBillable: true });
+      if (!quotaCheck.allowed) {
+        res.status(402).json({
+          error: {
+            code: 'PLAN_QUOTA_EXCEEDED',
+            message: quotaCheck.message,
+            currentUsage: quotaCheck.currentUsage,
+            limit: quotaCheck.limit,
+            resetDate: quotaCheck.resetDate.toISOString().split('T')[0],
+            upgradeUrl: '/dashboard/settings',
+          },
+        });
+        return;
+      }
+
+      // 6. Create new ReviewJob
       const idempotencyKey = forceRerun
         ? `review-${pr.id}-${prDetails.head.sha}-rerun-${Date.now()}`
         : `review-${pr.id}-${prDetails.head.sha}`;

@@ -21,7 +21,7 @@ export function Sidebar() {
 
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [org, setOrg] = useState<{ name: string; plan: string } | null>(null);
-  const [usage, setUsage] = useState<{ reviewsUsed: number; reviewsLimit: number } | null>(null);
+  const [usage, setUsage] = useState<{ reviewsUsed: number; reviewsLimit: number; resetDate?: string } | null>(null);
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
@@ -58,10 +58,12 @@ export function Sidebar() {
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
-        if (json?.data?.usage) {
+        if (json?.data) {
+          const d = json.data;
           setUsage({
-            reviewsUsed: json.data.usage.reviewsUsed,
-            reviewsLimit: json.data.usage.reviewsLimit,
+            reviewsUsed: typeof d.reviewsUsed === 'number' ? d.reviewsUsed : d.usage?.reviewsUsed ?? 0,
+            reviewsLimit: typeof d.reviewsLimit === 'number' ? d.reviewsLimit : d.usage?.reviewsLimit ?? 25,
+            resetDate: d.resetDate,
           });
         }
       })
@@ -170,14 +172,14 @@ export function Sidebar() {
           <div className="flex items-center justify-between text-[11px] mb-1.5 font-mono">
             <span className="text-zinc-400">Monthly Reviews</span>
             <span className="text-zinc-200 font-semibold">
-              {usage ? `${usage.reviewsUsed} / ${usage.reviewsLimit}` : '0 / 50'}
+              {usage ? `${usage.reviewsUsed} / ${usage.reviewsLimit}` : '0 / 25'}
             </span>
           </div>
           <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
             <div className="h-full bg-blue-500 rounded-full" style={{ width: `${usagePercent}%` }} />
           </div>
           <div className="mt-1.5 flex items-center justify-between text-[10px] text-zinc-500 font-mono">
-            <span>Quota Usage</span>
+            <span>{usage?.resetDate ? `Resets ${new Date(usage.resetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : 'Quota Usage'}</span>
             <Link href="/dashboard/settings" className="text-blue-400 hover:underline">
               Plan Details
             </Link>

@@ -148,7 +148,7 @@ export default function HomePage() {
               className="flex flex-wrap items-center gap-3 pt-1"
             >
               <Link
-                href="/dashboard"
+                href="/connect-github"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg btn-primary text-xs font-medium"
               >
                 <span>Connect GitHub Repository</span>
@@ -352,7 +352,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>50 pull request reviews / month</span>
+                  <span>25 pull request reviews / month</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -366,7 +366,7 @@ export default function HomePage() {
             </div>
 
             <Link
-              href="/dashboard"
+              href="/connect-github"
               className="mt-6 w-full py-2 rounded-lg btn-secondary text-xs font-medium text-center"
             >
               Get Started Free
@@ -413,7 +413,7 @@ export default function HomePage() {
             </div>
 
             <Link
-              href="/dashboard"
+              href="/dashboard/settings"
               className="mt-6 w-full py-2 rounded-lg btn-primary text-xs font-medium text-center"
             >
               Start 14-Day Pro Trial
@@ -452,7 +452,7 @@ export default function HomePage() {
             </div>
 
             <Link
-              href="/dashboard"
+              href="/dashboard/settings"
               className="mt-6 w-full py-2 rounded-lg btn-secondary text-xs font-medium text-center"
             >
               Select Team Plan

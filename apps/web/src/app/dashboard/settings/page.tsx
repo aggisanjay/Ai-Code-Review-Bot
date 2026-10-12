@@ -133,6 +133,44 @@ export default function SettingsPage() {
     }
   };
 
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
+  const handleOpenCustomerPortal = async () => {
+    setIsOpeningPortal(true);
+    setError(null);
+    setFeedback(null);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/billing/portal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error?.message || 'Failed to open Stripe Customer Portal.');
+        setIsOpeningPortal(false);
+        return;
+      }
+
+      if (json.data?.portalUrl) {
+        window.location.href = json.data.portalUrl;
+      } else {
+        setError('No customer portal URL returned by billing server.');
+        setIsOpeningPortal(false);
+      }
+    } catch (err: any) {
+      setError(`Customer portal request failed: ${err.message}`);
+      setIsOpeningPortal(false);
+    }
+  };
+
   const currentPlan = billing?.plan || org?.plan || 'FREE';
 
   return (
@@ -299,14 +337,45 @@ export default function SettingsPage() {
 
         {/* Tab 3: Billing & Subscription */}
         {activeTab === 'billing' && (
-          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-4">
+          <div className="p-5 rounded-xl bg-[#0B0D12] border border-white/[0.07] space-y-5">
             <div>
               <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-300">
                 Subscription Tier & Review Quotas
               </h3>
               <p className="text-xs text-zinc-400">
-                Current active subscription plan for {org?.name || 'your workspace'}.
+                Current active subscription plan and real-time monthly usage for {org?.name || 'your workspace'}.
               </p>
+            </div>
+
+            {/* Real DB Quota Status Panel */}
+            <div className="p-4 rounded-lg bg-[#08090C] border border-white/[0.06] grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+              <div className="space-y-1">
+                <span className="text-zinc-500 text-[11px] uppercase">Monthly Reviews</span>
+                <div className="text-lg font-bold text-white">
+                  {billing?.reviewsUsed ?? 0} / {billing?.reviewsLimit ?? 25}
+                </div>
+                <div className="text-[11px] text-zinc-400">
+                  {billing?.reviewsRemaining ?? 25} reviews remaining
+                </div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-zinc-500 text-[11px] uppercase">Monthly Reset Date</span>
+                <div className="text-sm font-semibold text-zinc-200 mt-1">
+                  {billing?.resetDate ? new Date(billing.resetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Next calendar month'}
+                </div>
+                <div className="text-[11px] text-zinc-500">
+                  Resets 1st of each calendar month UTC
+                </div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-zinc-500 text-[11px] uppercase">Connected Repositories</span>
+                <div className="text-sm font-semibold text-zinc-200 mt-1">
+                  {billing?.reposUsed ?? 0} / {billing?.reposLimit ?? 3} allowed
+                </div>
+                <div className="text-[11px] text-zinc-500">
+                  Current plan: {currentPlan}
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
@@ -333,7 +402,7 @@ export default function SettingsPage() {
                     </div>
                     <p className="text-[11px] text-zinc-400">
                       {tier === 'FREE'
-                        ? '50 reviews / month • 3 repos'
+                        ? '25 reviews / month • 3 repos'
                         : tier === 'PRO'
                         ? '500 reviews / month • 15 repos'
                         : '2,500 reviews / month • 50 repos'}
@@ -356,6 +425,24 @@ export default function SettingsPage() {
                   )}
                 </div>
               ))}
+            </div>
+
+            {/* Customer Portal Action */}
+            <div className="p-4 rounded-lg bg-[#0E1017] border border-white/[0.06] flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h4 className="text-xs font-semibold text-white">Stripe Customer Billing Portal</h4>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  Update payment methods, view past invoices, or manage subscription tier and cancellations.
+                </p>
+              </div>
+              <button
+                onClick={handleOpenCustomerPortal}
+                disabled={isOpeningPortal}
+                className="px-3.5 py-1.5 rounded-md btn-secondary text-xs font-medium flex items-center gap-1.5"
+              >
+                <span>{isOpeningPortal ? 'Connecting to Stripe...' : 'Manage Stripe Invoices & Portal'}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         )}

@@ -63,7 +63,6 @@ function RepositoriesPageContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [manualInstallId, setManualInstallId] = useState('');
   const [isClaiming, setIsClaiming] = useState(false);
 
   // Policy form state
@@ -244,6 +243,13 @@ function RepositoriesPageContent() {
       }
     }
   }, [searchParams, claimInstallation]);
+
+  // If redirected with ?picker=true and installations exist, open picker modal
+  useEffect(() => {
+    if (searchParams.get('picker') === 'true' && installations.length > 0) {
+      openRepoPicker();
+    }
+  }, [searchParams, installations.length]);
 
   const handleConnectGitHub = async () => {
     const token = getToken();
@@ -577,34 +583,15 @@ function RepositoriesPageContent() {
 
           <div className="flex items-center gap-2 text-xs">
             {installations.length === 0 ? (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {appInfo?.availableInstallations?.length > 0 && (
-                  <button
-                    onClick={() => claimInstallation(appInfo.availableInstallations[0].id)}
-                    disabled={isClaiming}
-                    className="px-2.5 py-1 rounded-md bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 text-xs font-mono font-medium transition-colors"
-                  >
-                    {isClaiming ? 'Linking...' : `Auto-Link (${appInfo.availableInstallations[0].id})`}
-                  </button>
-                )}
-                <input
-                  type="text"
-                  placeholder={appInfo?.availableInstallations?.[0]?.id ? String(appInfo.availableInstallations[0].id) : "Installation ID"}
-                  value={manualInstallId}
-                  onChange={(e) => setManualInstallId(e.target.value)}
-                  className="bg-[#08090C] border border-white/[0.08] rounded-md px-2.5 py-1 text-zinc-200 text-xs font-mono w-44 focus:outline-none"
-                />
-                <button
-                  onClick={() => {
-                    const id = parseInt(manualInstallId, 10);
-                    if (!isNaN(id) && id > 0) claimInstallation(id);
-                  }}
-                  disabled={isClaiming || !manualInstallId}
-                  className="px-2.5 py-1 rounded-md btn-secondary text-xs font-mono"
-                >
-                  {isClaiming ? 'Claiming...' : 'Link ID'}
-                </button>
-              </div>
+              <button
+                onClick={handleConnectGitHub}
+                disabled={isClaiming}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md btn-primary text-xs font-medium"
+              >
+                <Github className="w-3.5 h-3.5" />
+                <span>{isClaiming ? 'Redirecting to GitHub...' : 'Connect GitHub App'}</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </button>
             ) : (
               <button
                 onClick={openRepoPicker}
@@ -855,6 +842,11 @@ function RepositoriesPageContent() {
                       const isJobActive = review && ['QUEUED', 'FETCHING_DIFF', 'ANALYZING', 'VALIDATING', 'PUBLISHING'].includes(review.status);
                       const isCompleted = review && review.status === 'COMPLETED';
 
+                      const authorLogin = typeof pr.author === 'string'
+                        ? pr.author
+                        : (pr.author?.login || pr.authorName || 'unknown');
+                      const authorAvatar = pr.authorAvatarUrl || (typeof pr.author === 'object' ? pr.author?.avatarUrl : null);
+
                       return (
                         <tr
                           key={pr.id || pr.number}
@@ -887,19 +879,19 @@ function RepositoriesPageContent() {
                           {/* Author */}
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
-                              {pr.author?.avatarUrl ? (
+                              {authorAvatar ? (
                                 <img
-                                  src={pr.author.avatarUrl}
-                                  alt={pr.author.login}
+                                  src={authorAvatar}
+                                  alt={authorLogin}
                                   className="w-5 h-5 rounded-full border border-white/[0.1]"
                                 />
                               ) : (
-                                <div className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center text-[10px]">
-                                  {pr.author?.login?.[0] || 'U'}
+                                <div className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center text-[10px] font-mono">
+                                  {(authorLogin || 'U').substring(0, 1).toUpperCase()}
                                 </div>
                               )}
                               <span className="text-xs text-zinc-300 font-mono">
-                                {pr.author?.login || 'unknown'}
+                                {authorLogin}
                               </span>
                             </div>
                           </td>

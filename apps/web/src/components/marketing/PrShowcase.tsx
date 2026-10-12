@@ -119,6 +119,9 @@ export function PrShowcase() {
               <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-medium">
                 Open PR
               </span>
+              <span className="text-[10px] px-2 py-0.2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-medium">
+                Interactive Sandbox • Sample Data
+              </span>
             </div>
             <div className="text-xs text-zinc-300 font-medium mt-0.5">
               feat(auth): Add JWT refresh token rotation and cookie session handler

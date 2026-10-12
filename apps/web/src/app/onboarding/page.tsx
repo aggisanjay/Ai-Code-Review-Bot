@@ -49,7 +49,6 @@ function OnboardingContent() {
   const [installations, setInstallations] = useState<any[]>([]);
   const [appInfo, setAppInfo] = useState<any>(null);
   const [isInitiatingInstall, setIsInitiatingInstall] = useState(false);
-  const [manualInstallId, setManualInstallId] = useState('');
 
   // Repositories state
   const [availableRepos, setAvailableRepos] = useState<any[]>([]);
@@ -161,31 +160,6 @@ function OnboardingContent() {
     } catch (err: any) {
       setError(err.message || 'Failed to initiate secure GitHub App installation.');
       setIsInitiatingInstall(false);
-    }
-  };
-
-  // Manual fallback claim
-  const handleManualClaim = async () => {
-    const numId = parseInt(manualInstallId.trim(), 10);
-    if (isNaN(numId) || numId <= 0) {
-      setError('Please enter a valid numeric GitHub Installation ID.');
-      return;
-    }
-    setActionLoading(true);
-    setError(null);
-    try {
-      const res = await api.claimInstallation(numId);
-      if (res.data?.installation) {
-        setSuccessMessage(`Connected GitHub account @${res.data.installation.accountLogin}!`);
-        const updatedInst = await api.getInstallations();
-        setInstallations(updatedInst.data || []);
-        setCurrentStep(3);
-        loadRepositories();
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to verify installation ID.');
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -514,29 +488,6 @@ function OnboardingContent() {
                   <div className="pt-2 border-t border-white/[0.05] text-[11px] font-mono text-zinc-500">
                     <p>Permissions: Read code diffs & pull requests • Write check runs & comments</p>
                   </div>
-
-                  {/* Manual Installation ID fallback */}
-                  <details className="text-left pt-2 text-[11px] text-zinc-500">
-                    <summary className="cursor-pointer hover:text-zinc-400 font-mono">
-                      Already installed directly on GitHub? Enter Installation ID manually
-                    </summary>
-                    <div className="flex items-center gap-2 mt-2">
-                      <input
-                        type="text"
-                        placeholder="e.g. 5282602"
-                        value={manualInstallId}
-                        onChange={(e) => setManualInstallId(e.target.value)}
-                        className="px-2.5 py-1.5 bg-[#08090C] border border-white/[0.08] rounded text-xs text-white font-mono flex-1"
-                      />
-                      <button
-                        onClick={handleManualClaim}
-                        disabled={actionLoading}
-                        className="px-3 py-1.5 rounded btn-secondary text-xs font-mono"
-                      >
-                        Claim
-                      </button>
-                    </div>
-                  </details>
                 </div>
               )}
             </div>

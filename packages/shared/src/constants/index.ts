@@ -48,7 +48,7 @@ export const PLAN_CONFIGS: Record<PlanTier, PlanLimits> = {
   FREE: {
     name: 'Free Starter',
     maxRepositories: 3,
-    maxReviewsPerMonth: 50,
+    maxReviewsPerMonth: 25,
     maxMembers: 2,
     advancedSecurityChecks: false,
     customRules: false,

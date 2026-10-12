@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { GitPullRequest, ArrowRight, Lock, Mail, User, Building, AlertCircle } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get('redirect') || '/dashboard';
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [orgName, setOrgName] = useState('');
@@ -49,9 +52,9 @@ export default function SignupPage() {
 
       if (data.data?.token) {
         localStorage.setItem('reviewflow_token', data.data.token);
-        router.push('/dashboard');
+        router.push(redirectTarget);
       } else {
-        router.push('/login');
+        router.push(`/login${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`);
       }
     } catch (err: any) {
       setError(`Cannot reach API server at ${API_URL}. Ensure the backend server is running.`);
@@ -79,7 +82,7 @@ export default function SignupPage() {
         </h2>
         <p className="mt-1.5 text-center text-xs text-zinc-400">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-400 hover:underline">
+          <Link href={`/login${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`} className="text-blue-400 hover:underline">
             Sign in
           </Link>
         </p>
@@ -108,7 +111,7 @@ export default function SignupPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
                   placeholder="Alex Rivera"
                 />
               </div>
@@ -128,14 +131,15 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                  placeholder="name@company.com"
+                  placeholder="alex@acme.com"
+                  autoComplete="email"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
-                Organization / Team Name
+                Organization Name
               </label>
               <div className="relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -145,8 +149,8 @@ export default function SignupPage() {
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors"
-                  placeholder="Acme Engineering"
+                  className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
+                  placeholder="Acme Engineering (optional)"
                 />
               </div>
             </div>
@@ -165,7 +169,8 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full pl-9 pr-3 py-2 bg-[#08090C] border border-white/[0.08] rounded-md text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                  placeholder="At least 8 characters"
+                  placeholder="Minimum 8 characters"
+                  autoComplete="new-password"
                 />
               </div>
             </div>
@@ -173,18 +178,26 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg btn-primary text-xs font-medium"
+              className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg btn-primary text-xs font-medium"
             >
-              <span>{isLoading ? 'Creating account...' : 'Create Account & Organization'}</span>
+              <span>{isLoading ? 'Creating account...' : 'Create Team Account'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
         </div>
 
         <p className="mt-5 text-center text-[11px] text-zinc-500 font-mono">
-          Strict tenant isolation enabled. No demo data auto-populated.
+          Free plan includes 25 monthly pull request reviews. No credit card required.
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#08090C]" />}>
+      <SignupContent />
+    </Suspense>
   );
 }

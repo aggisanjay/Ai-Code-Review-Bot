@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { prisma } from '@reviewflow/database';
 import { authenticateToken, AuthenticatedRequest } from '../../common/auth.middleware';
 import { enqueueReviewJob } from '../../common/queue';
+import { checkAndIncrementReviewQuota } from '../billing/quota.service';
 
 export const pullRequestsRouter = Router();
 pullRequestsRouter.use(authenticateToken);
@@ -195,9 +196,23 @@ pullRequestsRouter.post('/:id/review', async (req: AuthenticatedRequest, res: Re
     },
   });
 
-  const idempotencyKey = forceRerun
-    ? `review-${pr.id}-${pr.headSha}-rerun-${Date.now()}`
-    : `review-${pr.id}-${pr.headSha}`;
+  // Atomic Monthly Quota Enforcement
+  const quotaCheck = await checkAndIncrementReviewQuota(pr.repository.organizationId, { isBillable: true });
+  if (!quotaCheck.allowed) {
+    res.status(402).json({
+      error: {
+        code: 'PLAN_QUOTA_EXCEEDED',
+        message: quotaCheck.message,
+        currentUsage: quotaCheck.currentUsage,
+        limit: quotaCheck.limit,
+        resetDate: quotaCheck.resetDate.toISOString().split('T')[0],
+        upgradeUrl: '/dashboard/settings',
+      },
+    });
+    return;
+  }
+
+  const idempotencyKey = `ondemand:${pr.id}:${pr.headSha}`;
 
   const reviewJob = await prisma.reviewJob.create({
     data: {

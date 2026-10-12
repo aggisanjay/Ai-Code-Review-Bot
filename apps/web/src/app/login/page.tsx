@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { GitPullRequest, ArrowRight, Lock, Mail, AlertCircle } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = searchParams.get('redirect') || '/dashboard';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +39,7 @@ export default function LoginPage() {
 
       if (data.data?.token) {
         localStorage.setItem('reviewflow_token', data.data.token);
-        router.push('/dashboard');
+        router.push(redirectTarget);
       } else {
         setError('Login response did not provide an authentication token.');
         setIsLoading(false);
@@ -67,7 +70,7 @@ export default function LoginPage() {
         </h2>
         <p className="mt-1.5 text-center text-xs text-zinc-400">
           Or{' '}
-          <Link href="/signup" className="text-blue-400 hover:underline">
+          <Link href={`/signup${searchParams.get('redirect') ? `?redirect=${encodeURIComponent(searchParams.get('redirect')!)}` : ''}`} className="text-blue-400 hover:underline">
             create a new team organization
           </Link>
         </p>
@@ -157,5 +160,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#08090C]" />}>
+      <LoginContent />
+    </Suspense>
   );
 }

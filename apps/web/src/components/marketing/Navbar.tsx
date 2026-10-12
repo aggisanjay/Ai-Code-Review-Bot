@@ -57,15 +57,15 @@ export function Navbar() {
             Sign In
           </Link>
 
-          <Link
-            href="/dashboard"
+          <a
+            href="#showcase"
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900/90 text-zinc-300 border border-white/[0.08] text-xs font-medium hover:bg-zinc-800 hover:text-white transition-all shadow-sm"
           >
             Live Demo
-          </Link>
+          </a>
 
           <Link
-            href="/dashboard"
+            href="/connect-github"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg btn-primary text-xs font-medium"
           >
             <span>Connect GitHub</span>

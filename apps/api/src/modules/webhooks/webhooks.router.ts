@@ -5,6 +5,7 @@ import { verifyWebhookSignature } from '@reviewflow/github-client';
 import { config } from '../../common/config';
 import { logger } from '../../common/logger';
 import { enqueueReviewJob } from '../../common/queue';
+import { checkAndIncrementReviewQuota } from '../billing/quota.service';
 
 export const webhooksRouter = Router();
 
@@ -278,6 +279,20 @@ webhooksRouter.post('/github', async (req: Request, res: Response) => {
         });
 
         if (!existingJob) {
+          // Atomic Monthly Quota Enforcement
+          const quotaCheck = await checkAndIncrementReviewQuota(repo.organizationId, { isBillable: true });
+          if (!quotaCheck.allowed) {
+            logger.warn('Webhook review skipped: Organization reached monthly review quota', {
+              repo: repo.fullName,
+              prNumber: pr.number,
+              orgId: repo.organizationId,
+              limit: quotaCheck.limit,
+              currentUsage: quotaCheck.currentUsage,
+            });
+            res.status(200).json({ received: true, enqueued: false, quotaExceeded: true, message: quotaCheck.message });
+            return;
+          }
+
           const reviewJob = await prisma.reviewJob.create({
             data: {
               pullRequestId: pr.id,
@@ -319,7 +334,7 @@ webhooksRouter.post('/stripe', async (req: Request, res: Response) => {
   if (webhookSecret && webhookSecret !== 'whsec_mock_stripe_webhook') {
     const stripe = getStripeClient();
     if (!stripe || !stripeSignature || !rawBody) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Stripe webhook signature required.' } });
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Stripe webhook signature and raw body are required.' } });
       return;
     }
 
@@ -327,11 +342,14 @@ webhooksRouter.post('/stripe', async (req: Request, res: Response) => {
       event = stripe.webhooks.constructEvent(rawBody, stripeSignature, webhookSecret);
     } catch (err: any) {
       logger.warn('Stripe webhook signature verification failed', { error: err.message });
-      res.status(400).json({ error: { code: 'INVALID_SIGNATURE', message: err.message } });
+      res.status(400).json({ error: { code: 'INVALID_SIGNATURE', message: `Invalid Stripe signature: ${err.message}` } });
       return;
     }
+  } else if (config.isProduction) {
+    res.status(500).json({ error: { code: 'STRIPE_NOT_CONFIGURED', message: 'STRIPE_WEBHOOK_SECRET must be configured in production.' } });
+    return;
   } else {
-    // In local development or test mode with mock keys
+    // In local development or unit test mode with mock keys
     event = req.body as Stripe.Event;
   }
 
@@ -369,15 +387,21 @@ webhooksRouter.post('/stripe', async (req: Request, res: Response) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const orgId = session.client_reference_id || (session.metadata?.organizationId as string);
-        const planTier = (session.metadata?.planTier as string) || 'PRO';
+        const rawPlanTier = (session.metadata?.planTier as string) || 'PRO';
+        const planTier = ['PRO', 'TEAM', 'ENTERPRISE'].includes(rawPlanTier.toUpperCase())
+          ? rawPlanTier.toUpperCase()
+          : 'PRO';
 
         if (orgId) {
+          const customerId = (session.customer as string) || null;
+          const subscriptionId = (session.subscription as string) || null;
+
           await prisma.organization.update({
             where: { id: orgId },
             data: {
               plan: planTier,
-              stripeCustomerId: (session.customer as string) || null,
-              stripeSubscriptionId: (session.subscription as string) || null,
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId,
             },
           });
 
@@ -385,49 +409,146 @@ webhooksRouter.post('/stripe', async (req: Request, res: Response) => {
             where: { organizationId: orgId },
           });
 
+          const periodEnd = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+
           if (existingSub) {
             await prisma.subscription.update({
               where: { id: existingSub.id },
               data: {
                 plan: planTier,
                 status: 'ACTIVE',
-                stripeSubscriptionId: (session.subscription as string) || undefined,
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+                stripeSubscriptionId: subscriptionId || undefined,
+                currentPeriodEnd: periodEnd,
               },
             });
           } else {
             await prisma.subscription.create({
               data: {
                 organizationId: orgId,
-                stripeSubscriptionId: (session.subscription as string) || null,
+                stripeSubscriptionId: subscriptionId,
                 plan: planTier,
                 status: 'ACTIVE',
                 currentPeriodStart: new Date(),
-                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+                currentPeriodEnd: periodEnd,
               },
             });
           }
+
+          await prisma.auditLog.create({
+            data: {
+              organizationId: orgId,
+              action: 'STRIPE_CHECKOUT_COMPLETED',
+              resourceType: 'BILLING_SUBSCRIPTION',
+              resourceId: subscriptionId,
+              detailsJson: JSON.stringify({
+                planTier,
+                customerId,
+                sessionId: session.id,
+              }),
+            },
+          });
         }
         break;
       }
 
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
+        const subscriptionId = subscription.id;
 
         const org = await prisma.organization.findFirst({
-          where: { stripeCustomerId: customerId },
+          where: {
+            OR: [
+              { stripeCustomerId: customerId },
+              { stripeSubscriptionId: subscriptionId },
+              { id: subscription.metadata?.organizationId || undefined },
+            ],
+          },
         });
 
         if (org) {
-          const status = subscription.status === 'active' ? 'ACTIVE' : subscription.status.toUpperCase();
-          await prisma.subscription.updateMany({
-            where: { organizationId: org.id },
+          const rawStatus = (subscription.status || '').toLowerCase();
+          let status = 'ACTIVE';
+          let planToSet = org.plan;
+
+          // Determine plan tier from price or metadata
+          const priceId = subscription.items?.data?.[0]?.price?.id;
+          if (priceId === process.env.STRIPE_PRICE_ID_TEAM || subscription.metadata?.planTier === 'TEAM') {
+            planToSet = 'TEAM';
+          } else if (priceId === process.env.STRIPE_PRICE_ID_PRO || subscription.metadata?.planTier === 'PRO') {
+            planToSet = 'PRO';
+          }
+
+          if (rawStatus === 'active') {
+            status = 'ACTIVE';
+          } else if (rawStatus === 'past_due' || rawStatus === 'unpaid') {
+            status = 'PAST_DUE';
+          } else if (rawStatus === 'canceled' || rawStatus === 'incomplete_expired') {
+            status = 'CANCELED';
+            planToSet = 'FREE';
+          } else if (rawStatus === 'incomplete') {
+            status = 'INCOMPLETE';
+          }
+
+          await prisma.organization.update({
+            where: { id: org.id },
             data: {
-              status,
-              currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
-              currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
-              cancelAtPeriodEnd: subscription.cancel_at_period_end,
+              plan: planToSet,
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId,
+            },
+          });
+
+          const subAny = subscription as any;
+          const periodStart = subAny.current_period_start
+            ? new Date(subAny.current_period_start * 1000)
+            : new Date();
+          const periodEnd = subAny.current_period_end
+            ? new Date(subAny.current_period_end * 1000)
+            : new Date(Date.now() + 30 * 24 * 3600 * 1000);
+
+          const existingSub = await prisma.subscription.findFirst({
+            where: { organizationId: org.id },
+          });
+
+          if (existingSub) {
+            await prisma.subscription.update({
+              where: { id: existingSub.id },
+              data: {
+                stripeSubscriptionId: subscriptionId,
+                plan: planToSet,
+                status,
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
+                cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+              },
+            });
+          } else {
+            await prisma.subscription.create({
+              data: {
+                organizationId: org.id,
+                stripeSubscriptionId: subscriptionId,
+                plan: planToSet,
+                status,
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
+                cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+              },
+            });
+          }
+
+          await prisma.auditLog.create({
+            data: {
+              organizationId: org.id,
+              action: 'STRIPE_SUBSCRIPTION_UPDATED',
+              resourceType: 'BILLING_SUBSCRIPTION',
+              resourceId: subscriptionId,
+              detailsJson: JSON.stringify({
+                status,
+                plan: planToSet,
+                cancelAtPeriodEnd: subscription.cancel_at_period_end,
+              }),
             },
           });
         }
@@ -439,7 +560,12 @@ webhooksRouter.post('/stripe', async (req: Request, res: Response) => {
         const customerId = subscription.customer as string;
 
         const org = await prisma.organization.findFirst({
-          where: { stripeCustomerId: customerId },
+          where: {
+            OR: [
+              { stripeCustomerId: customerId },
+              { stripeSubscriptionId: subscription.id },
+            ],
+          },
         });
 
         if (org) {
@@ -452,6 +578,70 @@ webhooksRouter.post('/stripe', async (req: Request, res: Response) => {
             where: { organizationId: org.id },
             data: { status: 'CANCELED' },
           });
+
+          await prisma.auditLog.create({
+            data: {
+              organizationId: org.id,
+              action: 'STRIPE_SUBSCRIPTION_CANCELED',
+              resourceType: 'BILLING_SUBSCRIPTION',
+              resourceId: subscription.id,
+              detailsJson: JSON.stringify({ customerId }),
+            },
+          });
+        }
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+
+        if (customerId) {
+          const org = await prisma.organization.findFirst({
+            where: { stripeCustomerId: customerId },
+          });
+          if (org) {
+            await prisma.subscription.updateMany({
+              where: { organizationId: org.id },
+              data: { status: 'ACTIVE' },
+            });
+            await prisma.auditLog.create({
+              data: {
+                organizationId: org.id,
+                action: 'STRIPE_INVOICE_PAYMENT_SUCCEEDED',
+                resourceType: 'BILLING_INVOICE',
+                resourceId: invoice.id,
+                detailsJson: JSON.stringify({ amountPaid: invoice.amount_paid }),
+              },
+            });
+          }
+        }
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+
+        if (customerId) {
+          const org = await prisma.organization.findFirst({
+            where: { stripeCustomerId: customerId },
+          });
+          if (org) {
+            await prisma.subscription.updateMany({
+              where: { organizationId: org.id },
+              data: { status: 'PAST_DUE' },
+            });
+            await prisma.auditLog.create({
+              data: {
+                organizationId: org.id,
+                action: 'STRIPE_INVOICE_PAYMENT_FAILED',
+                resourceType: 'BILLING_INVOICE',
+                resourceId: invoice.id,
+                detailsJson: JSON.stringify({ attemptCount: invoice.attempt_count }),
+              },
+            });
+          }
         }
         break;
       }
