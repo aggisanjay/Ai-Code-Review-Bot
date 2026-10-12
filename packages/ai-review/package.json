@@ -10,9 +10,7 @@
   "dependencies": {
     "@reviewflow/shared": "*",
     "@reviewflow/github-client": "*",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
+    "zod": "^3.23.8",
     "@types/node": "^22.7.5",
     "typescript": "^5.6.3"
   }

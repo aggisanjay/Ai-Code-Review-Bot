@@ -15,11 +15,11 @@
     "@reviewflow/shared": "*",
     "bullmq": "^6.3.12",
     "dotenv": "^16.4.5",
-    "ioredis": "^6.0.0"
+    "ioredis": "^6.0.0",
+    "@types/node": "^22.7.5",
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
-    "@types/node": "^22.7.5",
-    "tsx": "^4.19.1",
-    "typescript": "^5.6.3"
+    "tsx": "^4.19.1"
   }
 }

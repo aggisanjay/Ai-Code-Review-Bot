@@ -19,14 +19,14 @@
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^23.0.0",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
+    "zod": "^3.23.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.7.5",
-    "tsx": "^4.19.1",
     "typescript": "^5.6.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1"
   }
 }
