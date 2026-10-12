@@ -5,14 +5,33 @@
  */
 const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv');
 
-// Load .env from project root or packages/database
-const rootEnvPath = path.resolve(__dirname, '../../../.env');
-if (fs.existsSync(rootEnvPath)) {
-  dotenv.config({ path: rootEnvPath });
+// Safe dotenv loading without crashing if dotenv is not yet installed
+try {
+  const dotenv = require('dotenv');
+  const rootEnvPath = path.resolve(__dirname, '../../../.env');
+  if (fs.existsSync(rootEnvPath)) {
+    dotenv.config({ path: rootEnvPath });
+  }
+  dotenv.config();
+} catch (_e) {
+  // Graceful fallback: manually parse .env if present
+  try {
+    const rootEnvPath = path.resolve(__dirname, '../../../.env');
+    const envFile = fs.existsSync(rootEnvPath) ? rootEnvPath : path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envFile)) {
+      const content = fs.readFileSync(envFile, 'utf8');
+      content.split('\n').forEach((line) => {
+        const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+        if (match && !process.env[match[1]]) {
+          let value = (match[2] || '').trim();
+          if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+          process.env[match[1]] = value;
+        }
+      });
+    }
+  } catch (_err) {}
 }
-dotenv.config();
 
 const schemaPath = path.resolve(__dirname, '../prisma/schema.prisma');
 if (!fs.existsSync(schemaPath)) {
