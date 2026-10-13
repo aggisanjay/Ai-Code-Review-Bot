@@ -304,14 +304,14 @@ export default function SettingsPage() {
               <div className="p-5 rounded-2xl border-2 border-[#126B50] bg-[#EAF5EF]/20 shadow-sleek-sm">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-[#14211D] text-sm font-display">
-                    {appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 2.5 Pro (gemini-2.5-pro)'}
+                    {appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 3.5 Flash (gemini-3.5-flash)'}
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
                     Active Model
                   </span>
                 </div>
                 <p className="text-xs text-[#66736D] leading-relaxed">
-                  Active production LLM model. Uses Google Gemini 2.5 Pro reasoning with structured JSON schemas to evaluate repository pull request diffs with senior engineering precision.
+                  Active production LLM model. Uses Google Gemini 3.5 Flash with structured JSON schemas to evaluate repository pull request diffs with high-speed senior engineering precision.
                 </p>
               </div>
 
@@ -329,7 +329,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] font-mono text-xs text-[#66736D] space-y-1.5">
-              <div>Active Model: <strong className="text-[#14211D]">{appInfo?.aiModel || 'gemini-2.5-pro'}</strong></div>
+              <div>Active Model: <strong className="text-[#14211D]">{appInfo?.aiModel || 'gemini-3.5-flash'}</strong></div>
               <div>AI Provider: <strong className="text-[#14211D]">{appInfo?.aiProvider ? appInfo.aiProvider.toUpperCase() : 'GEMINI'}</strong></div>
               <div>Worker Execution Path: Durable BullMQ + Background Processor</div>
             </div>

@@ -378,7 +378,7 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
               </>
             )}
             <span>•</span>
-            <span className="text-[#126B50] font-semibold">Model: gemini-3.8-flash</span>
+            <span className="text-[#126B50] font-semibold">Model: gemini-3.5-flash</span>
           </div>
         </div>
 

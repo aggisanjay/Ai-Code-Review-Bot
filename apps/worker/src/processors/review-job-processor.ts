@@ -82,7 +82,7 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       const configuredProvider = process.env.AI_PROVIDER?.toLowerCase();
 
       if (geminiKey && geminiKey.trim() !== '') {
-        const model = process.env.AI_MODEL_GEMINI || 'gemini-3.8-flash';
+        const model = process.env.AI_MODEL_GEMINI || 'gemini-3.5-flash';
         console.log(`[Worker] Using Google Gemini LLM provider (model: ${model})`);
         llmProvider = new GeminiProvider(geminiKey, model);
       } else if (openAiKey && openAiKey.trim() !== '') {
