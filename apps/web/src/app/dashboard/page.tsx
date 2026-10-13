@@ -212,26 +212,31 @@ export default function DashboardOverviewPage() {
         )}
 
         {/* Metric Cards Grid */}
+        {/* Metric Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => {
             const Icon = stat.icon;
             return (
               <div
                 key={i}
-                className="p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm hover:shadow-md hover:border-[#B2E0C7] transition-all duration-fast"
+                className="p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm hover:shadow-md hover:border-[#B2E0C7] transition-all duration-fast flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-mono text-[#52635B] uppercase tracking-wider font-semibold">
-                    {stat.title}
-                  </span>
-                  <div className={`w-8 h-8 rounded-xl ${stat.iconBg} flex items-center justify-center`}>
-                    <Icon className={`w-4 h-4 ${stat.iconColor}`} />
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-semibold text-[#52635B]">
+                      {stat.title}
+                    </span>
+                    <div className={`w-8 h-8 rounded-full ${stat.iconBg} flex items-center justify-center border border-black/5`}>
+                      <Icon className={`w-4 h-4 ${stat.iconColor}`} />
+                    </div>
                   </div>
+                  <div className="text-3xl font-bold text-[#111C18] font-mono tracking-tight">{stat.value}</div>
                 </div>
-                <div className="text-3xl font-bold text-[#111C18] font-mono tracking-tight">{stat.value}</div>
-                <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1.5 font-mono">
-                  <TrendingUp className="w-3.5 h-3.5 text-[#10B981]" />
-                  <span>{stat.change}</span>
+                <div className="mt-3.5 pt-3 border-t border-[#F0F5F2] flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-[#10B981] bg-[#EBF7F0] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-[#10B981]" />
+                    <span>{stat.change}</span>
+                  </span>
                 </div>
               </div>
             );
@@ -243,24 +248,26 @@ export default function DashboardOverviewPage() {
           {/* Finding Breakdown Card */}
           <div className="p-6 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111C18]">
+              <h3 className="text-sm font-bold text-[#111C18]">
                 Findings by Severity
               </h3>
-              <span className="text-[11px] text-[#52635B] font-mono">Persisted</span>
+              <span className="text-[11px] font-medium text-[#52635B] bg-[#F7FAF8] px-2 py-0.5 rounded-full border border-[#E2EDE6]">
+                Persisted
+              </span>
             </div>
 
             {totalFindings === 0 ? (
               <div className="py-10 text-center space-y-2">
-                <span className="text-xs text-[#111C18] font-mono font-medium block">Zero findings recorded</span>
-                <span className="text-[11px] text-[#52635B] font-mono block">
+                <span className="text-xs text-[#111C18] font-semibold block">Zero findings recorded</span>
+                <span className="text-[11px] text-[#52635B] block">
                   Reviews will populate severity metrics automatically.
                 </span>
               </div>
             ) : (
               <div className="space-y-4">
                 <div>
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#DC2626] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                  <div className="flex justify-between text-xs mb-1.5 font-medium">
+                    <span className="text-[#DC2626] font-semibold flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 rounded-full bg-[#DC2626]" /> Critical
                     </span>
                     <span className="text-[#111C18] font-mono font-bold text-xs">{severity.CRITICAL}</span>
@@ -274,8 +281,8 @@ export default function DashboardOverviewPage() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#D97706] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                  <div className="flex justify-between text-xs mb-1.5 font-medium">
+                    <span className="text-[#D97706] font-semibold flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 rounded-full bg-[#D97706]" /> High
                     </span>
                     <span className="text-[#111C18] font-mono font-bold text-xs">{severity.HIGH}</span>
@@ -289,8 +296,8 @@ export default function DashboardOverviewPage() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#063B2C] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                  <div className="flex justify-between text-xs mb-1.5 font-medium">
+                    <span className="text-[#063B2C] font-semibold flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 rounded-full bg-[#063B2C]" /> Medium
                     </span>
                     <span className="text-[#111C18] font-mono font-bold text-xs">{severity.MEDIUM}</span>
@@ -304,8 +311,8 @@ export default function DashboardOverviewPage() {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-[#52635B] font-semibold flex items-center gap-2 font-mono text-[11px]">
+                  <div className="flex justify-between text-xs mb-1.5 font-medium">
+                    <span className="text-[#52635B] font-semibold flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 rounded-full bg-[#52635B]" /> Low & Info
                     </span>
                     <span className="text-[#111C18] font-mono font-bold text-xs">{severity.LOW}</span>
@@ -325,39 +332,41 @@ export default function DashboardOverviewPage() {
           <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3.5">
-                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#111C18] flex items-center gap-2">
+                <h3 className="text-sm font-bold text-[#111C18] flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#063B2C]" />
                   <span>Review Engine Status & Controls</span>
                 </h3>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-mono font-bold">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-semibold">
                   Engine Ready
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed mb-5">
-                Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-3.8-flash'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
+                Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-2.5-pro'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                  <span className="text-[#52635B] text-[11px] font-mono block mb-1.5">Active AI Model</span>
-                  <div className="flex items-center gap-2 text-[#111C18] font-semibold font-mono text-xs">
-                    <span className="w-2 h-2 rounded-full bg-[#063B2C]" />
-                    <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini (gemini-3.8-flash)'}</span>
+                  <span className="text-[#52635B] text-[11px] font-semibold block mb-1.5">Active AI Model</span>
+                  <div className="flex items-center gap-2 text-[#111C18] font-bold text-xs">
+                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                    <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 2.5 Pro (gemini-2.5-pro)'}</span>
                   </div>
+                  <span className="text-[10px] text-[#7A8C84] mt-1 block font-mono">Flagship Reasoning & JSON Schema</span>
                 </div>
 
                 <div className="p-4 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                  <span className="text-[#52635B] text-[11px] font-mono block mb-1.5">Policy Enforcement</span>
-                  <div className="flex items-center gap-2 text-[#111C18] font-semibold text-xs">
+                  <span className="text-[#52635B] text-[11px] font-semibold block mb-1.5">Policy Enforcement</span>
+                  <div className="flex items-center gap-2 text-[#111C18] font-bold text-xs">
                     <span className="w-2 h-2 rounded-full bg-[#DC2626]" />
                     <span>Block PR on Critical Findings (Active)</span>
                   </div>
+                  <span className="text-[10px] text-[#7A8C84] mt-1 block font-mono">Zero Critical Defect Merge Gates</span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-[#E2EDE6] flex items-center justify-between text-xs text-[#52635B] font-mono">
-              <span>Tenant Isolation: Enforced</span>
+            <div className="mt-6 pt-4 border-t border-[#E2EDE6] flex items-center justify-between text-xs text-[#52635B]">
+              <span className="font-medium">Tenant Isolation: Enforced</span>
               <Link
                 href="/dashboard/repositories"
                 className="text-[#063B2C] hover:underline flex items-center gap-1 font-semibold"

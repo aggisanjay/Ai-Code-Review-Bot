@@ -18,6 +18,7 @@ import {
   X,
   GitPullRequest,
   Sparkles,
+  ShieldAlert,
   Clock,
   AlertTriangle,
   XCircle,
@@ -350,20 +351,28 @@ function RepositoriesPageContent() {
           </span>
         );
       case 'COMPLETED': {
-        const riskColors: Record<string, string> = {
-          CRITICAL: 'bg-[#FDE8E8] border-[#F8B4B4] text-[#C43D4B]',
-          HIGH: 'bg-[#FEF3C7] border-[#FDE68A] text-[#B7791F]',
-          MEDIUM: 'bg-[#EAF5EF] border-[#C7E4D6] text-[#126B50]',
-          LOW: 'bg-[#F7F9F8] border-[#E4EAE6] text-[#14211D]',
-          SAFE: 'bg-[#EAF5EF] border-[#C7E4D6] text-[#126B50]',
-        };
-        const colorClass = riskColors[review.overallRisk] || 'bg-[#EAF5EF] border-[#C7E4D6] text-[#126B50]';
+        const isCritical = review.overallRisk === 'CRITICAL';
+        const isHigh = review.overallRisk === 'HIGH';
         return (
           <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-mono font-bold ${colorClass}`}>
-              <CheckCircle2 className="w-3 h-3" />
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-semibold whitespace-nowrap shadow-sm ${
+                isCritical
+                  ? 'bg-red-50 border-red-200 text-red-700'
+                  : isHigh
+                  ? 'bg-amber-50 border-amber-200 text-amber-800'
+                  : 'bg-[#EBF7F0] border-[#C3EBD7] text-[#063B2C]'
+              }`}
+            >
+              {isCritical || isHigh ? (
+                <ShieldAlert className="w-3.5 h-3.5 text-red-600 shrink-0" />
+              ) : (
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
+              )}
               <span>{review.overallRisk}</span>
-              {review.totalFindings > 0 && <span className="opacity-80">({review.totalFindings} findings)</span>}
+              {review.totalFindings > 0 && (
+                <span className="font-normal opacity-85">({review.totalFindings} findings)</span>
+              )}
             </span>
           </div>
         );
@@ -675,21 +684,27 @@ function RepositoriesPageContent() {
                       </div>
                     </div>
 
-                    <h3 className="text-base font-bold text-[#14211D] mb-0.5 font-display">{repo.name}</h3>
-                    <span className="text-xs font-mono text-[#66736D] block mb-4">{repo.fullName}</span>
+                    <h3 className="text-base font-bold text-[#111C18] mb-0.5 font-display">{repo.name}</h3>
+                    <span className="text-xs font-mono text-[#52635B] block mb-4">{repo.fullName}</span>
 
-                    <div className="space-y-2 text-xs text-[#14211D] font-mono bg-[#F7F9F8] p-3.5 rounded-xl border border-[#E4EAE6] mb-5 text-[11px]">
-                      <div className="flex justify-between">
-                        <span className="text-[#66736D]">Threshold:</span>
-                        <span className="text-[#B7791F] font-bold">{p.severityThreshold || 'MEDIUM'}</span>
+                    <div className="space-y-2.5 text-xs bg-[#F8FCFA] p-3.5 rounded-xl border border-[#E2EDE6] mb-5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#52635B] font-medium text-[11px]">Threshold:</span>
+                        <span className="text-[#B7791F] font-bold bg-[#FEF3C7] px-2 py-0.5 rounded-full text-[10px] font-mono border border-[#FDE68A]">
+                          {p.severityThreshold || 'MEDIUM'}
+                        </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#66736D]">Block on Critical:</span>
-                        <span className="text-[#126B50] font-bold">{p.blockPrOnCritical ? 'Yes' : 'No'}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#52635B] font-medium text-[11px]">Block on Critical:</span>
+                        <span className={`font-semibold px-2 py-0.5 rounded-full text-[10px] font-mono ${p.blockPrOnCritical ? 'bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7]' : 'bg-gray-100 text-gray-600'}`}>
+                          {p.blockPrOnCritical ? 'Yes' : 'No'}
+                        </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#66736D]">Inline Comments:</span>
-                        <span className="text-[#14211D] font-medium">{p.autoPostInlineComments ? 'Enabled' : 'Disabled'}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#52635B] font-medium text-[11px]">Inline Comments:</span>
+                        <span className="text-[#111C18] font-semibold text-[11px] font-mono">
+                          {p.autoPostInlineComments ? 'Enabled' : 'Disabled'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -934,7 +949,7 @@ function RepositoriesPageContent() {
                                 <div className="flex items-center gap-2">
                                   <Link
                                     href={`/dashboard/reviews/${review.id}`}
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#EAF5EF] hover:bg-[#D5EEDB] text-[#126B50] border border-[#C7E4D6] text-xs font-mono font-bold transition-colors"
+                                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#063B2C] hover:bg-[#0A4D3A] text-white text-xs font-semibold shadow-sm transition-all hover:scale-[1.02] whitespace-nowrap"
                                   >
                                     <Eye className="w-3.5 h-3.5" />
                                     <span>View Results</span>
@@ -944,9 +959,9 @@ function RepositoriesPageContent() {
                                     onClick={() => handleReviewPr(activeRepoForPrs.id, pr.number, true)}
                                     disabled={isTriggering}
                                     title="Rerun AI review on current commit"
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl btn-secondary text-xs font-mono font-medium"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#E2EDE6] bg-white hover:bg-[#F7FAF8] text-[#52635B] hover:text-[#111C18] text-xs font-medium transition-colors shadow-sm"
                                   >
-                                    <RefreshCw className={`w-3.5 h-3.5 ${isTriggering ? 'animate-spin' : ''}`} />
+                                    <RefreshCw className={`w-3.5 h-3.5 ${isTriggering ? 'animate-spin text-[#063B2C]' : ''}`} />
                                     <span>Rerun</span>
                                   </button>
                                 </div>

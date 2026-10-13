@@ -54,9 +54,16 @@ billingRouter.get('/subscription', async (req: AuthenticatedRequest, res: Respon
     data: {
       plan: currentPlan,
       limits: planLimits,
+      reviewsUsed: usage.reviewCount,
+      reviewsLimit: planLimits.maxReviewsPerMonth,
+      reviewsRemaining: Math.max(0, planLimits.maxReviewsPerMonth - usage.reviewCount),
+      reposUsed: org._count.repositories,
+      reposLimit: planLimits.maxRepositories,
+      resetDate: resetDate.toISOString().split('T')[0],
       usage: {
         reviewsUsed: usage.reviewCount,
         reviewsLimit: planLimits.maxReviewsPerMonth,
+        reviewsRemaining: Math.max(0, planLimits.maxReviewsPerMonth - usage.reviewCount),
         reviewsPercentage: Math.min(100, Math.round((usage.reviewCount / planLimits.maxReviewsPerMonth) * 100)),
         resetDate: resetDate.toISOString().split('T')[0],
         repositoriesUsed: org._count.repositories,

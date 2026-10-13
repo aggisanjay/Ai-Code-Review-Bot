@@ -29,7 +29,7 @@ export default function SettingsPage() {
 
   // Billing
   const [billing, setBilling] = useState<any>(null);
-  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [upgradingTier, setUpgradingTier] = useState<'PRO' | 'TEAM' | null>(null);
 
   // AI Settings
   const [appInfo, setAppInfo] = useState<any>(null);
@@ -94,12 +94,15 @@ export default function SettingsPage() {
   }, [router]);
 
   const handleUpgradePlan = async (planTier: 'PRO' | 'TEAM') => {
-    setIsUpgrading(true);
+    setUpgradingTier(planTier);
     setError(null);
     setFeedback(null);
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
-    if (!token) return;
+    if (!token) {
+      setUpgradingTier(null);
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/billing/checkout`, {
@@ -115,7 +118,7 @@ export default function SettingsPage() {
 
       if (!res.ok) {
         setError(json.error?.message || 'Failed to initiate billing checkout.');
-        setIsUpgrading(false);
+        setUpgradingTier(null);
         return;
       }
 
@@ -123,11 +126,11 @@ export default function SettingsPage() {
         window.location.href = json.data.checkoutUrl;
       } else {
         setFeedback(`Plan upgrade checkout session generated: ${json.data?.sessionId || 'Ready'}`);
-        setIsUpgrading(false);
+        setUpgradingTier(null);
       }
     } catch (err: any) {
       setError(`Billing request failed: ${err.message}`);
-      setIsUpgrading(false);
+      setUpgradingTier(null);
     }
   };
 
@@ -301,14 +304,14 @@ export default function SettingsPage() {
               <div className="p-5 rounded-2xl border-2 border-[#126B50] bg-[#EAF5EF]/20 shadow-sleek-sm">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-bold text-[#14211D] text-sm font-display">
-                    {appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini (gemini-3.8-flash)'}
+                    {appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 2.5 Pro (gemini-2.5-pro)'}
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
                     Active Model
                   </span>
                 </div>
                 <p className="text-xs text-[#66736D] leading-relaxed">
-                  Active production LLM model. Uses structured JSON schema output to evaluate repository pull request diffs with senior engineering precision.
+                  Active production LLM model. Uses Google Gemini 2.5 Pro reasoning with structured JSON schemas to evaluate repository pull request diffs with senior engineering precision.
                 </p>
               </div>
 
@@ -326,7 +329,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] font-mono text-xs text-[#66736D] space-y-1.5">
-              <div>Active Model: <strong className="text-[#14211D]">{appInfo?.aiModel || 'gemini-3.8-flash'}</strong></div>
+              <div>Active Model: <strong className="text-[#14211D]">{appInfo?.aiModel || 'gemini-2.5-pro'}</strong></div>
               <div>AI Provider: <strong className="text-[#14211D]">{appInfo?.aiProvider ? appInfo.aiProvider.toUpperCase() : 'GEMINI'}</strong></div>
               <div>Worker Execution Path: Durable BullMQ + Background Processor</div>
             </div>
@@ -334,96 +337,103 @@ export default function SettingsPage() {
         )}
 
         {/* Tab 3: Billing & Subscription */}
-        {activeTab === 'billing' && (
-          <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-6">
-            <div>
-              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
-                Subscription Tier & Review Quotas
-              </h3>
-              <p className="text-xs text-[#66736D] mt-0.5">
-                Current active subscription plan and real-time monthly usage for {org?.name || 'your workspace'}.
-              </p>
-            </div>
+        {activeTab === 'billing' && (() => {
+          const reviewsUsed = billing?.usage?.reviewsUsed ?? billing?.reviewsUsed ?? 0;
+          const reviewsLimit = billing?.usage?.reviewsLimit ?? billing?.reviewsLimit ?? (currentPlan === 'PRO' ? 500 : currentPlan === 'TEAM' ? 2500 : 25);
+          const reviewsRemaining = billing?.usage?.reviewsRemaining ?? billing?.reviewsRemaining ?? Math.max(0, reviewsLimit - reviewsUsed);
+          const reposUsed = billing?.usage?.repositoriesUsed ?? billing?.reposUsed ?? (billing ? 1 : 0);
+          const reposLimit = billing?.usage?.repositoriesLimit ?? billing?.reposLimit ?? (currentPlan === 'PRO' ? 15 : currentPlan === 'TEAM' ? 50 : 3);
 
-            {/* Real DB Quota Status Panel */}
-            <div className="p-5 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs font-mono">
-              <div className="space-y-1">
-                <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reviews</span>
-                <div className="text-2xl font-bold text-[#14211D]">
-                  {billing?.reviewsUsed ?? 0} / {billing?.reviewsLimit ?? 25}
-                </div>
-                <div className="text-[11px] text-[#126B50] font-semibold">
-                  {billing?.reviewsRemaining ?? 25} reviews remaining
-                </div>
+          return (
+            <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-6">
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+                  Subscription Tier & Review Quotas
+                </h3>
+                <p className="text-xs text-[#66736D] mt-0.5">
+                  Current active subscription plan and real-time monthly usage for {org?.name || 'your workspace'}.
+                </p>
               </div>
-              <div className="space-y-1">
-                <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reset Date</span>
-                <div className="text-sm font-bold text-[#14211D] mt-1">
-                  {billing?.resetDate ? new Date(billing.resetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Next calendar month'}
-                </div>
-                <div className="text-[11px] text-[#66736D]">
-                  Resets 1st of each calendar month UTC
-                </div>
-              </div>
-              <div className="space-y-1">
-                <span className="text-[#66736D] text-[11px] uppercase font-semibold">Connected Repositories</span>
-                <div className="text-sm font-bold text-[#14211D] mt-1">
-                  {billing?.reposUsed ?? 0} / {billing?.reposLimit ?? 3} allowed
-                </div>
-                <div className="text-[11px] text-[#66736D]">
-                  Current plan: <strong className="text-[#14211D]">{currentPlan}</strong>
-                </div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              {(['FREE', 'PRO', 'TEAM'] as const).map((tier) => (
-                <div
-                  key={tier}
-                  className={`p-5 rounded-2xl border flex flex-col justify-between transition-all ${
-                    currentPlan === tier
-                      ? 'bg-white border-2 border-[#126B50] shadow-sleek-md'
-                      : 'bg-white border-[#E4EAE6] shadow-sleek-sm'
-                  }`}
-                >
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-[#14211D] font-mono">{tier} TIER</span>
-                      {currentPlan === tier && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-2xl font-bold text-[#14211D] font-mono my-2.5">
-                      {tier === 'FREE' ? '$0' : tier === 'PRO' ? '$29/mo' : '$99/mo'}
-                    </div>
-                    <p className="text-xs text-[#66736D] leading-relaxed">
-                      {tier === 'FREE'
-                        ? '25 reviews / month • 3 repos'
-                        : tier === 'PRO'
-                        ? '500 reviews / month • 15 repos'
-                        : '2,500 reviews / month • 50 repos'}
-                    </p>
+              {/* Real DB Quota Status Panel */}
+              <div className="p-5 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs font-mono">
+                <div className="space-y-1">
+                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reviews</span>
+                  <div className="text-2xl font-bold text-[#14211D]">
+                    {reviewsUsed} / {reviewsLimit}
                   </div>
-
-                  {currentPlan !== tier && tier !== 'FREE' ? (
-                    <button
-                      onClick={() => handleUpgradePlan(tier as any)}
-                      disabled={isUpgrading}
-                      className="mt-5 w-full py-2.5 rounded-xl btn-primary text-xs font-semibold flex items-center justify-center gap-1.5"
-                    >
-                      <span>{isUpgrading ? 'Redirecting...' : `Upgrade to ${tier}`}</span>
-                      <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                    </button>
-                  ) : currentPlan === tier ? (
-                    <div className="mt-5 text-[11px] text-[#126B50] font-mono font-bold text-center">Active Plan</div>
-                  ) : (
-                    <div className="mt-5 text-[11px] text-[#66736D] font-mono text-center">Base Tier</div>
-                  )}
+                  <div className="text-[11px] text-[#126B50] font-semibold">
+                    {reviewsRemaining} reviews remaining
+                  </div>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-1">
+                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reset Date</span>
+                  <div className="text-sm font-bold text-[#14211D] mt-1">
+                    {billing?.resetDate ? new Date(billing.resetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Next calendar month'}
+                  </div>
+                  <div className="text-[11px] text-[#66736D]">
+                    Resets 1st of each calendar month UTC
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Connected Repositories</span>
+                  <div className="text-sm font-bold text-[#14211D] mt-1">
+                    {reposUsed} / {reposLimit} allowed
+                  </div>
+                  <div className="text-[11px] text-[#66736D]">
+                    Current plan: <strong className="text-[#14211D]">{currentPlan}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                {(['FREE', 'PRO', 'TEAM'] as const).map((tier) => (
+                  <div
+                    key={tier}
+                    className={`p-5 rounded-2xl border flex flex-col justify-between transition-all ${
+                      currentPlan === tier
+                        ? 'bg-white border-2 border-[#126B50] shadow-sleek-md'
+                        : 'bg-white border-[#E4EAE6] shadow-sleek-sm'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold text-[#14211D] font-mono">{tier} TIER</span>
+                        {currentPlan === tier && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-2xl font-bold text-[#14211D] font-mono my-2.5">
+                        {tier === 'FREE' ? '$0' : tier === 'PRO' ? '$29/mo' : '$99/mo'}
+                      </div>
+                      <p className="text-xs text-[#66736D] leading-relaxed">
+                        {tier === 'FREE'
+                          ? '25 reviews / month • 3 repos'
+                          : tier === 'PRO'
+                          ? '500 reviews / month • 15 repos'
+                          : '2,500 reviews / month • 50 repos'}
+                      </p>
+                    </div>
+
+                    {currentPlan !== tier && tier !== 'FREE' ? (
+                      <button
+                        onClick={() => handleUpgradePlan(tier as any)}
+                        disabled={Boolean(upgradingTier)}
+                        className="mt-5 w-full py-2.5 rounded-xl btn-primary text-xs font-semibold flex items-center justify-center gap-1.5 transition-all disabled:opacity-60"
+                      >
+                        <span>{upgradingTier === tier ? 'Redirecting to Stripe...' : `Upgrade to ${tier}`}</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                      </button>
+                    ) : currentPlan === tier ? (
+                      <div className="mt-5 text-[11px] text-[#126B50] font-mono font-bold text-center">Active Plan</div>
+                    ) : (
+                      <div className="mt-5 text-[11px] text-[#66736D] font-mono text-center">Base Tier</div>
+                    )}
+                  </div>
+                ))}
+              </div>
 
             {/* Customer Portal Action */}
             <div className="p-5 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] flex flex-wrap items-center justify-between gap-4">
@@ -443,7 +453,8 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
-        )}
+        );
+      })()}
 
         {/* Tab 4: Security & Webhooks */}
         {activeTab === 'security' && (
