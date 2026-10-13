@@ -24,7 +24,7 @@ export class GeminiProvider implements ILlmProvider {
   }
 
   async generateReview(systemPrompt: string, userPrompt: string): Promise<LlmCompletionResult> {
-    const candidateModels = [this.model, 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-3.5-flash', 'gemini-3.8-flash'].filter(
+    const candidateModels = [this.model, 'gemini-3.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'].filter(
       (m, idx, arr) => arr.indexOf(m) === idx
     );
 

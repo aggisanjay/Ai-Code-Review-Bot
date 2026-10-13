@@ -125,7 +125,7 @@ repositoriesRouter.get('/app-info', async (_req: AuthenticatedRequest, res: Resp
   const aiModel =
     process.env.AI_PROVIDER === 'openai'
       ? process.env.AI_MODEL_OPENAI || 'gpt-4o'
-      : process.env.AI_MODEL_GEMINI || 'gemini-3.8-flash';
+      : process.env.AI_MODEL_GEMINI || 'gemini-3.5-flash';
 
   res.json({
     data: {

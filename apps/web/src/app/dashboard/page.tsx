@@ -341,7 +341,7 @@ export default function DashboardOverviewPage() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed mb-5">
-                Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-2.5-pro'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
+                Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-3.5-flash'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -349,9 +349,9 @@ export default function DashboardOverviewPage() {
                   <span className="text-[#52635B] text-[11px] font-semibold block mb-1.5">Active AI Model</span>
                   <div className="flex items-center gap-2 text-[#111C18] font-bold text-xs">
                     <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                    <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 2.5 Pro (gemini-2.5-pro)'}</span>
+                    <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 3.5 Flash (gemini-3.5-flash)'}</span>
                   </div>
-                  <span className="text-[10px] text-[#7A8C84] mt-1 block font-mono">Flagship Reasoning & JSON Schema</span>
+                  <span className="text-[10px] text-[#7A8C84] mt-1 block font-mono">High-Speed Reasoning & JSON Schema</span>
                 </div>
 
                 <div className="p-4 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
