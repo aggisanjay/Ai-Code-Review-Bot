@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldAlert,
   GitPullRequest,
@@ -10,11 +11,20 @@ import {
   Code2,
   FileCode2,
   Sparkles,
+  ArrowRight,
+  RefreshCw,
+  SlidersHorizontal,
+  ChevronRight,
+  ShieldCheck,
+  Terminal,
 } from 'lucide-react';
+
+const MOTION_EASE = [0.4, 0, 0.2, 1] as const;
 
 export function PrShowcase() {
   const [selectedFinding, setSelectedFinding] = useState<number>(0);
-  const [applied, setApplied] = useState<boolean>(false);
+  const [appliedState, setAppliedState] = useState<Record<number, boolean>>({});
+  const [isCommitting, setIsCommitting] = useState<boolean>(false);
 
   const findings = [
     {
@@ -29,7 +39,7 @@ export function PrShowcase() {
       cwe: 'CWE-798: Use of Hardcoded Credentials',
       explanation:
         'When process.env.JWT_REFRESH_SECRET is unset, token verification falls back to a static string. An attacker could forge arbitrary administrator tokens if the variable is omitted in staging or production.',
-      diffLines: [
+      unpatchedDiff: [
         { type: 'ctx', oldLine: 41, newLine: 41, text: '  public verifyRefreshToken(token: string): TokenPayload {' },
         { type: 'del', oldLine: 42, newLine: null, text: '-   const secret = process.env.JWT_REFRESH_SECRET || "default-secret-do-not-use-in-prod";' },
         { type: 'del', oldLine: 43, newLine: null, text: '-   return jwt.verify(token, secret);' },
@@ -38,6 +48,15 @@ export function PrShowcase() {
         { type: 'add', oldLine: null, newLine: 44, text: '+     throw new ConfigurationError("FATAL: JWT_REFRESH_SECRET is not configured");' },
         { type: 'add', oldLine: null, newLine: 45, text: '+   }' },
         { type: 'add', oldLine: null, newLine: 46, text: '+   return jwt.verify(token, secret);' },
+        { type: 'ctx', oldLine: 44, newLine: 47, text: '  }' },
+      ],
+      patchedCode: [
+        { type: 'ctx', oldLine: 41, newLine: 41, text: '  public verifyRefreshToken(token: string): TokenPayload {' },
+        { type: 'add', oldLine: null, newLine: 42, text: '    const secret = process.env.JWT_REFRESH_SECRET;' },
+        { type: 'add', oldLine: null, newLine: 43, text: '    if (!secret) {' },
+        { type: 'add', oldLine: null, newLine: 44, text: '      throw new ConfigurationError("FATAL: JWT_REFRESH_SECRET is not configured");' },
+        { type: 'add', oldLine: null, newLine: 45, text: '    }' },
+        { type: 'add', oldLine: null, newLine: 46, text: '    return jwt.verify(token, secret);' },
         { type: 'ctx', oldLine: 44, newLine: 47, text: '  }' },
       ],
       suggestion:
@@ -55,7 +74,7 @@ export function PrShowcase() {
       cwe: 'CWE-362: Race Condition',
       explanation:
         'Separate async GET and SET operations on Redis permit concurrent requests to consume a single revoked refresh token simultaneously during the network delay gap.',
-      diffLines: [
+      unpatchedDiff: [
         { type: 'ctx', oldLine: 111, newLine: 111, text: '  public async revokeToken(tokenId: string): Promise<void> {' },
         { type: 'del', oldLine: 112, newLine: null, text: '-   const isRevoked = await redis.get(`blacklist:${tokenId}`);' },
         { type: 'del', oldLine: 113, newLine: null, text: '-   if (isRevoked) throw new UnauthorizedException("Already revoked");' },
@@ -64,6 +83,14 @@ export function PrShowcase() {
         { type: 'add', oldLine: null, newLine: 113, text: '+   if (!wasSet) {' },
         { type: 'add', oldLine: null, newLine: 114, text: '+     throw new UnauthorizedException("Token already consumed or invalid");' },
         { type: 'add', oldLine: null, newLine: 115, text: '+   }' },
+        { type: 'ctx', oldLine: 115, newLine: 116, text: '  }' },
+      ],
+      patchedCode: [
+        { type: 'ctx', oldLine: 111, newLine: 111, text: '  public async revokeToken(tokenId: string): Promise<void> {' },
+        { type: 'add', oldLine: null, newLine: 112, text: '    const wasSet = await redis.set(`blacklist:${tokenId}`, "1", "EX", 86400, "NX");' },
+        { type: 'add', oldLine: null, newLine: 113, text: '    if (!wasSet) {' },
+        { type: 'add', oldLine: null, newLine: 114, text: '      throw new UnauthorizedException("Token already consumed or invalid");' },
+        { type: 'add', oldLine: null, newLine: 115, text: '    }' },
         { type: 'ctx', oldLine: 115, newLine: 116, text: '  }' },
       ],
       suggestion:
@@ -81,7 +108,7 @@ export function PrShowcase() {
       cwe: 'CWE-770: Allocation of Resources Without Limits',
       explanation:
         'Cryptographic verification consumes significant CPU cycles. Unbounded calls to /auth/refresh can saturate node event loops during traffic spikes.',
-      diffLines: [
+      unpatchedDiff: [
         { type: 'ctx', oldLine: 77, newLine: 77, text: '  // Refresh authentication session' },
         { type: 'del', oldLine: 78, newLine: null, text: '- @Post("refresh")' },
         { type: 'del', oldLine: 79, newLine: null, text: '- async refreshToken(@Req() req: Request) {' },
@@ -90,237 +117,324 @@ export function PrShowcase() {
         { type: 'add', oldLine: null, newLine: 80, text: '+ async refreshToken(@Req() req: Request) {' },
         { type: 'ctx', oldLine: 80, newLine: 81, text: '    return this.authService.refresh(req.cookies.jwt);' },
       ],
+      patchedCode: [
+        { type: 'ctx', oldLine: 77, newLine: 77, text: '  // Refresh authentication session' },
+        { type: 'add', oldLine: null, newLine: 78, text: '  @Throttle({ default: { limit: 10, ttl: 60000 } })' },
+        { type: 'add', oldLine: null, newLine: 79, text: '  @Post("refresh")' },
+        { type: 'add', oldLine: null, newLine: 80, text: '  async refreshToken(@Req() req: Request) {' },
+        { type: 'ctx', oldLine: 80, newLine: 81, text: '    return this.authService.refresh(req.cookies.jwt);' },
+      ],
       suggestion:
         'Enforce rate limiting on the token refresh route with @Throttle decorator to prevent resource exhaustion.',
     },
   ];
 
   const current = findings[selectedFinding];
+  const isApplied = !!appliedState[selectedFinding];
+
+  const handleApplyCommit = () => {
+    setIsCommitting(true);
+    setTimeout(() => {
+      setIsCommitting(false);
+      setAppliedState((prev) => ({ ...prev, [selectedFinding]: true }));
+    }, 600);
+  };
+
+  const handleResetCommit = () => {
+    setAppliedState((prev) => ({ ...prev, [selectedFinding]: false }));
+  };
 
   return (
-    <div className="w-full max-w-6xl mx-auto my-10">
+    <div className="w-full">
       {/* GitHub PR Meta Header */}
-      <div className="bg-white border border-[#E4EAE6] rounded-t-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 shadow-sleek-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-[#063B2C] shadow-sm">
-            <GitPullRequest className="w-4 h-4 text-[#063B2C]" />
+      <div className="bg-white border border-[#E2EDE6] rounded-t-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-[#063B2C] flex items-center justify-center text-white shadow-sm">
+            <GitPullRequest className="w-5 h-5 text-white" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs text-[#66736D]">acme-cloud / auth-service</span>
-              <span className="text-[#C7E4D6]">/</span>
-              <span className="font-semibold text-xs text-[#14211D]">#142</span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#063B2C] border border-[#C7E4D6] font-mono font-medium">
+              <span className="font-mono text-xs text-[#52635B]">acme-cloud / auth-service</span>
+              <span className="text-[#C3EBD7]">/</span>
+              <span className="font-semibold text-xs text-[#111C18]">PR #142</span>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-mono font-bold">
                 Open PR
               </span>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#F7F9F8] text-[#66736D] border border-[#E4EAE6] font-mono font-medium">
-                Interactive Sandbox • Live AST
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#F8FCFA] text-[#52635B] border border-[#E2EDE6] font-mono font-medium">
+                Live AST • 100% Grounded
               </span>
             </div>
-            <div className="text-xs font-semibold text-[#14211D] mt-1 font-display">
-              feat(auth): Add JWT refresh token rotation and cookie session handler
+            <div className="text-sm font-bold text-[#111C18] mt-1 font-display">
+              feat(auth): Add biometric MFA session verify and token refresh
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 text-xs font-mono">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F9F8] border border-[#E4EAE6] text-[#14211D]">
-            <GitBranch className="w-3.5 h-3.5 text-[#66736D]" />
-            <span className="text-[#66736D]">feature/jwt-rotation</span>
-            <span className="text-[#66736D]">→</span>
-            <span className="font-medium text-[#14211D]">main</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F7F9F8] border border-[#E4EAE6] text-[#66736D]">
-            <GitCommit className="w-3.5 h-3.5 text-[#66736D]" />
-            <span className="font-medium text-[#14211D]">8f2a1b9</span>
-          </div>
+        {/* Branch Tags */}
+        <div className="flex items-center gap-2 text-xs font-mono text-[#52635B]">
+          <span className="px-2.5 py-1 rounded-lg bg-[#F8FCFA] border border-[#E2EDE6] flex items-center gap-1.5">
+            <GitBranch className="w-3.5 h-3.5 text-[#063B2C]" />
+            <span>feat/mfa-verify</span>
+          </span>
+          <span>→</span>
+          <span className="px-2.5 py-1 rounded-lg bg-[#F8FCFA] border border-[#E2EDE6] font-semibold text-[#111C18]">
+            main
+          </span>
         </div>
       </div>
 
-      {/* Main Review Window */}
-      <div className="bg-white border-x border-b border-[#E4EAE6] rounded-b-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-sleek-lg">
-        {/* Left Column: Finding Selector & Remediation Details */}
-        <div className="lg:col-span-5 border-b lg:border-b-0 lg:border-r border-[#E4EAE6] bg-[#F7F9F8] p-5 sm:p-6 flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#66736D]">
-                Identified Findings ({findings.length})
+      {/* Main Dual-Pane Inspection Canvas */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 border-x border-b border-[#E2EDE6] rounded-b-3xl bg-[#F8FCFA] overflow-hidden">
+        {/* Left Column: Finding Selector Carousel */}
+        <div className="lg:col-span-5 p-5 border-b lg:border-b-0 lg:border-r border-[#E2EDE6] bg-white flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-[#E2EDE6]">
+              <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#52635B] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                <span>Identified Findings ({findings.length})</span>
               </div>
-              <div className="text-[11px] font-mono text-[#063B2C] font-semibold bg-[#EAF5EF] px-2 py-0.5 rounded-full border border-[#C7E4D6]">
-                100% Grounded
+              <div className="text-[11px] font-mono text-[#063B2C] font-semibold bg-[#EBF7F0] px-2.5 py-0.5 rounded-full border border-[#C3EBD7]">
+                Zero Hallucinations
               </div>
             </div>
 
-            {/* Findings Tab List */}
+            {/* Finding Cards List with Framer Motion Sliding Selection Pill */}
             <div className="space-y-2.5">
               {findings.map((f, idx) => {
-                const isSelected = idx === selectedFinding;
+                const isSelected = selectedFinding === idx;
+                const isItemPatched = !!appliedState[idx];
+
                 return (
                   <button
                     key={f.id}
-                    onClick={() => {
-                      setSelectedFinding(idx);
-                      setApplied(false);
-                    }}
-                    className={`w-full text-left p-3.5 rounded-xl border transition-all text-xs ${
+                    type="button"
+                    onClick={() => setSelectedFinding(idx)}
+                    className={`w-full text-left p-4 rounded-2xl border transition-all duration-fast text-xs relative overflow-hidden ${
                       isSelected
-                        ? 'bg-white border-[#063B2C] shadow-sleek-sm ring-1 ring-[#063B2C]/20'
-                        : 'bg-white/80 border-[#E4EAE6] hover:bg-white hover:border-[#D5DFDA]'
+                        ? 'border-[#063B2C] shadow-sm bg-white'
+                        : 'border-[#E2EDE6] bg-[#F8FCFA] hover:bg-white hover:border-[#CADCD2]'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
+                    {/* Sliding active finding pill */}
+                    {isSelected && (
+                      <motion.div
+                        layoutId="active-finding-pill"
+                        className="absolute inset-0 bg-[#EBF7F0] border-2 border-[#063B2C] rounded-2xl -z-0"
+                        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                      />
+                    )}
+
+                    <div className="relative z-10 space-y-2">
+                      <div className="flex items-center justify-between">
                         <span
-                          className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider ${
                             f.severity === 'CRITICAL'
-                              ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
+                              ? 'bg-red-50 text-[#DC2626] border border-red-200'
                               : f.severity === 'HIGH'
-                              ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
-                              : 'bg-[#EAF5EF] text-[#063B2C] border border-[#C7E4D6]'
+                              ? 'bg-amber-50 text-[#D97706] border border-amber-200'
+                              : 'bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7]'
                           }`}
                         >
                           {f.severity}
                         </span>
-                        <span className="text-[11px] font-mono text-[#66736D] font-medium">{f.ruleId}</span>
+
+                        <div className="flex items-center gap-2">
+                          {isItemPatched && (
+                            <span className="text-[10px] font-mono font-bold text-[#10B981] bg-[#EBF7F0] px-2 py-0.5 rounded-full flex items-center gap-1 border border-[#C3EBD7]">
+                              <Check className="w-3 h-3" />
+                              <span>Patched</span>
+                            </span>
+                          )}
+                          <span className="font-mono text-[11px] text-[#7A8C84]">{f.lines}</span>
+                        </div>
                       </div>
-                      <span className="text-[11px] font-mono text-[#66736D]">{f.lines}</span>
+
+                      <h4 className="font-bold text-xs sm:text-sm text-[#111C18] line-clamp-2">
+                        {f.title}
+                      </h4>
+
+                      <div className="flex items-center justify-between text-[11px] font-mono text-[#52635B] pt-0.5">
+                        <span className="truncate max-w-[200px]">{f.file}</span>
+                        <span className="text-[#063B2C] font-semibold">{f.confidence}% Grounded</span>
+                      </div>
                     </div>
-                    <div className="font-semibold text-[#14211D] line-clamp-1">{f.title}</div>
-                    <div className="text-[11px] text-[#66736D] font-mono mt-1">{f.file}</div>
                   </button>
                 );
               })}
             </div>
+          </div>
 
-            {/* Finding Deep Dive Card */}
-            <div className="pt-3 border-t border-[#E4EAE6] space-y-2.5">
-              <div className="text-[11px] font-mono text-[#66736D] flex items-center justify-between">
+          {/* Finding Detail Explainer Box */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25, ease: MOTION_EASE }}
+              className="pt-3 border-t border-[#E2EDE6] space-y-2.5"
+            >
+              <div className="text-[11px] font-mono text-[#52635B] flex items-center justify-between">
                 <span>{current.cwe}</span>
-                <span className="text-[#063B2C] font-semibold">Confidence: {current.confidence}%</span>
+                <span className="text-[#063B2C] font-semibold">Rule: {current.ruleId}</span>
               </div>
-              <p className="text-xs text-[#14211D] leading-relaxed bg-white p-3.5 rounded-xl border border-[#E4EAE6]">
+              <p className="text-xs text-[#111C18] leading-relaxed bg-[#F8FCFA] p-3.5 rounded-2xl border border-[#E2EDE6]">
                 {current.explanation}
               </p>
-            </div>
-          </div>
-
-          {/* Action Footer */}
-          <div className="pt-4 border-t border-[#E4EAE6] mt-4 flex items-center justify-between gap-3">
-            <div className="text-[11px] font-mono text-[#66736D]">
-              Inline GitHub Check Ready
-            </div>
-            <button
-              onClick={() => setApplied(true)}
-              disabled={applied}
-              className={`px-3.5 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
-                applied
-                  ? 'bg-[#EAF5EF] text-[#063B2C] border border-[#C7E4D6] font-semibold'
-                  : 'btn-primary'
-              }`}
-            >
-              {applied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-[#063B2C]" />
-                  <span>Patch Committed</span>
-                </>
-              ) : (
-                <>
-                  <Code2 className="w-3.5 h-3.5" />
-                  <span>Apply 1-Click Suggestion</span>
-                </>
-              )}
-            </button>
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
-        {/* Right Column: Code Diff Hunk with GitHub-Style Inline Comment */}
-        <div className="lg:col-span-7 bg-[#14211D] flex flex-col justify-between text-zinc-100">
-          <div>
-            {/* Diff Header Bar */}
-            <div className="bg-[#0B1512] border-b border-white/[0.08] px-4 py-2.5 flex items-center justify-between text-xs font-mono">
-              <div className="flex items-center gap-2 text-zinc-300">
-                <FileCode2 className="w-3.5 h-3.5 text-[#10B981]" />
-                <span className="text-zinc-200">{current.file}</span>
-              </div>
-              <div className="text-[11px] text-zinc-400">
-                Deterministic AST Diff
-              </div>
+        {/* Right Column: Interactive Code Diff & Inline Suggestion Canvas */}
+        <div className="lg:col-span-7 p-5 sm:p-6 flex flex-col justify-between space-y-5">
+          {/* File Tab Header with Commit Button */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E2EDE6]">
+            <div className="flex items-center gap-2">
+              <FileCode2 className="w-4 h-4 text-[#063B2C]" />
+              <span className="font-mono text-xs font-semibold text-[#111C18]">{current.file}</span>
             </div>
 
-            {/* Code Diff Display */}
-            <div className="font-mono text-xs overflow-x-auto divide-y divide-white/[0.04] p-2">
-              {current.diffLines.map((line, idx) => {
-                const isDel = line.type === 'del';
-                const isAdd = line.type === 'add';
+            {/* Commit / Revert Button */}
+            <div className="flex items-center gap-2">
+              {isApplied ? (
+                <button
+                  type="button"
+                  onClick={handleResetCommit}
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#F8FCFA] border border-[#E2EDE6] text-xs font-mono text-[#52635B] hover:text-[#111C18] flex items-center gap-1.5 shadow-sm transition-all duration-fast"
+                >
+                  <RefreshCw className="w-3 h-3 text-[#52635B]" />
+                  <span>Reset Demo Diff</span>
+                </button>
+              ) : null}
 
-                return (
-                  <div
-                    key={idx}
-                    className={`flex items-stretch py-0.5 px-3 leading-5 rounded select-text ${
-                      isDel
-                        ? 'bg-rose-500/15 text-rose-200'
-                        : isAdd
-                        ? 'bg-emerald-500/15 text-emerald-200'
-                        : 'text-zinc-300'
-                    }`}
-                  >
-                    {/* Line Numbers */}
-                    <div className="w-8 shrink-0 text-right pr-3 select-none text-[11px] text-zinc-500 font-mono">
-                      {line.oldLine || ''}
-                    </div>
-                    <div className="w-8 shrink-0 text-right pr-3 select-none text-[11px] text-zinc-500 font-mono">
-                      {line.newLine || ''}
-                    </div>
-
-                    {/* Diff Marker & Content */}
-                    <div className="w-4 shrink-0 select-none text-[11px] font-bold">
-                      {isDel ? '-' : isAdd ? '+' : ' '}
-                    </div>
-                    <div className="flex-1 whitespace-pre pl-1 text-[11px]">
-                      {line.text.replace(/^[+-]\s*/, '')}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Inline ReviewFlow AI Comment Block */}
-            <div className="m-4 rounded-xl bg-white border border-[#E4EAE6] overflow-hidden shadow-sleek-md text-[#14211D]">
-              <div className="bg-[#F7F9F8] px-4 py-2.5 border-b border-[#E4EAE6] flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-md bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center">
-                    <Sparkles className="w-3 h-3 text-[#063B2C]" />
-                  </div>
-                  <span className="font-semibold text-[#14211D] text-xs">ReviewFlow AI</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#EAF5EF] text-[#063B2C] font-mono font-medium">
-                    bot
-                  </span>
-                  <span className="text-[10px] text-[#66736D] font-mono">automated review</span>
-                </div>
-                <span className="text-[10px] text-[#66736D] font-mono">posted via GitHub Check</span>
-              </div>
-
-              <div className="p-4 space-y-2.5 text-xs">
-                <div className="text-[#14211D] font-semibold">
-                  Suggested change
-                </div>
-                <div className="text-[#66736D] text-[11px] leading-relaxed">
-                  {current.suggestion}
-                </div>
-
-                <div className="pt-2 flex items-center gap-3 text-xs font-mono">
-                  <button
-                    onClick={() => setApplied(true)}
-                    className="px-3 py-1.5 rounded-lg btn-primary text-white text-[11px] font-medium"
-                  >
-                    Commit suggestion
-                  </button>
-                  <span className="text-[11px] text-[#66736D]">Verified cryptographic patch</span>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={handleApplyCommit}
+                disabled={isApplied || isCommitting}
+                className={`px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 transition-all duration-fast shadow-sm ${
+                  isApplied
+                    ? 'bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-bold'
+                    : isCommitting
+                    ? 'bg-[#0A4D3A] text-white opacity-80 cursor-wait'
+                    : 'bg-[#063B2C] hover:bg-[#0A4D3A] text-white hover:scale-[1.02]'
+                }`}
+              >
+                {isCommitting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Committing Patch to Branch...</span>
+                  </>
+                ) : isApplied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-[#063B2C]" />
+                    <span>Patch Applied & Verified</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-[#C3EBD7]" />
+                    <span>1-Click Apply Suggested Fix</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
+
+          {/* Smooth Sliding Code Diff Viewer Container */}
+          <div className="rounded-2xl border border-[#E2EDE6] bg-white overflow-hidden shadow-sm min-h-[220px]">
+            <div className="bg-[#FAFDFB] px-4 py-2 border-b border-[#E2EDE6] flex items-center justify-between text-xs font-mono text-[#7A8C84]">
+              <span>@@ -{current.lines} @@ Unified Git Diff</span>
+              <span className="text-[#063B2C] font-semibold">
+                {isApplied ? 'STATUS: PATCH VERIFIED (CLEAN)' : 'STATUS: UNPATCHED VULNERABILITY'}
+              </span>
+            </div>
+
+            {/* Sliding Diff Lines with AnimatePresence */}
+            <div className="p-3 font-mono text-xs overflow-x-auto leading-relaxed">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${current.id}-${isApplied ? 'patched' : 'unpatched'}`}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.28, ease: MOTION_EASE }}
+                  className="space-y-0.5"
+                >
+                  {(isApplied ? current.patchedCode : current.unpatchedDiff).map((line, idx) => {
+                    const isAdd = line.type === 'add';
+                    const isDel = line.type === 'del';
+
+                    return (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: idx * 0.02, duration: 0.15 }}
+                        className={`py-1 px-3 rounded-md flex items-start gap-4 transition-colors ${
+                          isAdd
+                            ? 'bg-[#EBF7F0] text-[#063B2C] font-medium border-l-4 border-[#10B981]'
+                            : isDel
+                            ? 'bg-red-50 text-[#DC2626] border-l-4 border-red-500 line-through decoration-red-400'
+                            : 'text-[#52635B]'
+                        }`}
+                      >
+                        <span className="text-[10px] text-[#A3B8AD] select-none w-8 text-right shrink-0">
+                          {line.newLine || line.oldLine}
+                        </span>
+                        <span className="font-mono whitespace-pre">{line.text}</span>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* GitHub Inline Review Comment Box */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`comment-${current.id}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: MOTION_EASE }}
+              className="rounded-2xl border border-[#E2EDE6] bg-white overflow-hidden shadow-sm"
+            >
+              {/* Bot Header */}
+              <div className="bg-[#FAFDFB] px-4 py-2.5 border-b border-[#E2EDE6] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-[#063B2C] flex items-center justify-center text-white">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="font-bold text-[#111C18] text-xs">ReviewFlow AI Bot</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] font-mono font-semibold border border-[#C3EBD7]">
+                    automated review
+                  </span>
+                </div>
+                <span className="text-[11px] text-[#7A8C84] font-mono">posted via GitHub Checks API</span>
+              </div>
+
+              {/* Bot Comment Body */}
+              <div className="p-4 space-y-3 text-xs leading-relaxed text-[#111C18]">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#DC2626] font-mono font-bold text-[10px] border border-red-200">
+                    {current.severity}
+                  </span>
+                  <span className="font-bold text-xs">{current.title}</span>
+                </div>
+
+                <p className="text-[#52635B]">{current.suggestion}</p>
+
+                <div className="p-3 bg-[#F8FCFA] rounded-xl border border-[#E2EDE6] font-mono text-[11px] text-[#063B2C]">
+                  {`\`\`\`suggestion\n${
+                    current.unpatchedDiff
+                      .filter((l) => l.type === 'add')
+                      .map((l) => l.text.replace(/^\+\s*/, ''))
+                      .join('\n')
+                  }\n\`\`\``}
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

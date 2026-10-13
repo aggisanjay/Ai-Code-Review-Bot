@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
   Shield,
@@ -27,7 +27,20 @@ import { Footer } from '../components/marketing/Footer';
 import { PrShowcase } from '../components/marketing/PrShowcase';
 import { ArchitectureExplorer } from '../components/marketing/ArchitectureExplorer';
 
-const transition = { duration: 0.3, ease: [0.4, 0, 0.2, 1] };
+const MOTION_EASE = [0.4, 0, 0.2, 1] as const;
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (custom = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      delay: custom * 0.08,
+      ease: MOTION_EASE,
+    },
+  }),
+};
 
 const FAQS = [
   {
@@ -96,26 +109,26 @@ export default function HomePage() {
       <Navbar />
 
       {/* ========================================================================= */}
-      {/* HERO SECTION (Styled directly after Fintara Images 1 & 2)                  */}
+      {/* HERO SECTION                                                              */}
       {/* ========================================================================= */}
       <section className="relative pt-32 sm:pt-36 pb-20 px-4 sm:px-6 overflow-hidden fintara-hero-glow">
         <div className="max-w-5xl mx-auto text-center space-y-7">
           {/* Pill Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={transition}
+            transition={{ duration: 0.3, ease: MOTION_EASE }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 border border-[#C3EBD7] text-[#063B2C] text-xs font-medium shadow-sm backdrop-blur-sm"
           >
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
             <span>Trusted by engineering teams worldwide</span>
           </motion.div>
 
-          {/* Headline with Signature Newsreader Italic Serif accent */}
+          {/* Headline with Newsreader Italic Serif accent */}
           <motion.h1
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...transition, delay: 0.05 }}
+            transition={{ duration: 0.3, delay: 0.08, ease: MOTION_EASE }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-[#111C18] leading-[1.12]"
           >
             Build a Smarter{' '}
@@ -126,9 +139,9 @@ export default function HomePage() {
 
           {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...transition, delay: 0.1 }}
+            transition={{ duration: 0.3, delay: 0.16, ease: MOTION_EASE }}
             className="text-base sm:text-lg text-[#52635B] max-w-2xl mx-auto leading-relaxed"
           >
             Bring deterministic AST security scanning, evidence-grounded AI reviews, and 1-click suggested fixes together in one simple, intelligent platform.
@@ -136,9 +149,9 @@ export default function HomePage() {
 
           {/* Primary & Secondary Pill CTAs */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...transition, delay: 0.15 }}
+            transition={{ duration: 0.3, delay: 0.22, ease: MOTION_EASE }}
             className="flex flex-wrap items-center justify-center gap-3.5 pt-2"
           >
             <Link
@@ -159,15 +172,15 @@ export default function HomePage() {
           </motion.div>
 
           {/* ========================================================================= */}
-          {/* PRODUCT WINDOW MOCKUP (Exact Browser Frame from Images 1 & 2)             */}
+          {/* PRODUCT WINDOW MOCKUP                                                     */}
           {/* ========================================================================= */}
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...transition, delay: 0.22 }}
+            transition={{ duration: 0.45, delay: 0.3, ease: MOTION_EASE }}
             className="pt-10 sm:pt-14 max-w-5xl mx-auto"
           >
-            <div className="rounded-3xl border border-[#E2EDE6] bg-white shadow-fintara-float overflow-hidden text-left">
+            <div className="rounded-3xl border border-[#E2EDE6] bg-white shadow-fintara-float overflow-hidden text-left transition-all duration-base hover:shadow-lg">
               {/* Browser Chrome Header */}
               <div className="bg-[#FAFDFB] border-b border-[#E2EDE6] px-5 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -200,16 +213,16 @@ export default function HomePage() {
 
                 {/* Mock Nav Pills */}
                 <div className="hidden sm:flex items-center gap-2 text-xs font-medium">
-                  <span className="px-3.5 py-1.5 rounded-full bg-[#063B2C] text-white font-semibold">
+                  <span className="px-3.5 py-1.5 rounded-full bg-[#063B2C] text-white font-semibold shadow-sm">
                     • Overview
                   </span>
-                  <span className="px-3 py-1.5 rounded-full text-[#52635B] hover:text-[#111C18]">
+                  <span className="px-3 py-1.5 rounded-full text-[#52635B] hover:text-[#111C18] transition-colors">
                     Pull Requests
                   </span>
-                  <span className="px-3 py-1.5 rounded-full text-[#52635B] hover:text-[#111C18]">
+                  <span className="px-3 py-1.5 rounded-full text-[#52635B] hover:text-[#111C18] transition-colors">
                     AST Security
                   </span>
-                  <span className="px-3 py-1.5 rounded-full text-[#52635B] hover:text-[#111C18]">
+                  <span className="px-3 py-1.5 rounded-full text-[#52635B] hover:text-[#111C18] transition-colors">
                     Analytics
                   </span>
                 </div>
@@ -223,68 +236,50 @@ export default function HomePage() {
 
               {/* Inner Mockup Dashboard Content */}
               <div className="p-6 sm:p-8 bg-[#F8FCFA] space-y-6">
-                {/* 4 Stat Cards */}
+                {/* 4 Stat Cards with Hover Lift */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm">
-                    <div className="flex items-center justify-between text-xs text-[#52635B] mb-2 font-medium">
-                      <span>Total PRs Reviewed</span>
-                      <span className="text-[#063B2C] bg-[#EBF7F0] w-6 h-6 rounded-full flex items-center justify-center font-bold">
-                        $
-                      </span>
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">1,482</div>
-                    <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1">
-                      <span className="text-[#10B981] font-semibold bg-[#EBF7F0] px-1.5 py-0.5 rounded-full">
-                        +12.4%
-                      </span>
-                      <span>this month</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm">
-                    <div className="flex items-center justify-between text-xs text-[#52635B] mb-2 font-medium">
-                      <span>Average Turnaround</span>
-                      <Clock className="w-4 h-4 text-[#063B2C]" />
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">~8.4s</div>
-                    <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1">
-                      <span className="text-[#063B2C] font-semibold bg-[#EBF7F0] px-1.5 py-0.5 rounded-full">
-                        -42.0s
-                      </span>
-                      <span>vs benchmark</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm">
-                    <div className="flex items-center justify-between text-xs text-[#52635B] mb-2 font-medium">
-                      <span>Critical Issues Blocked</span>
-                      <ShieldAlert className="w-4 h-4 text-[#DC2626]" />
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">18 CVEs</div>
-                    <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1">
-                      <span className="text-[#DC2626] font-semibold bg-red-50 px-1.5 py-0.5 rounded-full">
-                        0 Breaches
-                      </span>
-                      <span>pre-merge</span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm">
-                    <div className="flex items-center justify-between text-xs text-[#52635B] mb-2 font-medium">
-                      <span>Engineer Hours Saved</span>
-                      <Zap className="w-4 h-4 text-[#063B2C]" />
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">380 hrs</div>
-                    <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1">
-                      <span className="text-[#10B981] font-semibold bg-[#EBF7F0] px-1.5 py-0.5 rounded-full">
-                        +18.4%
-                      </span>
-                      <span>vs last sprint</span>
-                    </div>
-                  </div>
+                  {[
+                    { label: 'Total PRs Reviewed', val: '1,482', change: '+12.4%', sub: 'this month', icon: '$' },
+                    { label: 'Average Turnaround', val: '~8.4s', change: '-42.0s', sub: 'vs benchmark', icon: Clock },
+                    { label: 'Critical Issues Blocked', val: '18 CVEs', change: '0 Breaches', sub: 'pre-merge', icon: ShieldAlert, danger: true },
+                    { label: 'Engineer Hours Saved', val: '380 hrs', change: '+18.4%', sub: 'vs last sprint', icon: Zap },
+                  ].map((card, idx) => {
+                    const IconComp = typeof card.icon !== 'string' ? card.icon : null;
+                    return (
+                      <motion.div
+                        key={idx}
+                        whileHover={{ y: -3, transition: { duration: 0.15, ease: MOTION_EASE } }}
+                        className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm transition-all"
+                      >
+                        <div className="flex items-center justify-between text-xs text-[#52635B] mb-2 font-medium">
+                          <span>{card.label}</span>
+                          {IconComp ? (
+                            <IconComp className={`w-4 h-4 ${card.danger ? 'text-[#DC2626]' : 'text-[#063B2C]'}`} />
+                          ) : (
+                            <span className="text-[#063B2C] bg-[#EBF7F0] w-6 h-6 rounded-full flex items-center justify-center font-bold">
+                              {typeof card.icon === 'string' ? card.icon : null}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">{card.val}</div>
+                        <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1">
+                          <span
+                            className={`font-semibold px-1.5 py-0.5 rounded-full ${
+                              card.danger
+                                ? 'text-[#DC2626] bg-red-50'
+                                : 'text-[#10B981] bg-[#EBF7F0]'
+                            }`}
+                          >
+                            {card.change}
+                          </span>
+                          <span>{card.sub}</span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
 
-                {/* Scheduled Review Queue + Weekly Review Bar Chart (Matching Image 2) */}
+                {/* Scheduled Review Queue + Weekly Review Bar Chart */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                   {/* Left: Scheduled / Active Reviews */}
                   <div className="lg:col-span-7 p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm space-y-4">
@@ -300,7 +295,10 @@ export default function HomePage() {
                     </div>
 
                     <div className="space-y-3 pt-1">
-                      <div className="p-3.5 rounded-xl bg-[#063B2C] text-white flex items-center justify-between shadow-sm">
+                      <motion.div
+                        whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
+                        className="p-3.5 rounded-xl bg-[#063B2C] text-white flex items-center justify-between shadow-sm cursor-pointer"
+                      >
                         <div className="space-y-0.5">
                           <span className="text-xs font-semibold block">PR #142: feat(auth): Session verification & MFA</span>
                           <span className="text-[10px] text-[#C3EBD7] font-mono">9 files changed • 12 AST rules verified</span>
@@ -308,9 +306,12 @@ export default function HomePage() {
                         <span className="px-2.5 py-1 rounded-full bg-white/20 text-white text-[11px] font-mono font-bold">
                           CLEAN & APPROVED
                         </span>
-                      </div>
+                      </motion.div>
 
-                      <div className="p-3.5 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] flex items-center justify-between">
+                      <motion.div
+                        whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
+                        className="p-3.5 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] flex items-center justify-between cursor-pointer"
+                      >
                         <div className="space-y-0.5">
                           <span className="text-xs font-semibold text-[#111C18] block">PR #141: fix(db): Dynamic SQL interpolation</span>
                           <span className="text-[10px] text-[#52635B] font-mono">2 files changed • SQL Injection flagged</span>
@@ -318,11 +319,11 @@ export default function HomePage() {
                         <span className="px-2.5 py-1 rounded-full bg-red-50 text-[#DC2626] border border-red-200 text-[11px] font-mono font-bold">
                           BLOCKED
                         </span>
-                      </div>
+                      </motion.div>
                     </div>
                   </div>
 
-                  {/* Right: Weekly Review Velocity Bars (Matching Emerald Bars in Image 2) */}
+                  {/* Right: Weekly Review Velocity Bars with Animated Heights */}
                   <div className="lg:col-span-5 p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-1">
@@ -338,13 +339,13 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    {/* Emerald Bar Chart */}
+                    {/* Emerald Bar Chart with Framer Motion Bar Grow Animation */}
                     <div className="pt-6">
                       <div className="flex items-end justify-between gap-2 h-28 px-2">
                         {[
                           { day: 'Mon', h: '45%', active: false },
                           { day: 'Tue', h: '65%', active: false },
-                          { day: 'Wed', h: '95%', active: true, value: '92 PRs' },
+                          { day: 'Wed', h: '95%', active: true },
                           { day: 'Thu', h: '50%', active: false },
                           { day: 'Fri', h: '80%', active: false },
                           { day: 'Sat', h: '30%', active: false },
@@ -352,9 +353,12 @@ export default function HomePage() {
                         ].map((bar, i) => (
                           <div key={i} className="flex-1 flex flex-col items-center gap-2">
                             <div className="w-full flex justify-center items-end h-24">
-                              <div
-                                style={{ height: bar.h }}
-                                className={`w-full max-w-[24px] rounded-md transition-all duration-300 ${
+                              <motion.div
+                                initial={{ height: 0 }}
+                                whileInView={{ height: bar.h }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.6, delay: i * 0.06, ease: MOTION_EASE }}
+                                className={`w-full max-w-[24px] rounded-md transition-colors ${
                                   bar.active
                                     ? 'bg-[#10B981] shadow-sm'
                                     : 'bg-[#D1FAE5] hover:bg-[#A7F3D0]'
@@ -379,30 +383,26 @@ export default function HomePage() {
       {/* ========================================================================= */}
       <section className="border-y border-[#E2EDE6] bg-[#F8FCFA] py-8 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
-          <div className="border-l-2 border-[#063B2C] pl-4 sm:pl-5">
-            <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">~8.4s</div>
-            <div className="text-[11px] text-[#52635B] mt-1.5 uppercase tracking-wider font-mono font-medium">
-              Review Turnaround
-            </div>
-          </div>
-          <div className="border-l-2 border-[#063B2C] pl-4 sm:pl-5">
-            <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">45 mins</div>
-            <div className="text-[11px] text-[#52635B] mt-1.5 uppercase tracking-wider font-mono font-medium">
-              Engineer Time Saved / PR
-            </div>
-          </div>
-          <div className="border-l-2 border-[#063B2C] pl-4 sm:pl-5">
-            <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">100%</div>
-            <div className="text-[11px] text-[#52635B] mt-1.5 uppercase tracking-wider font-mono font-medium">
-              Schema-Validated Output
-            </div>
-          </div>
-          <div className="border-l-2 border-[#063B2C] pl-4 sm:pl-5">
-            <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">0 Code Exec</div>
-            <div className="text-[11px] text-[#52635B] mt-1.5 uppercase tracking-wider font-mono font-medium">
-              Sandboxed Static Isolation
-            </div>
-          </div>
+          {[
+            { val: '~8.4s', label: 'Review Turnaround' },
+            { val: '45 mins', label: 'Engineer Time Saved / PR' },
+            { val: '100%', label: 'Schema-Validated Output' },
+            { val: '0 Code Exec', label: 'Sandboxed Static Isolation' },
+          ].map((item, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: idx * 0.08, ease: MOTION_EASE }}
+              className="border-l-2 border-[#063B2C] pl-4 sm:pl-5"
+            >
+              <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">{item.val}</div>
+              <div className="text-[11px] text-[#52635B] mt-1.5 uppercase tracking-wider font-mono font-medium">
+                {item.label}
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -410,7 +410,13 @@ export default function HomePage() {
       {/* INTERACTIVE PR SHOWCASE SECTION                                           */}
       {/* ========================================================================= */}
       <section id="showcase" className="scroll-mt-24 py-24 px-6 max-w-7xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35, ease: MOTION_EASE }}
+          className="text-center max-w-2xl mx-auto mb-12 space-y-3"
+        >
           <span className="px-3.5 py-1 rounded-full bg-[#EBF7F0] border border-[#C3EBD7] text-[#063B2C] text-[11px] font-mono font-bold tracking-wider uppercase">
             Interactive Product Inspection
           </span>
@@ -419,20 +425,32 @@ export default function HomePage() {
             <span className="font-serif italic font-normal text-[#063B2C]">Review</span>
           </h2>
           <p className="text-sm text-[#52635B] leading-relaxed">
-            See how ReviewFlow AI isolates security vulnerabilities, validates evidence against git diffs, and formats inline GitHub suggestions.
+            See how ReviewFlow AI isolates security vulnerabilities, validates evidence against git diffs, and formats inline GitHub suggestions with smooth animated transitions.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="rounded-3xl border border-[#E2EDE6] bg-white p-2 sm:p-4 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1, ease: MOTION_EASE }}
+          className="rounded-3xl border border-[#E2EDE6] bg-white p-2 sm:p-4 shadow-sm"
+        >
           <PrShowcase />
-        </div>
+        </motion.div>
       </section>
 
       {/* ========================================================================= */}
       {/* ARCHITECTURE EXPLORER SECTION                                             */}
       {/* ========================================================================= */}
       <section id="architecture" className="scroll-mt-24 py-24 px-6 max-w-7xl mx-auto border-t border-[#E2EDE6]">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35, ease: MOTION_EASE }}
+          className="text-center max-w-2xl mx-auto mb-12 space-y-3"
+        >
           <span className="px-3.5 py-1 rounded-full bg-[#EBF7F0] border border-[#C3EBD7] text-[#063B2C] text-[11px] font-mono font-bold tracking-wider uppercase">
             Engineering Architecture
           </span>
@@ -441,20 +459,32 @@ export default function HomePage() {
             <span className="font-serif italic font-normal text-[#063B2C]">Review Pipeline</span>
           </h2>
           <p className="text-sm text-[#52635B] leading-relaxed">
-            Every step in the lifecycle is bounded, isolated, and verified to ensure maximum reliability and speed.
+            Experience our animated live pipeline execution stages. Watch requests step sequentially through edge validation, queueing, AST checks, AI inference, and grounding.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="rounded-3xl border border-[#E2EDE6] bg-white p-2 sm:p-4 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1, ease: MOTION_EASE }}
+          className="rounded-3xl border border-[#E2EDE6] bg-white p-2 sm:p-4 shadow-sm"
+        >
           <ArchitectureExplorer />
-        </div>
+        </motion.div>
       </section>
 
       {/* ========================================================================= */}
-      {/* FEATURES SECTION (Exact Layout & Typography from Image 3)                 */}
+      {/* FEATURES SECTION                                                          */}
       {/* ========================================================================= */}
       <section id="features" className="scroll-mt-24 py-24 px-6 max-w-7xl mx-auto border-t border-[#E2EDE6]">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35, ease: MOTION_EASE }}
+          className="text-center max-w-2xl mx-auto mb-16 space-y-3"
+        >
           <span className="px-3.5 py-1 rounded-full bg-[#EBF7F0] border border-[#C3EBD7] text-[#063B2C] text-[11px] font-mono font-bold tracking-wider uppercase">
             Features
           </span>
@@ -465,89 +495,79 @@ export default function HomePage() {
           <p className="text-sm text-[#52635B] leading-relaxed">
             ReviewFlow AI combines deterministic AST scanning with frontier LLMs to provide defensible, grounded code reviews.
           </p>
-        </div>
+        </motion.div>
 
-        {/* 6-Card Feature Grid with Mint Icons and Thin Dividers (Image 3) */}
+        {/* 6-Card Feature Grid with Smooth Stagger and Hover Motions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <div className="p-7 rounded-2xl bg-white border border-[#E2EDE6] hover:border-[#B2E0C7] hover:shadow-md transition-all duration-base group">
-            <div className="w-12 h-12 rounded-2xl bg-[#EBF7F0] text-[#063B2C] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-              <Cpu className="w-6 h-6 text-[#063B2C]" />
-            </div>
-            <h3 className="text-lg font-bold text-[#111C18] mb-2 font-display">
-              Deterministic AST Scanning
-            </h3>
-            <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed">
-              We never delegate regex or secret scanning to an LLM. High-entropy keys, SQL injections, and dangerous calls are flagged deterministically.
-            </p>
-          </div>
-
-          <div className="p-7 rounded-2xl bg-white border border-[#E2EDE6] hover:border-[#B2E0C7] hover:shadow-md transition-all duration-base group">
-            <div className="w-12 h-12 rounded-2xl bg-[#EBF7F0] text-[#063B2C] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-              <Lock className="w-6 h-6 text-[#063B2C]" />
-            </div>
-            <h3 className="text-lg font-bold text-[#111C18] mb-2 font-display">
-              Prompt-Injection Defense
-            </h3>
-            <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed">
-              Untrusted diff inputs are quarantined inside strict delimiters. Attempts to override instructions inside commit messages are intercepted immediately.
-            </p>
-          </div>
-
-          <div className="p-7 rounded-2xl bg-white border border-[#E2EDE6] hover:border-[#B2E0C7] hover:shadow-md transition-all duration-base group">
-            <div className="w-12 h-12 rounded-2xl bg-[#EBF7F0] text-[#063B2C] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-              <Shield className="w-6 h-6 text-[#063B2C]" />
-            </div>
-            <h3 className="text-lg font-bold text-[#111C18] mb-2 font-display">
-              Evidence-Grounded Lines
-            </h3>
-            <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed">
-              Every finding must quote verifiable code evidence that actually exists in the git diff hunk. Hallucinations are automatically stripped before posting.
-            </p>
-          </div>
-
-          <div className="p-7 rounded-2xl bg-white border border-[#E2EDE6] hover:border-[#B2E0C7] hover:shadow-md transition-all duration-base group">
-            <div className="w-12 h-12 rounded-2xl bg-[#EBF7F0] text-[#063B2C] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-              <Layers className="w-6 h-6 text-[#063B2C]" />
-            </div>
-            <h3 className="text-lg font-bold text-[#111C18] mb-2 font-display">
-              Durable Queueing & Retries
-            </h3>
-            <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed">
-              Powered by Redis and BullMQ. Handled with idempotency keys and commit SHA validation so stale commits never receive outdated review verdicts.
-            </p>
-          </div>
-
-          <div className="p-7 rounded-2xl bg-white border border-[#E2EDE6] hover:border-[#B2E0C7] hover:shadow-md transition-all duration-base group">
-            <div className="w-12 h-12 rounded-2xl bg-[#EBF7F0] text-[#063B2C] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-              <Zap className="w-6 h-6 text-[#063B2C]" />
-            </div>
-            <h3 className="text-lg font-bold text-[#111C18] mb-2 font-display">
-              Inline GitHub Comments
-            </h3>
-            <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed">
-              Suggestions appear directly inside the GitHub PR conversation with 1-click commit suggestion blocks, matching standard developer workflows without friction.
-            </p>
-          </div>
-
-          <div className="p-7 rounded-2xl bg-white border border-[#E2EDE6] hover:border-[#B2E0C7] hover:shadow-md transition-all duration-base group">
-            <div className="w-12 h-12 rounded-2xl bg-[#EBF7F0] text-[#063B2C] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-              <FileCheck className="w-6 h-6 text-[#063B2C]" />
-            </div>
-            <h3 className="text-lg font-bold text-[#111C18] mb-2 font-display">
-              Configurable Team Policies
-            </h3>
-            <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed">
-              Fine-tune severity thresholds (e.g. block PR only on Critical/High), exclude generated files, configure mandatory test expectations, and set custom rules.
-            </p>
-          </div>
+          {[
+            {
+              icon: Cpu,
+              title: 'Deterministic AST Scanning',
+              desc: 'We never delegate regex or secret scanning to an LLM. High-entropy keys, SQL injections, and dangerous calls are flagged deterministically.',
+            },
+            {
+              icon: Lock,
+              title: 'Prompt-Injection Defense',
+              desc: 'Untrusted diff inputs are quarantined inside strict delimiters. Attempts to override instructions inside commit messages are intercepted immediately.',
+            },
+            {
+              icon: Shield,
+              title: 'Evidence-Grounded Lines',
+              desc: 'Every finding must quote verifiable code evidence that actually exists in the git diff hunk. Hallucinations are automatically stripped before posting.',
+            },
+            {
+              icon: Layers,
+              title: 'Durable Queueing & Retries',
+              desc: 'Powered by Redis and BullMQ. Handled with idempotency keys and commit SHA validation so stale commits never receive outdated review verdicts.',
+            },
+            {
+              icon: Zap,
+              title: 'Inline GitHub Comments',
+              desc: 'Suggestions appear directly inside the GitHub PR conversation with 1-click commit suggestion blocks, matching standard developer workflows without friction.',
+            },
+            {
+              icon: FileCheck,
+              title: 'Configurable Team Policies',
+              desc: 'Fine-tune severity thresholds (e.g. block PR only on Critical/High), exclude generated files, configure mandatory test expectations, and set custom rules.',
+            },
+          ].map((feat, idx) => {
+            const Icon = feat.icon;
+            return (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: idx * 0.07, ease: MOTION_EASE }}
+                whileHover={{ y: -4, transition: { duration: 0.15, ease: MOTION_EASE } }}
+                className="p-7 rounded-2xl bg-white border border-[#E2EDE6] hover:border-[#B2E0C7] hover:shadow-md transition-all duration-base group cursor-default"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-[#EBF7F0] text-[#063B2C] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-fast">
+                  <Icon className="w-6 h-6 text-[#063B2C]" />
+                </div>
+                <h3 className="text-lg font-bold text-[#111C18] mb-2 font-display">
+                  {feat.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed">
+                  {feat.desc}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* PRICING SECTION (Exact Layout & Structure from Image 4)                    */}
+      {/* PRICING SECTION                                                           */}
       {/* ========================================================================= */}
       <section id="pricing" className="scroll-mt-24 py-24 px-6 max-w-7xl mx-auto border-t border-[#E2EDE6]">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35, ease: MOTION_EASE }}
+          className="text-center max-w-2xl mx-auto mb-12 space-y-3"
+        >
           <span className="px-3.5 py-1 rounded-full bg-[#EBF7F0] border border-[#C3EBD7] text-[#063B2C] text-[11px] font-mono font-bold tracking-wider uppercase">
             Pricing
           </span>
@@ -559,7 +579,7 @@ export default function HomePage() {
             Start managing your pull requests today. Upgrade when you need more throughput and enterprise policies.
           </p>
 
-          {/* Monthly / Yearly Pill Toggle (Image 4) */}
+          {/* Monthly / Yearly Pill Toggle */}
           <div className="pt-4 flex justify-center">
             <div className="bg-[#F0FAF4] p-1 rounded-full inline-flex border border-[#D6EFE1]">
               <button
@@ -586,12 +606,19 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* 3 Pricing Cards with Pro Featured (Image 4) */}
+        {/* 3 Pricing Cards with Pro Featured */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch pt-4">
           {/* Card 1: FREE */}
-          <div className="p-8 rounded-3xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3, delay: 0.05, ease: MOTION_EASE }}
+            whileHover={{ y: -4, transition: { duration: 0.15, ease: MOTION_EASE } }}
+            className="p-8 rounded-3xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between"
+          >
             <div>
               <span className="text-xs font-mono font-semibold text-[#52635B] uppercase block">Free</span>
               <div className="text-4xl font-bold text-[#111C18] mt-3 font-mono">
@@ -630,10 +657,17 @@ export default function HomePage() {
             >
               Get started
             </Link>
-          </div>
+          </motion.div>
 
-          {/* Card 2: PRO (Featured Card with Popular Banner - Image 4) */}
-          <div className="rounded-3xl bg-white border-2 border-[#063B2C] shadow-md flex flex-col justify-between overflow-hidden relative">
+          {/* Card 2: PRO (Featured Card with Popular Banner) */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3, delay: 0.12, ease: MOTION_EASE }}
+            whileHover={{ y: -4, transition: { duration: 0.15, ease: MOTION_EASE } }}
+            className="rounded-3xl bg-white border-2 border-[#063B2C] shadow-md flex flex-col justify-between overflow-hidden relative"
+          >
             {/* Top Popular Banner */}
             <div className="bg-[#063B2C] py-2 text-center text-white text-xs font-semibold tracking-wide">
               Popular
@@ -680,10 +714,17 @@ export default function HomePage() {
                 Get started
               </Link>
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 3: PREMIUM / TEAM */}
-          <div className="p-8 rounded-3xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3, delay: 0.18, ease: MOTION_EASE }}
+            whileHover={{ y: -4, transition: { duration: 0.15, ease: MOTION_EASE } }}
+            className="p-8 rounded-3xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between"
+          >
             <div>
               <span className="text-xs font-mono font-semibold text-[#52635B] uppercase block">Premium</span>
               <div className="text-4xl font-bold text-[#111C18] mt-3 font-mono">
@@ -723,15 +764,21 @@ export default function HomePage() {
             >
               Get started
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* FAQS SECTION (Exact Layout & Typography from Image 5)                      */}
+      {/* FAQS SECTION WITH FLUID HEIGHT ACCORDION                                   */}
       {/* ========================================================================= */}
       <section id="faq" className="scroll-mt-24 py-24 px-6 max-w-4xl mx-auto border-t border-[#E2EDE6]">
-        <div className="text-center max-w-xl mx-auto mb-12 space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35, ease: MOTION_EASE }}
+          className="text-center max-w-xl mx-auto mb-12 space-y-3"
+        >
           <span className="px-3.5 py-1 rounded-full bg-[#EBF7F0] border border-[#C3EBD7] text-[#063B2C] text-[11px] font-mono font-bold tracking-wider uppercase">
             FAQs
           </span>
@@ -742,15 +789,19 @@ export default function HomePage() {
           <p className="text-sm text-[#52635B] leading-relaxed">
             Everything you need to know about ReviewFlow's security, GitHub App permissions, and automated intelligence.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Accordion List */}
+        {/* Smooth Accordion List */}
         <div className="space-y-3">
           {FAQS.map((faq, idx) => {
             const isOpen = openedFaqs.includes(idx);
             return (
-              <div
+              <motion.div
                 key={faq.num}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.25, delay: idx * 0.04, ease: MOTION_EASE }}
                 className={`rounded-2xl border transition-all duration-fast overflow-hidden ${
                   isOpen
                     ? 'bg-white border-[#063B2C] shadow-sm'
@@ -766,29 +817,49 @@ export default function HomePage() {
                     {faq.question}
                   </span>
 
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#52635B] shrink-0 transition-transform duration-fast ${
-                      isOpen ? 'rotate-180 text-[#063B2C]' : ''
-                    }`}
-                  />
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2, ease: MOTION_EASE }}
+                    className="shrink-0"
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 ${isOpen ? 'text-[#063B2C]' : 'text-[#52635B]'}`}
+                    />
+                  </motion.div>
                 </button>
 
-                {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#52635B] leading-relaxed border-t border-[#E2EDE6]/60 bg-[#F8FCFA]">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: MOTION_EASE }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#52635B] leading-relaxed border-t border-[#E2EDE6]/60 bg-[#F8FCFA]">
+                        {faq.answer}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* PRE-FOOTER CTA SECTION (Exact Layout & Typography from Image 6)           */}
+      {/* PRE-FOOTER CTA SECTION                                                    */}
       {/* ========================================================================= */}
       <section className="py-20 px-6 max-w-7xl mx-auto border-t border-[#E2EDE6]">
-        <div className="rounded-3xl border border-dashed border-[#CBDCD2] bg-white p-8 sm:p-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98, y: 24 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.35, ease: MOTION_EASE }}
+          className="rounded-3xl border border-dashed border-[#CBDCD2] bg-white p-8 sm:p-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 shadow-sm"
+        >
           <div className="max-w-xl space-y-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF7F0] text-[#063B2C] text-xs font-medium border border-[#C3EBD7]">
               <span>⚡</span>
@@ -813,7 +884,7 @@ export default function HomePage() {
             </Link>
             <span className="text-[11px] text-[#7A8C84]">Free forever plan • No credit card required</span>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <Footer />
