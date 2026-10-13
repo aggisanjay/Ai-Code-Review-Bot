@@ -21,6 +21,8 @@ import {
   Play,
   Activity,
   SlidersHorizontal,
+  Calendar,
+  Globe,
 } from 'lucide-react';
 import { Navbar } from '../components/marketing/Navbar';
 import { Footer } from '../components/marketing/Footer';
@@ -191,7 +193,7 @@ export default function HomePage() {
 
                 {/* Address Pill */}
                 <div className="flex items-center gap-2 px-4 py-1 rounded-full bg-white border border-[#E2EDE6] text-xs font-mono text-[#52635B] shadow-sm">
-                  <span className="text-[#A3B8AD]">🔗</span>
+                  <Globe className="w-3.5 h-3.5 text-[#7A8C84]" />
                   <span>reviewflow.ai/dashboard</span>
                 </div>
 
@@ -239,12 +241,12 @@ export default function HomePage() {
                 {/* 4 Stat Cards with Hover Lift */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   {[
-                    { label: 'Total PRs Reviewed', val: '1,482', change: '+12.4%', sub: 'this month', icon: '$' },
+                    { label: 'Total PRs Reviewed', val: '1,482', change: '+12.4%', sub: 'this month', icon: GitPullRequest },
                     { label: 'Average Turnaround', val: '~8.4s', change: '-42.0s', sub: 'vs benchmark', icon: Clock },
                     { label: 'Critical Issues Blocked', val: '18 CVEs', change: '0 Breaches', sub: 'pre-merge', icon: ShieldAlert, danger: true },
                     { label: 'Engineer Hours Saved', val: '380 hrs', change: '+18.4%', sub: 'vs last sprint', icon: Zap },
                   ].map((card, idx) => {
-                    const IconComp = typeof card.icon !== 'string' ? card.icon : null;
+                    const Icon = card.icon;
                     return (
                       <motion.div
                         key={idx}
@@ -253,13 +255,7 @@ export default function HomePage() {
                       >
                         <div className="flex items-center justify-between text-xs text-[#52635B] mb-2 font-medium">
                           <span>{card.label}</span>
-                          {IconComp ? (
-                            <IconComp className={`w-4 h-4 ${card.danger ? 'text-[#DC2626]' : 'text-[#063B2C]'}`} />
-                          ) : (
-                            <span className="text-[#063B2C] bg-[#EBF7F0] w-6 h-6 rounded-full flex items-center justify-center font-bold">
-                              {typeof card.icon === 'string' ? card.icon : null}
-                            </span>
-                          )}
+                          <Icon className={`w-4 h-4 ${card.danger ? 'text-[#DC2626]' : 'text-[#063B2C]'}`} />
                         </div>
                         <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">{card.val}</div>
                         <div className="text-[11px] text-[#52635B] mt-2 flex items-center gap-1">
@@ -328,7 +324,9 @@ export default function HomePage() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <h4 className="text-sm font-bold text-[#111C18]">Weekly Review Velocity</h4>
-                        <span className="text-xs text-[#52635B]">📅</span>
+                        <div className="w-6 h-6 rounded-md bg-[#FAFDFB] border border-[#E2EDE6] flex items-center justify-center text-[#52635B] shadow-sm">
+                          <Calendar className="w-3.5 h-3.5 text-[#52635B]" />
+                        </div>
                       </div>
                       <p className="text-[11px] text-[#52635B]">PRs reviewed vs. commits committed</p>
                       <div className="mt-3 flex items-baseline gap-2">
@@ -862,7 +860,7 @@ export default function HomePage() {
         >
           <div className="max-w-xl space-y-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF7F0] text-[#063B2C] text-xs font-medium border border-[#C3EBD7]">
-              <span>⚡</span>
+              <Zap className="w-3.5 h-3.5 text-[#063B2C] fill-[#063B2C]/20" />
               <span>Smart Code Review Intelligence</span>
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111C18]">
