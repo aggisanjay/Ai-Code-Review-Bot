@@ -149,7 +149,7 @@ export default function HomePage() {
             transition={{ duration: 0.3, delay: 0.16, ease: MOTION_EASE }}
             className="text-base sm:text-lg text-[#52635B] max-w-2xl mx-auto leading-relaxed"
           >
-            Understand unfamiliar codebases instantly with semantic Q&A citations, review pull requests with 100% benchmark precision, and generate tests with two-phase safe write approval.
+            Understand unfamiliar codebases instantly with semantic Q&A citations, review pull requests across all 5 engineering pillars with 100% benchmark precision, and generate tests with two-phase safe write approval.
           </motion.p>
 
           {/* Primary & Secondary Pill CTAs */}
@@ -383,11 +383,12 @@ export default function HomePage() {
       {/* METRICS STRIP                                                             */}
       {/* ========================================================================= */}
       <section className="border-y border-[#E2EDE6] bg-[#F8FCFA] py-8 px-6">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 text-left">
           {[
             { val: '100%', label: 'Benchmark Precision (Gemini)' },
             { val: '0%', label: 'False Positive Rate' },
-            { val: 'L{start}-L{end}', label: 'Verified Code Citations' },
+            { val: '5 Pillars', label: 'Multi-Pillar Engineering Review' },
+            { val: '100%', label: 'Verified Code Citations' },
             { val: '0 Auto-Writes', label: 'Two-Phase Nonce Approvals' },
           ].map((item, idx) => (
             <motion.div
@@ -398,8 +399,8 @@ export default function HomePage() {
               transition={{ duration: 0.3, delay: idx * 0.08, ease: MOTION_EASE }}
               className="border-l-2 border-[#063B2C] pl-4 sm:pl-5"
             >
-              <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono">{item.val}</div>
-              <div className="text-[11px] text-[#52635B] mt-1.5 uppercase tracking-wider font-mono font-medium">
+              <div className="text-2xl sm:text-3xl font-bold text-[#111C18] font-mono whitespace-nowrap">{item.val}</div>
+              <div className="text-[11px] text-[#52635B] mt-1.5 uppercase tracking-wider font-mono font-medium leading-snug">
                 {item.label}
               </div>
             </motion.div>
@@ -509,7 +510,7 @@ export default function HomePage() {
             {
               icon: Sparkles,
               title: 'Grounded Codebase Q&A',
-              desc: 'Ask deep architectural questions and receive verifiable source line citations [file#L{start}-L{end}]. Explicitly reports when evidence is insufficient.',
+              desc: 'Ask deep architectural questions and receive verifiable source line citations [file#L1-L40]. Explicitly reports when evidence is insufficient with monthly quota controls.',
             },
             {
               icon: Lock,
@@ -518,8 +519,8 @@ export default function HomePage() {
             },
             {
               icon: GitPullRequest,
-              title: 'Evidence-Grounded PR Reviews',
-              desc: 'Analyzes real pull request diffs using deterministic AST scans and structured Gemini/OpenAI reasoning, achieving 100% precision in benchmark testing.',
+              title: 'Multi-Pillar Evidence PR Reviews',
+              desc: 'Evaluates diffs across all 5 core engineering pillars (Correctness, Performance, Security, Testing, Maintainability) with deterministic AST scans and structured Gemini/OpenAI reasoning.',
             },
             {
               icon: Shield,
@@ -639,15 +640,15 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Inline review comments on GitHub</span>
+                  <span>100 codebase Q&A queries / month</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Deterministic static security checks</span>
+                  <span>All 5 engineering pillars</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Community support</span>
+                  <span>Two-phase safe write approvals</span>
                 </li>
               </ul>
             </div>
@@ -678,7 +679,7 @@ export default function HomePage() {
               <div>
                 <span className="text-xs font-mono font-bold text-[#063B2C] uppercase block">Pro</span>
                 <div className="text-4xl font-bold text-[#111C18] mt-3 font-mono">
-                  {billingCycle === 'monthly' ? '$29' : '$24'}
+                  {billingCycle === 'monthly' ? '$39' : '$32'}
                   <span className="text-sm font-normal text-[#52635B]"> / month</span>
                 </div>
 
@@ -691,15 +692,15 @@ export default function HomePage() {
                   </li>
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                    <span>500 pull request reviews / month</span>
+                    <span>250 pull request reviews / month</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                    <span>Advanced security & race condition checks</span>
+                    <span>2,500 codebase Q&A queries / month</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                    <span>Custom review guidelines & team rules</span>
+                    <span>Custom review rules & team guidelines</span>
                   </li>
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
@@ -727,9 +728,9 @@ export default function HomePage() {
             className="p-8 rounded-3xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between"
           >
             <div>
-              <span className="text-xs font-mono font-semibold text-[#52635B] uppercase block">Premium</span>
+              <span className="text-xs font-mono font-semibold text-[#52635B] uppercase block">Team</span>
               <div className="text-4xl font-bold text-[#111C18] mt-3 font-mono">
-                {billingCycle === 'monthly' ? '$99' : '$84'}
+                {billingCycle === 'monthly' ? '$149' : '$129'}
                 <span className="text-sm font-normal text-[#52635B]"> / month</span>
               </div>
 
@@ -738,15 +739,15 @@ export default function HomePage() {
               <ul className="space-y-3.5 text-xs text-[#111C18]">
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Unlimited connected repositories</span>
+                  <span>Up to 50 connected repositories</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>2,500 reviews / month</span>
+                  <span>1,000 reviews / month</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                  <span>Advanced security and SOC2 compliance</span>
+                  <span>10,000 codebase Q&A queries / month</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
