@@ -329,12 +329,12 @@ function CodebaseQnAContent() {
         title="Codebase Q&A Assistant"
         description="Ask deep architectural questions grounded in genuine source code evidence, symbols, and citations."
         action={
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {repositories.length > 0 && (
               <select
                 value={selectedRepoId}
                 onChange={(e) => handleSelectRepo(e.target.value)}
-                className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer"
+                className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer max-w-[180px] sm:max-w-[220px] truncate"
               >
                 {repositories.map((repo) => (
                   <option key={repo.id} value={repo.id}>
@@ -344,17 +344,29 @@ function CodebaseQnAContent() {
               </select>
             )}
 
-            {/* Mobile Sidebar Toggle */}
-            <button
-              type="button"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="md:hidden flex items-center gap-1 px-3 py-2 rounded-xl bg-white border border-[#E4EAE6] text-xs font-mono font-semibold shadow-sleek-sm text-[#14211D]"
+            {/* Thread Selector Dropdown in Navbar */}
+            <select
+              value={activeConversationId || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (!val) {
+                  handleStartNewConversation();
+                } else {
+                  handleSelectConversation(val);
+                }
+              }}
+              className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer max-w-[180px] sm:max-w-[240px] truncate"
+              title="Select or switch conversation thread"
             >
-              <History className="w-3.5 h-3.5" />
-              <span>Threads ({conversations.length})</span>
-            </button>
+              <option value="">+ New Thread ({conversations.length} saved)</option>
+              {conversations.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title ? (c.title.length > 28 ? c.title.substring(0, 28) + '...' : c.title) : 'Thread'} ({c._count?.messages || 0} msgs)
+                </option>
+              ))}
+            </select>
 
-            {/* New Thread Button */}
+            {/* Quick New Thread Button */}
             <button
               type="button"
               onClick={handleStartNewConversation}
@@ -362,8 +374,20 @@ function CodebaseQnAContent() {
               title="Start a fresh conversation thread"
             >
               <Plus className="w-3.5 h-3.5 text-[#126B50]" />
-              <span className="hidden sm:inline">New Thread</span>
+              <span className="hidden sm:inline">New</span>
             </button>
+
+            {/* Delete active thread button */}
+            {activeConversationId && (
+              <button
+                type="button"
+                onClick={(e) => handleDeleteConversation(e, activeConversationId)}
+                className="p-2 rounded-xl bg-white border border-[#E4EAE6] text-[#94A3B8] hover:text-[#DC2626] hover:bg-red-50 shadow-sleek-sm transition-all"
+                title="Delete current thread"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
 
             {/* Indexing Action with Force Reindex Dropdown */}
             <div className="relative">
@@ -375,7 +399,8 @@ function CodebaseQnAContent() {
                   title="Run incremental codebase indexing"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isIndexing ? 'animate-spin' : ''}`} />
-                  <span>{isIndexing ? 'Indexing...' : 'Index Codebase'}</span>
+                  <span className="hidden sm:inline">{isIndexing ? 'Indexing...' : 'Index Codebase'}</span>
+                  <span className="sm:hidden">{isIndexing ? '...' : 'Index'}</span>
                 </button>
                 <button
                   type="button"
@@ -414,108 +439,9 @@ function CodebaseQnAContent() {
         }
       />
 
-      <div className="px-4 sm:px-8 pt-4 max-w-7xl mx-auto w-full flex-1 flex flex-col md:flex-row gap-6 items-stretch">
-        {/* ========================================================================= */}
-        {/* CONVERSATION HISTORY SIDEBAR                                              */}
-        {/* ========================================================================= */}
-        <aside
-          className={`${
-            isSidebarOpen ? 'fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4' : 'hidden md:flex'
-          } md:static md:w-72 lg:w-80 shrink-0 flex-col space-y-3`}
-        >
-          {isSidebarOpen && (
-            <div className="flex items-center justify-between pb-2 border-b border-[#E4EAE6] md:hidden">
-              <span className="text-xs font-mono font-bold text-[#14211D]">Past Threads</span>
-              <button onClick={() => setIsSidebarOpen(false)} className="p-1 rounded-lg hover:bg-gray-100">
-                <X className="w-4 h-4 text-[#66736D]" />
-              </button>
-            </div>
-          )}
-
-          <div className="p-3.5 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm flex flex-col flex-1 space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#14211D]">
-                <History className="w-4 h-4 text-[#126B50]" />
-                <span>Threads ({conversations.length})</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleStartNewConversation}
-                className="text-[11px] font-mono font-bold text-[#126B50] hover:underline flex items-center gap-1"
-              >
-                <Plus className="w-3 h-3" />
-                <span>New</span>
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-1.5 max-h-[calc(100vh-280px)] pr-1">
-              {conversations.length === 0 ? (
-                <div className="text-center py-10 px-3 text-[#7A8C84] text-xs font-mono space-y-2">
-                  <MessageSquare className="w-6 h-6 mx-auto text-[#CBD5E1]" />
-                  <p>No past threads found for this repository.</p>
-                  <p className="text-[10px] text-[#94A3B8]">Ask a question to start your first grounded thread.</p>
-                </div>
-              ) : (
-                conversations.map((convo) => {
-                  const isActive = convo.id === activeConversationId;
-                  const messageCount = convo._count?.messages || 0;
-                  const dateStr = new Date(convo.updatedAt || convo.createdAt).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                  });
-
-                  return (
-                    <div
-                      key={convo.id}
-                      onClick={() => handleSelectConversation(convo.id)}
-                      className={`group relative flex items-start justify-between p-3 rounded-xl border text-xs cursor-pointer transition-all ${
-                        isActive
-                          ? 'bg-[#EAF5EF] border-[#C7E4D6] text-[#0E543E] font-semibold shadow-sm'
-                          : 'bg-[#FAFDFB] hover:bg-white border-[#E4EAE6] text-[#14211D] hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0 pr-2 space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#126B50] shrink-0" />}
-                          <span className="font-sans line-clamp-2 text-xs leading-snug">
-                            {convo.title || 'Untitled Thread'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] font-mono text-[#7A8C84]">
-                          <span>{dateStr}</span>
-                          <span>•</span>
-                          <span>{messageCount} msg{messageCount === 1 ? '' : 's'}</span>
-                          {convo.user?.name && (
-                            <>
-                              <span>•</span>
-                              <span className="truncate max-w-[80px]">{convo.user.name}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteConversation(e, convo.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-[#94A3B8] hover:text-[#DC2626] hover:bg-red-50 transition-all shrink-0 mt-0.5"
-                        title="Delete thread"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </aside>
-
-        {/* ========================================================================= */}
-        {/* MAIN CHAT AREA                                                            */}
-        {/* ========================================================================= */}
-        <div className="flex-1 flex flex-col space-y-4 min-w-0">
-          {/* Indexing Status Card Banner */}
-          {indexingStatus && (
+      <div className="px-4 sm:px-8 pt-4 max-w-5xl mx-auto w-full flex-1 flex flex-col space-y-4">
+        {/* Indexing Status Card Banner */}
+        {indexingStatus && (
             <div className="p-4 rounded-2xl bg-white border border-[#E4EAE6] flex flex-wrap items-center justify-between gap-3 text-xs font-mono shadow-sleek-sm">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-semibold text-[11px]">
@@ -753,8 +679,7 @@ function CodebaseQnAContent() {
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
 }
 
 export default function CodebaseQnAPage() {

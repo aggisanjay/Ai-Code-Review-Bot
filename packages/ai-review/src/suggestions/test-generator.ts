@@ -74,7 +74,16 @@ Generate a test suite proposal for this file.`;
 
   try {
     const raw = JSON.parse(cleanJson);
-    return TestSuggestionSchema.parse(raw);
+    const parsed = TestSuggestionSchema.parse(raw) as any;
+    return {
+      behaviorTested: parsed.behaviorTested || `Unit tests for ${targetFile}`,
+      rationale: parsed.rationale || 'Verify core function execution and boundary error handling.',
+      targetFile: parsed.targetFile || targetFile,
+      testFramework: parsed.testFramework || testFramework,
+      proposedCode: parsed.proposedCode || '',
+      edgeCases: Array.isArray(parsed.edgeCases) ? parsed.edgeCases : [],
+      existingCoverageNotes: parsed.existingCoverageNotes || undefined,
+    };
   } catch {
     // Graceful fallback proposal if model output was unstructured
     return {

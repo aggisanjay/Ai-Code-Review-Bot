@@ -37,8 +37,7 @@ import {
   Database,
 } from 'lucide-react';
 import { Header } from '../../../components/dashboard/Header';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+import { api } from '../../../lib/api-client';
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -52,21 +51,13 @@ export default function AnalyticsPage() {
       return;
     }
 
-    fetch(`${API_URL}/analytics/overview`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    api.getAnalyticsOverview()
       .then((res) => {
-        if (res.status === 401) {
-          localStorage.removeItem('reviewflow_token');
-          router.push('/login');
-          return null;
-        }
-        return res.json();
+        if (res?.data) setData(res.data);
       })
-      .then((json) => {
-        if (json?.data) setData(json.data);
+      .catch((err) => {
+        console.warn('Failed to load observability telemetry:', err);
       })
-      .catch(() => {})
       .finally(() => setIsLoading(false));
   }, [router]);
 

@@ -327,6 +327,11 @@ class ApiClient {
       body: JSON.stringify({ feedbackType, comment }),
     });
   }
+
+  // Observability & Analytics
+  async getAnalyticsOverview() {
+    return this.fetch<any>('/analytics/overview');
+  }
 }
 
 export const api = new ApiClient();

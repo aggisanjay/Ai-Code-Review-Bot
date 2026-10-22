@@ -42,6 +42,7 @@ export interface PlanLimits {
   name: string;
   maxRepositories: number;
   maxReviewsPerMonth: number;
+  maxQnaQueriesPerMonth: number;
   maxMembers: number;
   advancedSecurityChecks: boolean;
   customRules: boolean;
@@ -55,6 +56,7 @@ export const PLAN_CONFIGS: Record<PlanTier, PlanLimits> = {
     name: 'Free Starter',
     maxRepositories: 3,
     maxReviewsPerMonth: 25,
+    maxQnaQueriesPerMonth: 100,
     maxMembers: 2,
     advancedSecurityChecks: false,
     customRules: false,
@@ -66,6 +68,7 @@ export const PLAN_CONFIGS: Record<PlanTier, PlanLimits> = {
     name: 'Pro Developer',
     maxRepositories: 15,
     maxReviewsPerMonth: 500,
+    maxQnaQueriesPerMonth: 2500,
     maxMembers: 10,
     advancedSecurityChecks: true,
     customRules: true,
@@ -77,6 +80,7 @@ export const PLAN_CONFIGS: Record<PlanTier, PlanLimits> = {
     name: 'Engineering Team',
     maxRepositories: 50,
     maxReviewsPerMonth: 2500,
+    maxQnaQueriesPerMonth: 10000,
     maxMembers: 30,
     advancedSecurityChecks: true,
     customRules: true,
@@ -88,6 +92,7 @@ export const PLAN_CONFIGS: Record<PlanTier, PlanLimits> = {
     name: 'Enterprise Scale',
     maxRepositories: 9999,
     maxReviewsPerMonth: 99999,
+    maxQnaQueriesPerMonth: 50000,
     maxMembers: 999,
     advancedSecurityChecks: true,
     customRules: true,

@@ -15,6 +15,7 @@ export interface AuthenticatedUser {
 
 export interface AuthenticatedRequest extends Request {
   user?: AuthenticatedUser;
+  organizationId?: string;
 }
 
 export async function authenticateToken(
@@ -96,6 +97,7 @@ export async function authenticateToken(
       role: memberRole,
       sessionId: payload.sessionId,
     };
+    req.organizationId = orgId;
 
     next();
   } catch (_err) {

@@ -1256,10 +1256,11 @@ repositoriesRouter.post(
     const { id } = req.params;
     const { commitSha, branch, force } = req.body || {};
 
+    const orgId = req.user!.organizationId;
     const repo = await prisma.repository.findFirst({
       where: {
         id,
-        organizationId: req.organizationId!,
+        organizationId: orgId,
       },
     });
 
@@ -1318,10 +1319,11 @@ repositoriesRouter.get(
   async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
 
+    const orgId = req.user!.organizationId;
     const repo = await prisma.repository.findFirst({
       where: {
         id,
-        organizationId: req.organizationId!,
+        organizationId: orgId,
       },
     });
 
@@ -1371,10 +1373,11 @@ repositoriesRouter.post(
       });
     }
 
+    const orgId = req.user!.organizationId;
     const repo = await prisma.repository.findFirst({
       where: {
         id,
-        organizationId: req.organizationId!,
+        organizationId: orgId,
       },
     });
 
@@ -1513,10 +1516,11 @@ repositoriesRouter.get(
     const { id } = req.params;
     const { mine } = req.query as { mine?: string };
 
+    const orgId = req.user!.organizationId;
     const repo = await prisma.repository.findFirst({
       where: {
         id,
-        organizationId: req.organizationId!,
+        organizationId: orgId,
       },
     });
 
@@ -1553,11 +1557,12 @@ repositoriesRouter.get(
   async (req: AuthenticatedRequest, res: Response) => {
     const { id, convoId } = req.params;
 
+    const orgId = req.user!.organizationId;
     const conversation = await prisma.codebaseConversation.findFirst({
       where: {
         id: convoId,
         repositoryId: id,
-        repository: { organizationId: req.organizationId! },
+        repository: { organizationId: orgId },
       },
       include: {
         user: { select: { id: true, name: true, email: true } },
@@ -1615,11 +1620,12 @@ repositoriesRouter.delete(
   async (req: AuthenticatedRequest, res: Response) => {
     const { id, convoId } = req.params;
 
+    const orgId = req.user!.organizationId;
     const conversation = await prisma.codebaseConversation.findFirst({
       where: {
         id: convoId,
         repositoryId: id,
-        repository: { organizationId: req.organizationId! },
+        repository: { organizationId: orgId },
       },
     });
 
@@ -1654,8 +1660,9 @@ repositoriesRouter.post(
       });
     }
 
+    const orgId = req.user!.organizationId;
     const repo = await prisma.repository.findFirst({
-      where: { id, organizationId: req.organizationId! },
+      where: { id, organizationId: orgId },
     });
 
     if (!repo) {
@@ -1749,8 +1756,9 @@ repositoriesRouter.post(
       });
     }
 
+    const orgId = req.user!.organizationId;
     const repo = await prisma.repository.findFirst({
-      where: { id, organizationId: req.organizationId! },
+      where: { id, organizationId: orgId },
     });
 
     if (!repo) {
@@ -1763,7 +1771,7 @@ repositoriesRouter.post(
 
     const approval = await prisma.approvalRequest.create({
       data: {
-        organizationId: req.organizationId!,
+        organizationId: orgId,
         repositoryId: repo.id,
         userId: req.user!.id,
         actionType,
@@ -1801,11 +1809,12 @@ repositoriesRouter.post(
     const { id, approvalId } = req.params;
     const { nonce, approve, rejectionReason } = req.body || {};
 
+    const orgId = req.user!.organizationId;
     const approval = await prisma.approvalRequest.findFirst({
       where: {
         id: approvalId,
         repositoryId: id,
-        organizationId: req.organizationId!,
+        organizationId: orgId,
       },
       include: { repository: true },
     });
@@ -1846,7 +1855,7 @@ repositoriesRouter.post(
 
       await prisma.auditLog.create({
         data: {
-          organizationId: req.organizationId!,
+          organizationId: orgId,
           userId: req.user!.id,
           action: 'REJECT_WRITE_APPROVAL',
           resourceType: 'ApprovalRequest',
@@ -1911,7 +1920,7 @@ repositoriesRouter.post(
 
       await prisma.auditLog.create({
         data: {
-          organizationId: req.organizationId!,
+          organizationId: orgId,
           userId: req.user!.id,
           action: 'EXECUTE_WRITE_APPROVAL',
           resourceType: 'ApprovalRequest',
@@ -1957,8 +1966,9 @@ repositoriesRouter.post(
       });
     }
 
+    const orgId = req.user!.organizationId;
     const repo = await prisma.repository.findFirst({
-      where: { id, organizationId: req.organizationId! },
+      where: { id, organizationId: orgId },
     });
 
     if (!repo) {
@@ -1971,7 +1981,7 @@ repositoriesRouter.post(
 
     try {
       const result = await tool.execute(args || {}, {
-        organizationId: req.organizationId!,
+        organizationId: orgId,
         repositoryId: repo.id,
         githubAdapter: github,
         embeddingProvider,
