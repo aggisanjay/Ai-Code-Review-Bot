@@ -23,6 +23,9 @@ import {
   SlidersHorizontal,
   Calendar,
   Globe,
+  Sparkles,
+  Database,
+  FileCode2,
 } from 'lucide-react';
 import { Navbar } from '../components/marketing/Navbar';
 import { Footer } from '../components/marketing/Footer';
@@ -133,10 +136,10 @@ export default function HomePage() {
             transition={{ duration: 0.3, delay: 0.08, ease: MOTION_EASE }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-[#111C18] leading-[1.12]"
           >
-            Build a Smarter{' '}
-            <span className="font-serif italic font-normal text-[#063B2C]">Code Review</span>
+            Your Complete{' '}
+            <span className="font-serif italic font-normal text-[#063B2C]">AI Repository</span>
             <br className="hidden sm:inline" />{' '}
-            <span className="font-serif italic font-normal text-[#063B2C]">Future</span> With ReviewFlow
+            <span className="font-serif italic font-normal text-[#063B2C]">Assistant</span> & Reviewer
           </motion.h1>
 
           {/* Subtitle */}
@@ -146,7 +149,7 @@ export default function HomePage() {
             transition={{ duration: 0.3, delay: 0.16, ease: MOTION_EASE }}
             className="text-base sm:text-lg text-[#52635B] max-w-2xl mx-auto leading-relaxed"
           >
-            Bring deterministic AST security scanning, evidence-grounded AI reviews, and 1-click suggested fixes together in one simple, intelligent platform.
+            Understand unfamiliar codebases instantly with semantic Q&A citations, review pull requests with 100% benchmark precision, and generate tests with two-phase safe write approval.
           </motion.p>
 
           {/* Primary & Secondary Pill CTAs */}
@@ -382,10 +385,10 @@ export default function HomePage() {
       <section className="border-y border-[#E2EDE6] bg-[#F8FCFA] py-8 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
           {[
-            { val: '~8.4s', label: 'Review Turnaround' },
-            { val: '45 mins', label: 'Engineer Time Saved / PR' },
-            { val: '100%', label: 'Schema-Validated Output' },
-            { val: '0 Code Exec', label: 'Sandboxed Static Isolation' },
+            { val: '100%', label: 'Benchmark Precision (Gemini)' },
+            { val: '0%', label: 'False Positive Rate' },
+            { val: 'L{start}-L{end}', label: 'Verified Code Citations' },
+            { val: '0 Auto-Writes', label: 'Two-Phase Nonce Approvals' },
           ].map((item, idx) => (
             <motion.div
               key={idx}
@@ -499,34 +502,34 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {[
             {
-              icon: Cpu,
-              title: 'Deterministic AST Scanning',
-              desc: 'We never delegate regex or secret scanning to an LLM. High-entropy keys, SQL injections, and dangerous calls are flagged deterministically.',
+              icon: Database,
+              title: 'Whole-Codebase Vector Indexing',
+              desc: 'Syntax-aware code chunking traverses your Git tree, extracts function and class symbols, caches SHA-256 hashes, and purges stale chunks incrementally.',
+            },
+            {
+              icon: Sparkles,
+              title: 'Grounded Codebase Q&A',
+              desc: 'Ask deep architectural questions and receive verifiable source line citations [file#L{start}-L{end}]. Explicitly reports when evidence is insufficient.',
             },
             {
               icon: Lock,
-              title: 'Prompt-Injection Defense',
-              desc: 'Untrusted diff inputs are quarantined inside strict delimiters. Attempts to override instructions inside commit messages are intercepted immediately.',
+              title: 'Safe Human-in-the-Loop Writes',
+              desc: 'Zero automated writes. Proposed test suites and patches require explicit developer authorization bound to a 64-character cryptographic nonce.',
+            },
+            {
+              icon: GitPullRequest,
+              title: 'Evidence-Grounded PR Reviews',
+              desc: 'Analyzes real pull request diffs using deterministic AST scans and structured Gemini/OpenAI reasoning, achieving 100% precision in benchmark testing.',
             },
             {
               icon: Shield,
-              title: 'Evidence-Grounded Lines',
-              desc: 'Every finding must quote verifiable code evidence that actually exists in the git diff hunk. Hallucinations are automatically stripped before posting.',
-            },
-            {
-              icon: Layers,
-              title: 'Durable Queueing & Retries',
-              desc: 'Powered by Redis and BullMQ. Handled with idempotency keys and commit SHA validation so stale commits never receive outdated review verdicts.',
-            },
-            {
-              icon: Zap,
-              title: 'Inline GitHub Comments',
-              desc: 'Suggestions appear directly inside the GitHub PR conversation with 1-click commit suggestion blocks, matching standard developer workflows without friction.',
+              title: 'Prompt-Injection Defense',
+              desc: 'Untrusted diffs and commit messages are quarantined inside strict delimiters. Attempts to override reviewer instructions are quarantined and alerted immediately.',
             },
             {
               icon: FileCheck,
-              title: 'Configurable Team Policies',
-              desc: 'Fine-tune severity thresholds (e.g. block PR only on Critical/High), exclude generated files, configure mandatory test expectations, and set custom rules.',
+              title: 'Developer Feedback & Policies',
+              desc: 'Rate findings across 5 categories (Useful, Incorrect, Duplicate, Not Applicable, Known). Configure severity thresholds and block PRs on Critical findings.',
             },
           ].map((feat, idx) => {
             const Icon = feat.icon;

@@ -95,6 +95,13 @@ export const TriggerReviewSchema = z.object({
 // Finding Dismissal / Feedback
 export const FindingFeedbackSchema = z.object({
   findingId: z.string(),
-  feedbackType: z.enum(['HELPFUL', 'FALSE_POSITIVE', 'MISLEADING', 'NOT_APPLICABLE']),
+  feedbackType: z.enum([
+    'HELPFUL',
+    'FALSE_POSITIVE',
+    'DUPLICATE',
+    'NOT_APPLICABLE',
+    'ALREADY_KNOWN',
+    'MISLEADING',
+  ]),
   comment: z.string().max(1000).optional(),
 });

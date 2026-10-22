@@ -78,3 +78,18 @@ export async function enqueueReviewJob(reviewJobId: string): Promise<boolean> {
   }
   return false;
 }
+
+export async function enqueueIndexJob(indexJobId: string): Promise<boolean> {
+  const queue = getReviewQueue();
+  if (queue) {
+    try {
+      await queue.add('process-index' as any, { reviewJobId: indexJobId } as any, { jobId: `index-${indexJobId}` });
+      logger.info(`Durable BullMQ index job enqueued: ${indexJobId}`);
+      return true;
+    } catch (err: any) {
+      logger.warn(`BullMQ index add failed, job will be picked up by worker polling loop: ${err.message}`);
+    }
+  }
+  return false;
+}
+

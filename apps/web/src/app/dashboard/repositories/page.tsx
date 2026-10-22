@@ -27,8 +27,15 @@ import {
   GitBranch,
   ChevronLeft,
   ChevronRight,
+  Database,
+  FileCode2,
+  CheckSquare,
+  Key,
+  Lock,
+  MessageSquareQuote,
 } from 'lucide-react';
 import { Header } from '../../../components/dashboard/Header';
+import { api } from '../../../lib/api-client';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -72,7 +79,145 @@ function RepositoriesPageContent() {
   const [requireTests, setRequireTests] = useState(true);
   const [customInstructions, setCustomInstructions] = useState('');
 
+  // Indexing states
+  const [repoIndexStatuses, setRepoIndexStatuses] = useState<Record<string, any>>({});
+  const [indexingRepos, setIndexingRepos] = useState<Record<string, boolean>>({});
+
+  // Test generation modal state
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [testRepo, setTestRepo] = useState<any | null>(null);
+  const [testTargetFile, setTestTargetFile] = useState('src/index.ts');
+  const [testFramework, setTestFramework] = useState('Jest');
+  const [testSnippet, setTestSnippet] = useState('');
+  const [isGeneratingTest, setIsGeneratingTest] = useState(false);
+  const [generatedTest, setGeneratedTest] = useState<any | null>(null);
+  const [testActionNotice, setTestActionNotice] = useState<string | null>(null);
+
+  // Approval requests drawer state
+  const [isApprovalsModalOpen, setIsApprovalsModalOpen] = useState(false);
+  const [approvalsRepo, setApprovalsRepo] = useState<any | null>(null);
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [isLoadingApprovals, setIsLoadingApprovals] = useState(false);
+  const [executingApproval, setExecutingApproval] = useState<string | null>(null);
+  const [approvalNotice, setApprovalNotice] = useState<string | null>(null);
+
   const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null);
+
+  const fetchIndexStatus = useCallback(async (repoId: string) => {
+    try {
+      const res = await api.getIndexingStatus(repoId);
+      if (res?.data) {
+        setRepoIndexStatuses((prev) => ({ ...prev, [repoId]: res.data }));
+      }
+    } catch {}
+  }, []);
+
+  const handleTriggerIndexing = async (repoId: string) => {
+    setIndexingRepos((prev) => ({ ...prev, [repoId]: true }));
+    try {
+      await api.triggerIndexing(repoId);
+      setPolicySaved('Indexing job enqueued. Language-aware chunking and vector embeddings started...');
+      setTimeout(() => setPolicySaved(null), 4000);
+      await fetchIndexStatus(repoId);
+    } catch (err: any) {
+      setError(err.message || 'Failed to trigger indexing.');
+    } finally {
+      setIndexingRepos((prev) => ({ ...prev, [repoId]: false }));
+    }
+  };
+
+  const handleOpenTestModal = (repo: any) => {
+    setTestRepo(repo);
+    setGeneratedTest(null);
+    setTestActionNotice(null);
+    setIsTestModalOpen(true);
+  };
+
+  const handleGenerateTest = async () => {
+    if (!testRepo) return;
+    setIsGeneratingTest(true);
+    setTestActionNotice(null);
+    try {
+      const res = await api.generateTestSuggestion(testRepo.id, {
+        targetFile: testTargetFile,
+        testFramework,
+        diffSnippet: testSnippet || undefined,
+      });
+      if (res?.data) {
+        setGeneratedTest(res.data);
+      }
+    } catch (err: any) {
+      setTestActionNotice(`Failed to generate test: ${err.message}`);
+    } finally {
+      setIsGeneratingTest(false);
+    }
+  };
+
+  const handleRequestApprovalForTest = async () => {
+    if (!testRepo || !generatedTest) return;
+    try {
+      const res = await api.requestApproval(testRepo.id, {
+        actionType: 'CREATE_PULL_REQUEST',
+        targetBranch: testRepo.defaultBranch || 'main',
+        title: `Add automated tests for ${generatedTest.functionOrComponent || testTargetFile}`,
+        description: `Generated ${testFramework} test suite covering: ${generatedTest.behaviorTested}`,
+        payload: {
+          files: [
+            {
+              path: generatedTest.testFilePath || `tests/${testTargetFile.replace(/\.[^/.]+$/, '')}.test.ts`,
+              content: generatedTest.proposedTestCode,
+            },
+          ],
+        },
+      });
+      if (res?.data) {
+        setTestActionNotice(`Write approval request submitted with nonce ${res.data.nonce.slice(0, 8)}... Awaiting developer approval.`);
+      }
+    } catch (err: any) {
+      setTestActionNotice(`Failed to request approval: ${err.message}`);
+    }
+  };
+
+  const handleOpenApprovals = async (repo: any) => {
+    setApprovalsRepo(repo);
+    setIsApprovalsModalOpen(true);
+    setIsLoadingApprovals(true);
+    setApprovalNotice(null);
+    try {
+      const token = getToken();
+      const res = await fetch(`${API_URL}/repositories/${repo.id}/approvals`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setPendingApprovals(json.data || []);
+      }
+    } catch {} finally {
+      setIsLoadingApprovals(false);
+    }
+  };
+
+  const handleExecuteApproval = async (approval: any, approve: boolean) => {
+    if (!approvalsRepo) return;
+    setExecutingApproval(approval.id);
+    try {
+      const res = await api.executeApproval(approvalsRepo.id, approval.id, {
+        nonce: approval.nonce,
+        approve,
+        rejectionReason: approve ? undefined : 'Rejected by reviewer in dashboard',
+      });
+      if (res?.data?.success) {
+        setApprovalNotice(res.data.message || (approve ? 'Successfully approved and executed!' : 'Rejected.'));
+        setPendingApprovals((prev) => prev.filter((a) => a.id !== approval.id));
+      } else {
+        setApprovalNotice(res?.error?.message || 'Operation executed.');
+      }
+    } catch (err: any) {
+      setApprovalNotice(`Execution failed: ${err.message}`);
+    } finally {
+      setExecutingApproval(null);
+    }
+  };
 
   const fetchRepositories = useCallback(async () => {
     const token = getToken();
@@ -97,6 +242,7 @@ function RepositoriesPageContent() {
         const repos = json.data || [];
         setRepositories(repos);
         setSelectedRepoForPrs((curr) => curr || (repos.length > 0 ? repos[0].id : null));
+        repos.forEach((r: any) => fetchIndexStatus(r.id));
       }
     } catch {
       setError('Failed to reach API server.');
@@ -687,7 +833,7 @@ function RepositoriesPageContent() {
                     <h3 className="text-base font-bold text-[#111C18] mb-0.5 font-display">{repo.name}</h3>
                     <span className="text-xs font-mono text-[#52635B] block mb-4">{repo.fullName}</span>
 
-                    <div className="space-y-2.5 text-xs bg-[#F8FCFA] p-3.5 rounded-xl border border-[#E2EDE6] mb-5">
+                    <div className="space-y-2.5 text-xs bg-[#F8FCFA] p-3.5 rounded-xl border border-[#E2EDE6] mb-3">
                       <div className="flex justify-between items-center">
                         <span className="text-[#52635B] font-medium text-[11px]">Threshold:</span>
                         <span className="text-[#B7791F] font-bold bg-[#FEF3C7] px-2 py-0.5 rounded-full text-[10px] font-mono border border-[#FDE68A]">
@@ -707,30 +853,97 @@ function RepositoriesPageContent() {
                         </span>
                       </div>
                     </div>
+
+                    {/* Codebase Indexing Status & Action */}
+                    <div className="mb-4 p-3 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] text-xs font-mono">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[#52635B] font-medium flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-[#126B50]" />
+                          <span>Codebase Index</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTriggerIndexing(repo.id);
+                          }}
+                          disabled={indexingRepos[repo.id]}
+                          className="px-2.5 py-1 rounded-lg bg-[#126B50] hover:bg-[#0E523D] text-white text-[10px] font-semibold flex items-center gap-1 transition-all disabled:opacity-50"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${indexingRepos[repo.id] ? 'animate-spin' : ''}`} />
+                          <span>{indexingRepos[repo.id] ? 'Indexing...' : 'Index Codebase'}</span>
+                        </button>
+                      </div>
+                      <div className="text-[11px]">
+                        {repoIndexStatuses[repo.id]?.lastIndexedAt ? (
+                          <span className="text-[#126B50] font-semibold">
+                            ✓ {repoIndexStatuses[repo.id].indexedFilesCount} files ({repoIndexStatuses[repo.id].totalChunksCount} chunks)
+                          </span>
+                        ) : (
+                          <span className="text-[#98A2B3]">Not yet indexed for semantic search</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="pt-4 border-t border-[#E4EAE6] flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedRepoForPrs(repo.id);
-                      }}
-                      className="text-[11px] text-[#66736D] hover:text-[#126B50] font-mono flex items-center gap-1.5 font-medium"
-                    >
-                      <GitPullRequest className="w-3.5 h-3.5 text-[#126B50]" />
-                      <span>{repo.pullRequestsCount || 0} reviews • View PRs</span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openPolicyModal(repo);
-                      }}
-                      className="flex items-center gap-1 text-xs text-[#126B50] hover:underline font-mono font-bold"
-                    >
-                      <Sliders className="w-3.5 h-3.5" />
-                      <span>Policy</span>
-                    </button>
+                  <div className="pt-4 border-t border-[#E4EAE6] space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedRepoForPrs(repo.id);
+                        }}
+                        className="text-[11px] text-[#66736D] hover:text-[#126B50] font-mono flex items-center gap-1.5 font-medium"
+                      >
+                        <GitPullRequest className="w-3.5 h-3.5 text-[#126B50]" />
+                        <span>{repo.pullRequestsCount || 0} reviews • View PRs</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPolicyModal(repo);
+                        }}
+                        className="flex items-center gap-1 text-xs text-[#126B50] hover:underline font-mono font-bold"
+                      >
+                        <Sliders className="w-3.5 h-3.5" />
+                        <span>Policy</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <Link
+                        href={`/dashboard/qna?repoId=${repo.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[#EAF5EF] hover:bg-[#D5EADF] text-[#126B50] text-[11px] font-mono font-semibold transition-all"
+                      >
+                        <MessageSquareQuote className="w-3 h-3" />
+                        <span>Ask Q&A</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenTestModal(repo);
+                        }}
+                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-white border border-[#E4EAE6] hover:border-[#C7E4D6] text-[#14211D] text-[11px] font-mono font-semibold transition-all"
+                      >
+                        <FileCode2 className="w-3 h-3 text-[#126B50]" />
+                        <span>Suggest Tests</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenApprovals(repo);
+                        }}
+                        className="inline-flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg bg-white border border-[#E4EAE6] hover:border-[#C7E4D6] text-[#14211D] text-[11px] font-mono font-semibold transition-all"
+                        title="View Pending Write Approvals"
+                      >
+                        <Lock className="w-3 h-3 text-[#B7791F]" />
+                        <span>Approvals</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -1204,6 +1417,232 @@ function RepositoriesPageContent() {
                   <Save className="w-3.5 h-3.5" />
                   <span>{isSaving ? 'Saving...' : 'Save Policy'}</span>
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Test Suggestion Modal (Section 7) */}
+        {isTestModalOpen && testRepo && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-2xl bg-white rounded-2xl border border-[#E4EAE6] p-6 shadow-sleek-lg space-y-4 max-h-[90vh] flex flex-col text-[#14211D]">
+              <div className="flex items-center justify-between border-b border-[#E4EAE6] pb-3">
+                <div className="flex items-center gap-2">
+                  <FileCode2 className="w-4 h-4 text-[#126B50]" />
+                  <h3 className="text-base font-bold text-[#14211D] font-display">
+                    Generate Unit Tests: {testRepo.name}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsTestModalOpen(false)}
+                  className="text-[#66736D] hover:text-[#14211D] text-xs font-mono font-semibold"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+                {testActionNotice && (
+                  <div className="p-3 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] font-mono text-[11px] flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0" />
+                    <span>{testActionNotice}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
+                  <div>
+                    <label className="block text-[#14211D] font-semibold mb-1">Target Source File</label>
+                    <input
+                      type="text"
+                      value={testTargetFile}
+                      onChange={(e) => setTestTargetFile(e.target.value)}
+                      placeholder="e.g. src/auth/service.ts"
+                      className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl px-3 py-2 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[#14211D] font-semibold mb-1">Test Framework</label>
+                    <select
+                      value={testFramework}
+                      onChange={(e) => setTestFramework(e.target.value)}
+                      className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl px-3 py-2 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50]"
+                    >
+                      <option value="Jest">Jest / Vitest</option>
+                      <option value="Mocha">Mocha / Chai</option>
+                      <option value="Pytest">Pytest (Python)</option>
+                      <option value="Go testing">Go testing package</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[#14211D] font-semibold mb-1 font-mono">
+                    Code Snippet or Function Scope (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={testSnippet}
+                    onChange={(e) => setTestSnippet(e.target.value)}
+                    placeholder="Optional snippet or function name to target specifically..."
+                    className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl p-3 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50] font-mono"
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleGenerateTest}
+                    disabled={isGeneratingTest}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl btn-primary text-xs font-semibold"
+                  >
+                    <Sparkles className={`w-3.5 h-3.5 ${isGeneratingTest ? 'animate-spin' : ''}`} />
+                    <span>{isGeneratingTest ? 'Generating Test Suite...' : 'Generate Test Proposal'}</span>
+                  </button>
+                </div>
+
+                {generatedTest && (
+                  <div className="space-y-3 pt-3 border-t border-[#E4EAE6]">
+                    <div className="p-3.5 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[#14211D] font-display">
+                          {generatedTest.behaviorTested}
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold">
+                          {generatedTest.framework}
+                        </span>
+                      </div>
+                      <p className="text-[#52635B] text-xs">{generatedTest.whyItMatters}</p>
+
+                      {generatedTest.potentialEdgeCases?.length > 0 && (
+                        <div className="text-[11px] font-mono pt-1">
+                          <span className="font-semibold text-[#14211D] block mb-1">Edge Cases Handled:</span>
+                          <ul className="list-disc list-inside space-y-0.5 text-[#52635B]">
+                            {generatedTest.potentialEdgeCases.map((ec: string, i: number) => (
+                              <li key={i}>{ec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5 text-xs font-mono">
+                        <span className="text-[#66736D] font-semibold">
+                          Proposed File: <strong className="text-[#14211D]">{generatedTest.testFilePath}</strong>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(generatedTest.proposedTestCode)}
+                          className="text-[#126B50] hover:underline flex items-center gap-1"
+                        >
+                          <CheckSquare className="w-3 h-3" />
+                          <span>Copy Code</span>
+                        </button>
+                      </div>
+                      <pre className="p-4 rounded-xl bg-[#14211D] text-[#EAF5EF] font-mono text-[11px] overflow-x-auto max-h-64 whitespace-pre">
+                        {generatedTest.proposedTestCode}
+                      </pre>
+                    </div>
+
+                    {/* Section 7 Human-in-the-Loop Safe Approval */}
+                    <div className="p-3.5 rounded-xl bg-[#FEF3C7]/40 border border-[#FDE68A] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div>
+                        <span className="font-bold text-[#B7791F] block">Safe Two-Phase Write Control</span>
+                        <span className="text-[11px] text-[#66736D]">
+                          No write is executed automatically. Requesting approval binds this patch to a 64-character cryptographic nonce.
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleRequestApprovalForTest}
+                        className="px-3.5 py-2 rounded-xl bg-[#126B50] hover:bg-[#0E523D] text-white font-semibold whitespace-nowrap text-xs shadow-sm flex items-center gap-1.5"
+                      >
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>Request PR Approval</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pending Write Approvals Drawer (Section 7) */}
+        {isApprovalsModalOpen && approvalsRepo && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-2xl bg-white rounded-2xl border border-[#E4EAE6] p-6 shadow-sleek-lg space-y-4 max-h-[85vh] flex flex-col text-[#14211D]">
+              <div className="flex items-center justify-between border-b border-[#E4EAE6] pb-3">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-[#B7791F]" />
+                  <h3 className="text-base font-bold text-[#14211D] font-display">
+                    Pending Write Approvals: {approvalsRepo.name}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsApprovalsModalOpen(false)}
+                  className="text-[#66736D] hover:text-[#14211D] text-xs font-mono font-semibold"
+                >
+                  ✕ Close
+                </button>
+              </div>
+
+              {approvalNotice && (
+                <div className="p-3 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] font-mono text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0" />
+                  <span>{approvalNotice}</span>
+                </div>
+              )}
+
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs font-mono">
+                {isLoadingApprovals ? (
+                  <div className="py-12 text-center text-[#66736D]">Loading pending approval requests...</div>
+                ) : pendingApprovals.length === 0 ? (
+                  <div className="py-12 text-center text-[#66736D]">
+                    No pending approval requests. Write actions require explicit developer proposal before execution.
+                  </div>
+                ) : (
+                  pendingApprovals.map((approval) => (
+                    <div
+                      key={approval.id}
+                      className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] space-y-2.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[#14211D] text-sm font-display">
+                          {approval.title}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A] text-[10px] font-bold">
+                          {approval.status}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-[#52635B]">{approval.description}</p>
+
+                      <div className="text-[11px] text-[#66736D] space-y-1 bg-white p-2.5 rounded-lg border border-[#E4EAE6]">
+                        <div>Target Branch: <strong className="text-[#14211D]">{approval.targetBranch}</strong></div>
+                        <div>Target SHA: <strong className="text-[#14211D]">{approval.targetCommitSha || 'HEAD'}</strong></div>
+                        <div>Nonce: <code className="text-[#126B50]">{approval.nonce.slice(0, 16)}...</code></div>
+                        <div>Expires: {new Date(approval.expiresAt).toLocaleString()}</div>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E4EAE6]">
+                        <button
+                          onClick={() => handleExecuteApproval(approval, false)}
+                          disabled={Boolean(executingApproval)}
+                          className="px-3 py-1.5 rounded-lg border border-[#F8B4B4] text-[#C43D4B] hover:bg-[#FDE8E8] text-xs font-semibold"
+                        >
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => handleExecuteApproval(approval, true)}
+                          disabled={Boolean(executingApproval)}
+                          className="px-4 py-1.5 rounded-lg bg-[#126B50] hover:bg-[#0E523D] text-white text-xs font-semibold flex items-center gap-1.5"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{executingApproval === approval.id ? 'Executing via GitHub...' : 'Approve & Execute via GitHub'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

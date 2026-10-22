@@ -8,6 +8,8 @@ import {
   CheckRunUpdateParams,
   ReviewCommentPayload,
   GitHubPullRequestSummary,
+  RepositoryTreeItem,
+  FileContentResult,
 } from './github-adapter';
 
 export interface GitHubAppClientOptions {
@@ -28,26 +30,37 @@ export class GitHubAppClient implements IGitHubAdapter {
       );
     }
 
-    let resolvedKey = options.privateKey;
+    let resolvedKey = typeof options.privateKey === 'string'
+      ? options.privateKey.trim().replace(/^["']|["']$/g, '')
+      : '';
+
     if (typeof resolvedKey === 'string' && !resolvedKey.includes('PRIVATE KEY')) {
-      const baseFilename = path.basename(resolvedKey);
-      const candidates = [
-        resolvedKey,
-        path.resolve(process.cwd(), resolvedKey),
-        path.resolve(process.cwd(), '..', resolvedKey),
-        path.resolve(process.cwd(), '../..', resolvedKey),
-        path.resolve('/etc/secrets', resolvedKey),
-        path.resolve('/etc/secrets', baseFilename),
-        '/etc/secrets/github-app-private-key.pem',
-      ];
-      for (const candidate of candidates) {
-        try {
-          if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
-            resolvedKey = fs.readFileSync(candidate, 'utf8');
-            break;
+      const isPemOrPath = resolvedKey.endsWith('.pem') || resolvedKey.includes('/') || resolvedKey.includes('\\') || resolvedKey.startsWith('.');
+      const isFingerprint = resolvedKey.startsWith('SHA256:');
+
+      if (isPemOrPath || isFingerprint) {
+        const targetFilename = isFingerprint ? 'github-app-private-key.pem' : resolvedKey;
+        const baseFilename = path.basename(targetFilename);
+        const candidates = [
+          targetFilename,
+          path.resolve(process.cwd(), targetFilename),
+          path.resolve(process.cwd(), '..', targetFilename),
+          path.resolve(process.cwd(), '../..', targetFilename),
+          path.resolve(__dirname, '..', '..', '..', targetFilename),
+          path.resolve(__dirname, '..', '..', '..', baseFilename),
+          path.resolve(process.cwd(), baseFilename),
+          path.resolve('/etc/secrets', targetFilename),
+          path.resolve('/etc/secrets', baseFilename),
+        ];
+        for (const candidate of candidates) {
+          try {
+            if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+              resolvedKey = fs.readFileSync(candidate, 'utf8');
+              break;
+            }
+          } catch {
+            // Continue searching
           }
-        } catch {
-          // Continue searching
         }
       }
     }
@@ -417,4 +430,204 @@ export class GitHubAppClient implements IGitHubAdapter {
     const { data } = await octokit.rest.apps.listInstallations();
     return data;
   }
+
+  /**
+   * Fetch recursive git tree for repository indexing
+   */
+  public async fetchRepositoryTree(
+    owner: string,
+    repo: string,
+    treeSha: string = 'HEAD',
+    recursive: boolean = true
+  ): Promise<RepositoryTreeItem[]> {
+    const octokit = this.getInstallationOctokit();
+    const { data } = await octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: treeSha,
+      recursive: recursive ? '1' : undefined,
+    });
+
+    return (data.tree || []).map((item) => ({
+      path: item.path || '',
+      mode: item.mode || '',
+      type: item.type === 'blob' ? 'blob' : 'tree',
+      sha: item.sha || '',
+      size: item.size,
+    }));
+  }
+
+  /**
+   * Fetch file content from GitHub repository at a given ref
+   */
+  public async fetchFileContent(
+    owner: string,
+    repo: string,
+    filePath: string,
+    ref?: string
+  ): Promise<FileContentResult> {
+    const octokit = this.getInstallationOctokit();
+    const { data } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path: filePath,
+      ref,
+    });
+
+    if (Array.isArray(data) || !('content' in data)) {
+      throw new Error(`Path ${filePath} is a directory or submodule, not a file.`);
+    }
+
+    const encoding = data.encoding || 'base64';
+    const content =
+      encoding === 'base64'
+        ? Buffer.from(data.content, 'base64').toString('utf8')
+        : data.content;
+
+    return {
+      content,
+      encoding: 'utf8',
+      sha: data.sha,
+      size: data.size,
+    };
+  }
+
+  /**
+   * Retrieve the latest commit SHA for a branch
+   */
+  public async getLatestCommitSha(owner: string, repo: string, branch: string = 'HEAD'): Promise<string> {
+    const octokit = this.getInstallationOctokit();
+    const { data } = await octokit.rest.repos.getCommit({
+      owner,
+      repo,
+      ref: branch,
+    });
+    return data.sha;
+  }
+
+  /**
+   * Create a new branch from a specific commit SHA (Requires authorized approval)
+   */
+  public async createBranch(
+    owner: string,
+    repo: string,
+    branchName: string,
+    fromSha: string
+  ): Promise<{ ref: string; sha: string }> {
+    const octokit = this.getInstallationOctokit();
+    const { data } = await octokit.rest.git.createRef({
+      owner,
+      repo,
+      ref: `refs/heads/${branchName}`,
+      sha: fromSha,
+    });
+    return { ref: data.ref, sha: data.object.sha };
+  }
+
+  /**
+   * Commit proposed file changes to a target branch
+   */
+  public async commitFileChanges(
+    owner: string,
+    repo: string,
+    branch: string,
+    message: string,
+    files: Array<{ path: string; content: string }>
+  ): Promise<{ commitSha: string }> {
+    const octokit = this.getInstallationOctokit();
+
+    // 1. Get latest commit on the branch
+    const { data: refData } = await octokit.rest.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+    });
+    const parentCommitSha = refData.object.sha;
+
+    const { data: parentCommit } = await octokit.rest.git.getCommit({
+      owner,
+      repo,
+      commit_sha: parentCommitSha,
+    });
+    const baseTreeSha = parentCommit.tree.sha;
+
+    // 2. Create blobs for each file
+    const treeItems = await Promise.all(
+      files.map(async (file) => {
+        const { data: blob } = await octokit.rest.git.createBlob({
+          owner,
+          repo,
+          content: Buffer.from(file.content).toString('base64'),
+          encoding: 'base64',
+        });
+        return {
+          path: file.path,
+          mode: '100644' as const,
+          type: 'blob' as const,
+          sha: blob.sha,
+        };
+      })
+    );
+
+    // 3. Create tree
+    const { data: newTree } = await octokit.rest.git.createTree({
+      owner,
+      repo,
+      base_tree: baseTreeSha,
+      tree: treeItems,
+    });
+
+    // 4. Create commit
+    const { data: newCommit } = await octokit.rest.git.createCommit({
+      owner,
+      repo,
+      message,
+      tree: newTree.sha,
+      parents: [parentCommitSha],
+    });
+
+    // 5. Update ref
+    await octokit.rest.git.updateRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+      sha: newCommit.sha,
+    });
+
+    return { commitSha: newCommit.sha };
+  }
+
+  /**
+   * Create a pull request on GitHub
+   */
+  public async createPullRequest(
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    head: string,
+    base: string
+  ): Promise<PullRequestDetails> {
+    const octokit = this.getInstallationOctokit();
+    const { data } = await octokit.rest.pulls.create({
+      owner,
+      repo,
+      title,
+      body,
+      head,
+      base,
+    });
+
+    return {
+      id: data.id,
+      number: data.number,
+      title: data.title,
+      body: data.body || '',
+      state: data.state as 'open' | 'closed',
+      user: { login: data.user?.login || 'unknown', avatarUrl: data.user?.avatar_url },
+      head: { ref: data.head.ref, sha: data.head.sha },
+      base: { ref: data.base.ref, sha: data.base.sha },
+    };
+  }
 }
+

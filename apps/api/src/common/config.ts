@@ -1,4 +1,20 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+
+// Load .env reliably from current working directory or monorepo root
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), '..', '.env'),
+  path.resolve(process.cwd(), '../..', '.env'),
+  path.resolve(__dirname, '..', '..', '..', '.env'),
+];
+for (const envPath of envCandidates) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    break;
+  }
+}
 dotenv.config();
 
 const isProduction = process.env.NODE_ENV === 'production';

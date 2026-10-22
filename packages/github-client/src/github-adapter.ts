@@ -45,6 +45,21 @@ export interface GitHubAppInfo {
   installUrl: string;
 }
 
+export interface RepositoryTreeItem {
+  path: string;
+  mode: string;
+  type: 'blob' | 'tree';
+  sha: string;
+  size?: number;
+}
+
+export interface FileContentResult {
+  content: string;
+  encoding: string;
+  sha: string;
+  size: number;
+}
+
 export interface IGitHubAdapter {
   fetchPullRequest(owner: string, repo: string, pullNumber: number): Promise<PullRequestDetails>;
   fetchPullRequestDiff(owner: string, repo: string, pullNumber: number): Promise<string>;
@@ -66,4 +81,43 @@ export interface IGitHubAdapter {
     perPage?: number
   ): Promise<GitHubPullRequestSummary[]>;
   getAppInfo?(): Promise<GitHubAppInfo>;
+  fetchRepositoryTree(
+    owner: string,
+    repo: string,
+    treeSha?: string,
+    recursive?: boolean
+  ): Promise<RepositoryTreeItem[]>;
+  fetchFileContent(
+    owner: string,
+    repo: string,
+    filePath: string,
+    ref?: string
+  ): Promise<FileContentResult>;
+  createBranch?(
+    owner: string,
+    repo: string,
+    branchName: string,
+    fromSha: string
+  ): Promise<{ ref: string; sha: string }>;
+  commitFileChanges?(
+    owner: string,
+    repo: string,
+    branch: string,
+    message: string,
+    files: Array<{ path: string; content: string }>
+  ): Promise<{ commitSha: string }>;
+  createPullRequest?(
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    head: string,
+    base: string
+  ): Promise<PullRequestDetails>;
+  getLatestCommitSha?(
+    owner: string,
+    repo: string,
+    branch?: string
+  ): Promise<string>;
 }
+

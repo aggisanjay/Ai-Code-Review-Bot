@@ -5,6 +5,8 @@ import {
   CheckRunUpdateParams,
   GitHubPullRequestSummary,
   GitHubAppInfo,
+  RepositoryTreeItem,
+  FileContentResult,
 } from './github-adapter';
 
 export const SAMPLE_DIFF_JWT_AUTH = `diff --git a/src/services/token.service.ts b/src/services/token.service.ts
@@ -152,6 +154,94 @@ export class MockGitHubAdapter implements IGitHubAdapter {
       name: 'ReviewFlow AI',
       htmlUrl: 'https://github.com/apps/reviewflow-ai',
       installUrl: 'https://github.com/apps/reviewflow-ai/installations/new',
+    };
+  }
+
+  async fetchRepositoryTree(
+    _owner: string,
+    _repo: string,
+    _treeSha: string = 'HEAD',
+    _recursive: boolean = true
+  ): Promise<RepositoryTreeItem[]> {
+    return [
+      { path: 'src/main.ts', mode: '100644', type: 'blob', sha: 'sha_main_ts_1', size: 1200 },
+      { path: 'src/services/token.service.ts', mode: '100644', type: 'blob', sha: 'sha_token_ts_1', size: 2400 },
+      { path: 'src/services/session.service.ts', mode: '100644', type: 'blob', sha: 'sha_session_ts_1', size: 1800 },
+      { path: 'src/controllers/auth.controller.ts', mode: '100644', type: 'blob', sha: 'sha_auth_ts_1', size: 3100 },
+      { path: 'tests/unit/token.service.test.ts', mode: '100644', type: 'blob', sha: 'sha_test_ts_1', size: 1500 },
+      { path: 'README.md', mode: '100644', type: 'blob', sha: 'sha_readme_1', size: 850 },
+    ];
+  }
+
+  async fetchFileContent(
+    _owner: string,
+    _repo: string,
+    filePath: string,
+    _ref?: string
+  ): Promise<FileContentResult> {
+    const mockFiles: Record<string, string> = {
+      'src/main.ts': `import express from 'express';\nimport { authRouter } from './controllers/auth.controller';\n\nconst app = express();\napp.use(express.json());\napp.use('/auth', authRouter);\napp.listen(4000);\n`,
+      'src/services/token.service.ts': `import jwt from 'jsonwebtoken';\n\nexport class TokenService {\n  signAccessToken(userId: string) {\n    return jwt.sign({ sub: userId }, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '15m' });\n  }\n\n  verifyRefreshToken(token: string) {\n    const secret = process.env.JWT_REFRESH_SECRET || 'default-secret-do-not-use-in-prod';\n    return jwt.verify(token, secret);\n  }\n}\n`,
+      'src/services/session.service.ts': `import Redis from 'ioredis';\nconst redis = new Redis();\n\nexport class SessionService {\n  async revokeSession(tokenId: string) {\n    const isRevoked = await redis.get(\`blacklist:\${tokenId}\`);\n    if (isRevoked) throw new Error('Revoked');\n    await redis.set(\`blacklist:\${tokenId}\`, '1');\n  }\n}\n`,
+      'src/controllers/auth.controller.ts': `import { TokenService } from '../services/token.service';\nconst tokenService = new TokenService();\n\nexport async function handleLogin(req: any, res: any) {\n  const token = tokenService.signAccessToken(req.body.userId);\n  res.json({ token });\n}\n`,
+      'tests/unit/token.service.test.ts': `import { describe, it } from 'node:test';\nimport assert from 'node:assert';\nimport { TokenService } from '../../src/services/token.service';\n\ndescribe('TokenService', () => {\n  it('generates token for user', () => {\n    const service = new TokenService();\n    const token = service.signAccessToken('user-1');\n    assert.ok(token);\n  });\n});\n`,
+      'README.md': `# Mock Service\nSample repository for ReviewFlow AI verification.\n`,
+    };
+
+    const content = mockFiles[filePath] || `// Source code for ${filePath}\nexport const placeholder = true;\n`;
+    return {
+      content,
+      encoding: 'utf8',
+      sha: `sha_${Buffer.from(filePath).toString('hex').slice(0, 10)}`,
+      size: content.length,
+    };
+  }
+
+  async getLatestCommitSha(_owner: string, _repo: string, _branch: string = 'HEAD'): Promise<string> {
+    return '8f7a1c3e90b2d4f8a1e2c3b4a5d6e7f8a9b0c1d2';
+  }
+
+  async createBranch(
+    owner: string,
+    repo: string,
+    branchName: string,
+    fromSha: string
+  ): Promise<{ ref: string; sha: string }> {
+    console.log(`[MockGitHub] Created branch ${branchName} on ${owner}/${repo} from ${fromSha.substring(0, 7)}`);
+    return { ref: `refs/heads/${branchName}`, sha: fromSha };
+  }
+
+  async commitFileChanges(
+    owner: string,
+    repo: string,
+    branch: string,
+    message: string,
+    files: Array<{ path: string; content: string }>
+  ): Promise<{ commitSha: string }> {
+    const commitSha = `mock_commit_${Date.now().toString(16)}`;
+    console.log(`[MockGitHub] Committed ${files.length} files to ${owner}/${repo}@${branch} ("${message}"): ${commitSha}`);
+    return { commitSha };
+  }
+
+  async createPullRequest(
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    head: string,
+    base: string
+  ): Promise<PullRequestDetails> {
+    const prNumber = Math.floor(Math.random() * 800) + 200;
+    console.log(`[MockGitHub] Created Pull Request #${prNumber} on ${owner}/${repo}: "${title}" (${head} -> ${base})`);
+    return {
+      id: 992000 + prNumber,
+      number: prNumber,
+      title,
+      body,
+      state: 'open',
+      user: { login: 'reviewflow-ai[bot]', avatarUrl: 'https://github.com/identicons/reviewflow.png' },
+      head: { ref: head, sha: '8f7a1c3e90b2d4f8a1e2c3b4a5d6e7f8a9b0c1d2' },
+      base: { ref: base, sha: '1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b' },
     };
   }
 

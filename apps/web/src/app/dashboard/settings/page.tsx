@@ -341,6 +341,9 @@ export default function SettingsPage() {
           const reviewsUsed = billing?.usage?.reviewsUsed ?? billing?.reviewsUsed ?? 0;
           const reviewsLimit = billing?.usage?.reviewsLimit ?? billing?.reviewsLimit ?? (currentPlan === 'PRO' ? 500 : currentPlan === 'TEAM' ? 2500 : 25);
           const reviewsRemaining = billing?.usage?.reviewsRemaining ?? billing?.reviewsRemaining ?? Math.max(0, reviewsLimit - reviewsUsed);
+          const qnaUsed = billing?.usage?.qnaUsed ?? billing?.qnaUsed ?? 0;
+          const qnaLimit = billing?.usage?.qnaLimit ?? billing?.qnaLimit ?? (currentPlan === 'PRO' ? 2500 : currentPlan === 'TEAM' ? 10000 : 100);
+          const qnaRemaining = billing?.usage?.qnaRemaining ?? billing?.qnaRemaining ?? Math.max(0, qnaLimit - qnaUsed);
           const reposUsed = billing?.usage?.repositoriesUsed ?? billing?.reposUsed ?? (billing ? 1 : 0);
           const reposLimit = billing?.usage?.repositoriesLimit ?? billing?.reposLimit ?? (currentPlan === 'PRO' ? 15 : currentPlan === 'TEAM' ? 50 : 3);
 
@@ -348,7 +351,7 @@ export default function SettingsPage() {
             <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-6">
               <div>
                 <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
-                  Subscription Tier & Review Quotas
+                  Subscription Tier, PR Reviews & Codebase Q&A Quotas
                 </h3>
                 <p className="text-xs text-[#66736D] mt-0.5">
                   Current active subscription plan and real-time monthly usage for {org?.name || 'your workspace'}.
@@ -356,7 +359,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Real DB Quota Status Panel */}
-              <div className="p-5 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs font-mono">
+              <div className="p-5 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-xs font-mono">
                 <div className="space-y-1">
                   <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reviews</span>
                   <div className="text-2xl font-bold text-[#14211D]">
@@ -366,6 +369,17 @@ export default function SettingsPage() {
                     {reviewsRemaining} reviews remaining
                   </div>
                 </div>
+
+                <div className="space-y-1">
+                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Codebase Q&A Queries</span>
+                  <div className="text-2xl font-bold text-[#14211D]">
+                    {qnaUsed} / {qnaLimit}
+                  </div>
+                  <div className="text-[11px] text-[#126B50] font-semibold">
+                    {qnaRemaining} queries remaining
+                  </div>
+                </div>
+
                 <div className="space-y-1">
                   <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reset Date</span>
                   <div className="text-sm font-bold text-[#14211D] mt-1">
@@ -375,6 +389,7 @@ export default function SettingsPage() {
                     Resets 1st of each calendar month UTC
                   </div>
                 </div>
+
                 <div className="space-y-1">
                   <span className="text-[#66736D] text-[11px] uppercase font-semibold">Connected Repositories</span>
                   <div className="text-sm font-bold text-[#14211D] mt-1">
@@ -410,10 +425,10 @@ export default function SettingsPage() {
                       </div>
                       <p className="text-xs text-[#66736D] leading-relaxed">
                         {tier === 'FREE'
-                          ? '25 reviews / month • 3 repos'
+                          ? '25 reviews • 100 Q&A queries / mo • 3 repos'
                           : tier === 'PRO'
-                          ? '500 reviews / month • 15 repos'
-                          : '2,500 reviews / month • 50 repos'}
+                          ? '500 reviews • 2,500 Q&A queries / mo • 15 repos'
+                          : '2,500 reviews • 10,000 Q&A queries / mo • 50 repos'}
                       </p>
                     </div>
 

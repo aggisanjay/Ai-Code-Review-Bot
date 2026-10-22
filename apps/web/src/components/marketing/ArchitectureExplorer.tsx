@@ -132,6 +132,45 @@ export function ArchitectureExplorer() {
         'Audit trail logged with input diff hash',
       ],
     },
+    {
+      id: 'indexing',
+      stepNum: '06',
+      name: 'Whole-Codebase Vector Indexing',
+      badge: 'RAG Pipeline',
+      latency: '~1.4s',
+      summary:
+        'Recursively indexes authorized repository trees using language-aware syntax chunking and genuine vector embeddings.',
+      technicalDetails: [
+        'Filters non-code binaries, lockfiles, node_modules, and vendor directories',
+        'Syntax-aware chunker preserves function and class boundaries with symbol scopes',
+        'Incremental tree comparison using SHA-256 hashes to reindex only modified files',
+        'Purges obsolete and stale code chunks upon file deletion or renaming',
+      ],
+      securityControls: [
+        'Organization tenant isolation on vector storage',
+        'Read-only recursive tree traversal',
+      ],
+    },
+    {
+      id: 'qna-approvals',
+      stepNum: '07',
+      name: 'Grounded Q&A & Safe Write Approvals',
+      badge: 'Human-in-the-Loop',
+      latency: '~2.1s',
+      summary:
+        'Answers deep architectural questions with verifiable citations and requires two-phase cryptographic developer approval for write actions.',
+      technicalDetails: [
+        'Strict line citations [filePath#L{start}-L{end}] with genuine source evidence',
+        'Honest insufficient-evidence guardrail prevents hallucinated explanations',
+        'Zero automatic writes: proposed test suites and patches require developer authorization',
+        'Two-phase approval protocol bound to 64-character cryptographic nonce & commit SHA revalidation',
+      ],
+      securityControls: [
+        'Cryptographic approval nonces',
+        'Target commit SHA revalidation',
+        'Replay attack prevention',
+      ],
+    },
   ];
 
   // Auto-play progression loop for live pipeline simulation

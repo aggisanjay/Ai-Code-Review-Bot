@@ -212,7 +212,11 @@ pullRequestsRouter.post('/:id/review', async (req: AuthenticatedRequest, res: Re
     return;
   }
 
-  const idempotencyKey = `ondemand:${pr.id}:${pr.headSha}`;
+  const baseKey = `ondemand:${pr.id}:${pr.headSha}`;
+  const existingWithKey = await prisma.reviewJob.findUnique({
+    where: { idempotencyKey: baseKey },
+  });
+  const idempotencyKey = existingWithKey ? `${baseKey}:${Date.now()}` : baseKey;
 
   const reviewJob = await prisma.reviewJob.create({
     data: {

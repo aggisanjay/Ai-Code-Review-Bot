@@ -16,10 +16,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  memberships   OrganizationMember[]
-  sessions      Session[]
-  feedbacks     FindingFeedback[]
-  auditLogs     AuditLog[]
+  memberships           OrganizationMember[]
+  sessions              Session[]
+  feedbacks             FindingFeedback[]
+  auditLogs             AuditLog[]
+  codebaseConversations CodebaseConversation[]
+  approvalRequests      ApprovalRequest[]
 }
 
 model Session {
@@ -50,6 +52,7 @@ model Organization {
   usageRecords         UsageRecord[]
   auditLogs            AuditLog[]
   apiKeys              ApiKey[]
+  approvalRequests     ApprovalRequest[]
 }
 
 model OrganizationMember {
@@ -81,23 +84,31 @@ model GitHubInstallation {
 }
 
 model Repository {
-  id                 String       @id @default(cuid())
-  organizationId     String
-  githubRepoId       BigInt       @unique
-  fullName           String       @unique // e.g. "acme/api-core"
-  name               String
-  owner              String
-  defaultBranch      String       @default("main")
-  isPrivate          Boolean      @default(true)
-  isActive           Boolean      @default(true)
-  autoReviewEnabled  Boolean      @default(true)
-  lastReviewAt       DateTime?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  id                   String       @id @default(cuid())
+  organizationId       String
+  githubRepoId         BigInt       @unique
+  fullName             String       @unique // e.g. "acme/api-core"
+  name                 String
+  owner                String
+  defaultBranch        String       @default("main")
+  isPrivate            Boolean      @default(true)
+  isActive             Boolean      @default(true)
+  autoReviewEnabled    Boolean      @default(true)
+  lastReviewAt         DateTime?
+  lastIndexedAt        DateTime?
+  lastIndexedCommitSha String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  pullRequests       PullRequest[]
-  reviewPolicies     ReviewPolicy[]
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pullRequests          PullRequest[]
+  reviewPolicies        ReviewPolicy[]
+  indexJobs             RepositoryIndexJob[]
+  indexedFiles          IndexedFile[]
+  codeChunks            CodeChunk[]
+  codebaseConversations CodebaseConversation[]
+  testSuggestions       TestSuggestion[]
+  approvalRequests      ApprovalRequest[]
 }
 
 model ReviewPolicy {
@@ -140,6 +151,7 @@ model PullRequest {
   repository       Repository          @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   commits          PullRequestCommit[]
   reviewJobs       ReviewJob[]
+  testSuggestions  TestSuggestion[]
 
   @@unique([repositoryId, number])
 }
@@ -318,4 +330,166 @@ model InstallationState {
   @@index([state])
   @@index([organizationId])
 }
+
+model RepositoryIndexJob {
+  id              String      @id @default(cuid())
+  repositoryId    String
+  commitSha       String
+  branch          String      @default("main")
+  status          String      @default("QUEUED") // QUEUED, CLONING, CHUNKING, EMBEDDING, COMPLETED, FAILED, SUPERSEDED
+  progressPercent Int         @default(0)
+  totalFiles      Int         @default(0)
+  indexedFiles    Int         @default(0)
+  totalChunks     Int         @default(0)
+  statusMessage   String?
+  errorMessage    String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationSeconds Float?
+  tokensUsed      Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  repository      Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@index([repositoryId, commitSha])
+  @@index([status])
+}
+
+model IndexedFile {
+  id            String      @id @default(cuid())
+  repositoryId  String
+  filePath      String
+  commitSha     String
+  language      String
+  sizeBytes     Int
+  lineCount     Int
+  contentHash   String
+  lastIndexedAt DateTime    @default(now())
+
+  repository    Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  chunks        CodeChunk[]
+
+  @@unique([repositoryId, filePath])
+  @@index([repositoryId, commitSha])
+}
+
+model CodeChunk {
+  id            String      @id @default(cuid())
+  fileId        String
+  repositoryId  String
+  filePath      String
+  startLine     Int
+  endLine       Int
+  content       String
+  tokenCount    Int
+  embeddingJson String?     // Float array stored as JSON for portable high-dimensional vector search
+  symbolContext String?     // Top-level function, class, or symbol scope
+  commitSha     String
+  createdAt     DateTime    @default(now())
+
+  file          IndexedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  repository    Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@index([repositoryId, filePath])
+  @@index([commitSha])
+}
+
+model CodebaseConversation {
+  id           String            @id @default(cuid())
+  repositoryId String
+  userId       String
+  title        String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  repository   Repository        @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages     CodebaseMessage[]
+
+  @@index([repositoryId, userId])
+}
+
+model CodebaseMessage {
+  id             String               @id @default(cuid())
+  conversationId String
+  role           String               // USER, ASSISTANT
+  content        String
+  citationsJson  String               @default("[]") // JSON array of citations { filePath, startLine, endLine, commitSha, snippet }
+  tokensUsed     Int                  @default(0)
+  createdAt      DateTime             @default(now())
+
+  conversation   CodebaseConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
+model TestSuggestion {
+  id                   String       @id @default(cuid())
+  pullRequestId        String?
+  repositoryId         String
+  behaviorTested       String
+  rationale            String
+  targetFile           String
+  testFramework        String       // jest, vitest, mocha, node:test, pytest
+  proposedCode         String
+  edgeCases            String       @default("[]") // JSON array of edge cases
+  existingCoverageNotes String?
+  status               String       @default("PROPOSED") // PROPOSED, APPROVED, REJECTED, APPLIED
+  createdAt            DateTime     @default(now())
+
+  pullRequest          PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  repository           Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@index([repositoryId])
+  @@index([pullRequestId])
+}
+
+model ApprovalRequest {
+  id                String       @id @default(cuid())
+  organizationId    String
+  repositoryId      String
+  userId            String       // Requester
+  approvedByUserId  String?      // Approver
+  actionType        String       // CREATE_BRANCH, CREATE_PR, APPLY_PATCH, COMMIT_FILE
+  targetBranch      String
+  targetCommitSha   String
+  title             String
+  description       String
+  payloadJson       String       // Exact patch or content to apply
+  nonce             String       @unique // Cryptographic one-time token preventing replays
+  status            String       @default("PENDING") // PENDING, APPROVED, REJECTED, EXECUTED, EXPIRED
+  rejectionReason   String?
+  executionResult   String?
+  expiresAt         DateTime
+  executedAt        DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository        Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, repositoryId])
+  @@index([nonce])
+}
+
+model EvaluationBenchmarkRun {
+  id                       String   @id @default(cuid())
+  datasetVersion           String
+  provider                 String
+  model                    String
+  totalCases               Int
+  precision                Float
+  recall                   Float
+  falsePositiveRate        Float
+  severityAccuracy         Float
+  evidenceLocationAccuracy Float
+  unsupportedClaimRate     Float
+  avgLatencyMs             Float
+  totalTokensUsed          Int
+  detailsJson              String   @default("{}")
+  createdAt                DateTime @default(now())
+}
+
 

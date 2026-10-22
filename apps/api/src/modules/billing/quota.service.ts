@@ -215,3 +215,112 @@ export async function getQuotaStatus(
     percentage,
   };
 }
+
+export interface QnAQuotaCheckResult {
+  allowed: boolean;
+  currentUsage: number;
+  qnaUsed: number;
+  limit: number;
+  qnaLimit: number;
+  remaining: number;
+  qnaRemaining: number;
+  plan: PlanTier;
+  resetDate: Date;
+  message?: string;
+  reason?: string;
+  percentage: number;
+}
+
+/**
+ * Authoritative server-side Codebase Q&A quota enforcement.
+ * Checks whether an organization is within its monthly Q&A query limits.
+ */
+export async function checkAndIncrementQnAQuota(
+  organizationId: string,
+  options: { isBillable?: boolean; dbClient?: any } = { isBillable: true }
+): Promise<QnAQuotaCheckResult> {
+  const { periodYear, periodMonth, resetDate } = getCalendarMonthPeriod();
+  const client = options.dbClient || prisma;
+
+  const org = await client.organization.findUnique({
+    where: { id: organizationId },
+    select: { id: true, plan: true, name: true },
+  });
+
+  if (!org) {
+    throw new Error(`Organization ${organizationId} not found during Q&A quota check.`);
+  }
+
+  const plan = ((org.plan || 'FREE').toUpperCase() as PlanTier) in PLAN_CONFIGS
+    ? ((org.plan || 'FREE').toUpperCase() as PlanTier)
+    : 'FREE';
+
+  const planLimits = PLAN_CONFIGS[plan] || PLAN_CONFIGS.FREE;
+  const limit = planLimits.maxQnaQueriesPerMonth;
+
+  const startOfMonth = new Date(Date.UTC(periodYear, periodMonth - 1, 1, 0, 0, 0));
+  const currentUsage = await client.codebaseMessage.count({
+    where: {
+      conversation: { repository: { organizationId } },
+      role: 'ASSISTANT',
+      createdAt: { gte: startOfMonth, lt: resetDate },
+    },
+  });
+
+  const isAtOrExceedingLimit = currentUsage >= limit;
+
+  if (isAtOrExceedingLimit) {
+    const resetDateFormatted = resetDate.toISOString().split('T')[0];
+    const message = `Monthly Codebase Q&A quota of ${limit} queries reached for organization on ${planLimits.name} (${currentUsage}/${limit} used). Quota resets on ${resetDateFormatted}. Upgrade to a higher tier to ask more questions.`;
+
+    logger.warn('Organization reached monthly Codebase Q&A quota', {
+      organizationId,
+      plan,
+      currentUsage,
+      limit,
+      resetDate: resetDateFormatted,
+    });
+
+    return {
+      allowed: false,
+      currentUsage,
+      qnaUsed: currentUsage,
+      limit,
+      qnaLimit: limit,
+      remaining: 0,
+      qnaRemaining: 0,
+      plan,
+      resetDate,
+      message,
+      reason: 'QUOTA_EXCEEDED',
+      percentage: 100,
+    };
+  }
+
+  const remaining = Math.max(0, limit - currentUsage);
+  const percentage = Math.min(100, Math.round((currentUsage / limit) * 100));
+
+  return {
+    allowed: true,
+    currentUsage,
+    qnaUsed: currentUsage,
+    limit,
+    qnaLimit: limit,
+    remaining,
+    qnaRemaining: remaining,
+    plan,
+    resetDate,
+    percentage,
+  };
+}
+
+/**
+ * Non-mutating read of current monthly Codebase Q&A quota usage.
+ */
+export async function getQnAQuotaStatus(
+  organizationId: string,
+  dbClient?: any
+): Promise<QnAQuotaCheckResult> {
+  return checkAndIncrementQnAQuota(organizationId, { isBillable: false, dbClient });
+}
+

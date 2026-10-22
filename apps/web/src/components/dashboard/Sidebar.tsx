@@ -11,6 +11,8 @@ import {
   Settings,
   LogOut,
   Building2,
+  Sparkles,
+  Activity,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -86,9 +88,10 @@ export function Sidebar() {
 
   const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Codebase Q&A', href: '/dashboard/qna', icon: Sparkles },
     { name: 'Pull Requests', href: '/dashboard/pull-requests', icon: GitPullRequest },
     { name: 'Repositories', href: '/dashboard/repositories', icon: FolderGit2 },
-    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    { name: 'AI Observability', href: '/dashboard/analytics', icon: Activity },
     { name: 'Settings & Policy', href: '/dashboard/settings', icon: Settings },
   ];
 

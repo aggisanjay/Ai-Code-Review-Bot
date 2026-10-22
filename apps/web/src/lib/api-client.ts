@@ -201,7 +201,128 @@ class ApiClient {
       body: JSON.stringify({ planTier }),
     });
   }
+
+  // Repository Indexing
+  async triggerIndexing(repoId: string, commitSha?: string, branch?: string) {
+    return this.fetch<{ message: string; indexJob: any }>(`/repositories/${repoId}/index`, {
+      method: 'POST',
+      body: JSON.stringify({ commitSha, branch }),
+    });
+  }
+
+  async getIndexingStatus(repoId: string) {
+    return this.fetch<{
+      repositoryId: string;
+      fullName: string;
+      lastIndexedAt: string | null;
+      lastIndexedCommitSha: string | null;
+      indexedFilesCount: number;
+      totalChunksCount: number;
+      latestJob: any;
+    }>(`/repositories/${repoId}/index/status`);
+  }
+
+  // Codebase Q&A
+  async askCodebase(repoId: string, question: string, conversationId?: string) {
+    return this.fetch<{
+      conversationId: string;
+      messageId: string;
+      answer: string;
+      citations: Array<{ filePath: string; startLine: number; endLine: number; snippet?: string }>;
+      tokensUsed: number;
+      retrievedChunksCount: number;
+      telemetry?: {
+        evaluation: {
+          groundedScore: number;
+          confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+          citationsCount: number;
+          sourceFilesCount: number;
+          antiHallucinationVerified: boolean;
+          verdict: string;
+        };
+        source: {
+          files: string[];
+          totalChunksRetrieved: number;
+          commitSha?: string;
+          scopes: string[];
+        };
+        cost: {
+          tokensUsed: number;
+          estimatedCostUsd: number;
+          ratePer1kTokens: number;
+        };
+        latency: {
+          totalMs: number;
+          retrievalMs: number;
+          generationMs: number;
+        };
+        fallback: {
+          provider: string;
+          model: string;
+          fallbackTriggered: boolean;
+          status: 'DIRECT' | 'FALLBACK ACTIVE';
+        };
+      };
+    }>(`/repositories/${repoId}/qna`, {
+      method: 'POST',
+      body: JSON.stringify({ question, conversationId }),
+    });
+  }
+
+  async getConversations(repoId: string) {
+    return this.fetch<any[]>(`/repositories/${repoId}/qna/conversations`);
+  }
+
+  async getConversation(repoId: string, convoId: string) {
+    return this.fetch<any>(`/repositories/${repoId}/qna/conversations/${convoId}`);
+  }
+
+  // Test Suggestions & Improvements
+  async generateTestSuggestion(repoId: string, params: { targetFile: string; diffSnippet?: string; testFramework?: string }) {
+    return this.fetch<any>(`/repositories/${repoId}/suggestions/test`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getTestSuggestions(repoId: string) {
+    return this.fetch<any[]>(`/repositories/${repoId}/suggestions/tests`);
+  }
+
+  // Write Approval Workflow
+  async requestApproval(repoId: string, payload: {
+    actionType: string;
+    targetBranch: string;
+    targetCommitSha?: string;
+    title: string;
+    description: string;
+    payload: any;
+  }) {
+    return this.fetch<{ approvalId: string; nonce: string; expiresAt: string; message: string }>(
+      `/repositories/${repoId}/approvals/request`,
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    );
+  }
+
+  async executeApproval(repoId: string, approvalId: string, params: { nonce: string; approve: boolean; rejectionReason?: string }) {
+    return this.fetch<any>(`/repositories/${repoId}/approvals/${approvalId}/execute`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  // Finding Feedback
+  async submitFindingFeedback(findingId: string, feedbackType: string, comment?: string) {
+    return this.fetch<any>(`/reviews/findings/${findingId}/feedback`, {
+      method: 'POST',
+      body: JSON.stringify({ feedbackType, comment }),
+    });
+  }
 }
 
 export const api = new ApiClient();
+
 

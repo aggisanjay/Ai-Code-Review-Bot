@@ -13,6 +13,11 @@ import {
   Sparkles,
   Clock,
   AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Copy,
+  Check,
+  MessageSquare,
 } from 'lucide-react';
 import { Header } from '../../../../components/dashboard/Header';
 
@@ -153,6 +158,55 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
         };
       });
     } catch {}
+  };
+
+  const [submittingFeedback, setSubmittingFeedback] = useState<Record<string, string>>({});
+  const [feedbackSuccess, setFeedbackSuccess] = useState<Record<string, string>>({});
+
+  const handleFeedback = async (findingId: string, feedbackType: string, comment?: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) return;
+
+    setSubmittingFeedback((prev) => ({ ...prev, [findingId]: feedbackType }));
+    try {
+      const res = await fetch(`${API_URL}/reviews/findings/${findingId}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ feedbackType, comment: comment || undefined }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        setFeedbackSuccess((prev) => ({ ...prev, [findingId]: feedbackType }));
+        setJob((prev: any) => {
+          if (!prev?.result) return prev;
+          return {
+            ...prev,
+            result: {
+              ...prev.result,
+              findings: prev.result.findings.map((f: any) =>
+                f.id === findingId
+                  ? {
+                      ...f,
+                      feedbacks: [...(f.feedbacks || []), json.data],
+                    }
+                  : f
+              ),
+            },
+          };
+        });
+      }
+    } catch {
+    } finally {
+      setSubmittingFeedback((prev) => {
+        const next = { ...prev };
+        delete next[findingId];
+        return next;
+      });
+    }
   };
 
   if (isLoading) {
@@ -519,6 +573,49 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
                         {f.suggestedPatch}
                       </pre>
                     )}
+                  </div>
+
+                  {/* Developer Review Feedback Toolbar (Section 11) */}
+                  <div className="mt-3 pt-3 border-t border-[#E4EAE6] flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#66736D]">
+                      <span>Review Quality Feedback:</span>
+                      {f.feedbacks && f.feedbacks.length > 0 && (
+                        <span className="font-semibold text-[#126B50] bg-[#EAF5EF] px-2 py-0.5 rounded-full border border-[#C7E4D6]">
+                          ✓ Marked as {f.feedbacks[f.feedbacks.length - 1].feedbackType.replace('_', ' ')}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center flex-wrap gap-1.5">
+                      {[
+                        { type: 'HELPFUL', label: 'Useful', icon: ThumbsUp, color: 'hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200' },
+                        { type: 'FALSE_POSITIVE', label: 'Incorrect', icon: ThumbsDown, color: 'hover:bg-red-50 hover:text-red-700 hover:border-red-200' },
+                        { type: 'DUPLICATE', label: 'Duplicate', icon: Copy, color: 'hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200' },
+                        { type: 'NOT_APPLICABLE', label: 'Not Applicable', icon: AlertCircle, color: 'hover:bg-gray-100 hover:text-gray-700 hover:border-gray-300' },
+                        { type: 'ALREADY_KNOWN', label: 'Already Known', icon: Clock, color: 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200' },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        const isSubmitting = submittingFeedback[f.id] === item.type;
+                        const isSelected = (f.feedbacks && f.feedbacks.some((fb: any) => fb.feedbackType === item.type)) || feedbackSuccess[f.id] === item.type;
+
+                        return (
+                          <button
+                            key={item.type}
+                            type="button"
+                            disabled={Boolean(submittingFeedback[f.id])}
+                            onClick={() => handleFeedback(f.id, item.type)}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-mono font-medium transition-all ${
+                              isSelected
+                                ? 'bg-[#126B50] text-white border-[#126B50] shadow-sm font-semibold'
+                                : `bg-white border-[#E4EAE6] text-[#52635B] ${item.color}`
+                            }`}
+                          >
+                            <Icon className={`w-3 h-3 ${isSubmitting ? 'animate-spin' : ''}`} />
+                            <span>{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               ))}

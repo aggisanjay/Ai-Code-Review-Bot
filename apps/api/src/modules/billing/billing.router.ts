@@ -50,6 +50,15 @@ billingRouter.get('/subscription', async (req: AuthenticatedRequest, res: Respon
   const usage = org.usageRecords[0] || { reviewCount: 0, tokenCount: 0, estimatedCostUsd: 0 };
   const subscription = org.subscriptions[0] || null;
 
+  const startOfMonth = new Date(Date.UTC(periodYear, periodMonth - 1, 1, 0, 0, 0));
+  const qnaCount = await prisma.codebaseMessage.count({
+    where: {
+      conversation: { repository: { organizationId: org.id } },
+      role: 'ASSISTANT',
+      createdAt: { gte: startOfMonth, lt: resetDate },
+    },
+  });
+
   res.json({
     data: {
       plan: currentPlan,
@@ -57,6 +66,11 @@ billingRouter.get('/subscription', async (req: AuthenticatedRequest, res: Respon
       reviewsUsed: usage.reviewCount,
       reviewsLimit: planLimits.maxReviewsPerMonth,
       reviewsRemaining: Math.max(0, planLimits.maxReviewsPerMonth - usage.reviewCount),
+      qnaUsed: qnaCount,
+      qnaLimit: planLimits.maxQnaQueriesPerMonth,
+      qnaRemaining: Math.max(0, planLimits.maxQnaQueriesPerMonth - qnaCount),
+      tokenCount: usage.tokenCount,
+      estimatedCostUsd: parseFloat(usage.estimatedCostUsd.toFixed(4)),
       reposUsed: org._count.repositories,
       reposLimit: planLimits.maxRepositories,
       resetDate: resetDate.toISOString().split('T')[0],
@@ -65,6 +79,12 @@ billingRouter.get('/subscription', async (req: AuthenticatedRequest, res: Respon
         reviewsLimit: planLimits.maxReviewsPerMonth,
         reviewsRemaining: Math.max(0, planLimits.maxReviewsPerMonth - usage.reviewCount),
         reviewsPercentage: Math.min(100, Math.round((usage.reviewCount / planLimits.maxReviewsPerMonth) * 100)),
+        qnaUsed: qnaCount,
+        qnaLimit: planLimits.maxQnaQueriesPerMonth,
+        qnaRemaining: Math.max(0, planLimits.maxQnaQueriesPerMonth - qnaCount),
+        qnaPercentage: Math.min(100, Math.round((qnaCount / planLimits.maxQnaQueriesPerMonth) * 100)),
+        tokenCount: usage.tokenCount,
+        estimatedCostUsd: parseFloat(usage.estimatedCostUsd.toFixed(4)),
         resetDate: resetDate.toISOString().split('T')[0],
         repositoriesUsed: org._count.repositories,
         repositoriesLimit: planLimits.maxRepositories,

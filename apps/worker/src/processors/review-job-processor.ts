@@ -36,6 +36,30 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
     return;
   }
 
+  if (job.status === 'COMPLETED' || job.status === 'SUPERSEDED') {
+    console.log(`[Worker] ReviewJob ${job.id} is already ${job.status}. Skipping.`);
+    return;
+  }
+
+  // Atomically claim job from QUEUED to FETCHING_DIFF to prevent concurrent workers processing the same job
+  const claimResult = await prisma.reviewJob.updateMany({
+    where: {
+      id: jobId,
+      status: 'QUEUED',
+    },
+    data: {
+      status: 'FETCHING_DIFF',
+      startedAt: new Date(),
+      progressPercent: 20,
+      statusMessage: 'Claimed by worker for analysis...',
+    },
+  });
+
+  if (claimResult.count === 0 && job.status === 'QUEUED') {
+    console.log(`[Worker] ReviewJob ${jobId} was already claimed by another concurrent worker. Skipping.`);
+    return;
+  }
+
   const { pullRequest } = job;
   const { repository } = pullRequest;
 
@@ -358,6 +382,18 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error(`[Worker] ❌ Failed ReviewJob ${job.id}:`, errorMsg);
+
+    // Guard against overwriting an already COMPLETED job from a parallel execution
+    const currentJob = await prisma.reviewJob.findUnique({
+      where: { id: job.id },
+      select: { status: true },
+    });
+
+    if (currentJob?.status === 'COMPLETED') {
+      console.log(`[Worker] ReviewJob ${job.id} was already completed successfully. Skipping FAILED status overwrite.`);
+      return;
+    }
+
     await prisma.reviewJob.update({
       where: { id: job.id },
       data: {

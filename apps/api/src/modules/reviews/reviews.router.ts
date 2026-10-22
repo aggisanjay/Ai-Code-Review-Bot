@@ -23,6 +23,7 @@ reviewsRouter.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
       result: {
         include: {
           findings: {
+            include: { feedbacks: true },
             orderBy: [{ severity: 'asc' }, { startLine: 'asc' }],
           },
         },
@@ -60,7 +61,10 @@ reviewsRouter.get('/:id/stream', async (req: AuthenticatedRequest, res: Response
           pullRequest: { include: { repository: true } },
           result: {
             include: {
-              findings: { orderBy: [{ severity: 'asc' }, { startLine: 'asc' }] },
+              findings: {
+                include: { feedbacks: true },
+                orderBy: [{ severity: 'asc' }, { startLine: 'asc' }],
+              },
             },
           },
         },

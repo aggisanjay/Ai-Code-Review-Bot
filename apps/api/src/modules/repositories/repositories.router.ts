@@ -5,15 +5,32 @@ import { ReviewPolicySchema } from '@reviewflow/shared';
 import { GitHubAppClient, MockGitHubAdapter, IGitHubAdapter } from '@reviewflow/github-client';
 import { authenticateToken, requireRole, AuthenticatedRequest } from '../../common/auth.middleware';
 import { logger } from '../../common/logger';
-import { enqueueReviewJob } from '../../common/queue';
-import { checkAndIncrementReviewQuota } from '../billing/quota.service';
+import { enqueueReviewJob, enqueueIndexJob } from '../../common/queue';
+import { checkAndIncrementReviewQuota, checkAndIncrementQnAQuota } from '../billing/quota.service';
+import {
+  askCodebaseQuestion,
+  generateTestSuggestion,
+  GeminiProvider,
+  OpenAiProvider,
+  MockLlmProvider,
+  GeminiEmbeddingProvider,
+  OpenAiEmbeddingProvider,
+  MockEmbeddingProvider,
+  ILlmProvider,
+  IEmbeddingProvider,
+  CODE_ASSISTANT_TOOLS,
+} from '@reviewflow/ai-review';
 
 export const repositoriesRouter = Router();
 repositoriesRouter.use(authenticateToken);
 
 function getGitHubAppClient(installationId?: number): GitHubAppClient | null {
   const appId = process.env.GITHUB_APP_ID;
-  const privateKey = process.env.GITHUB_PRIVATE_KEY || 'github-app-private-key.pem';
+  let privateKey = process.env.GITHUB_PRIVATE_KEY || 'github-app-private-key.pem';
+
+  if (privateKey && (privateKey.startsWith('SHA256:') || privateKey.startsWith('"SHA256:'))) {
+    privateKey = 'github-app-private-key.pem';
+  }
 
   if (!appId || !privateKey) {
     return null;
@@ -1081,6 +1098,42 @@ repositoriesRouter.post(
           });
           return;
         }
+
+        if (['FAILED', 'CANCELLED', 'SUPERSEDED'].includes(existingJob.status)) {
+          // Re-queue the existing failed job directly without duplicate key or extra billing
+          const updatedJob = await prisma.reviewJob.update({
+            where: { id: existingJob.id },
+            data: {
+              status: 'QUEUED',
+              progressPercent: 0,
+              statusMessage: 'Review job re-queued on demand by user.',
+              errorMessage: null,
+              startedAt: null,
+              completedAt: null,
+            },
+          });
+
+          await enqueueReviewJob(updatedJob.id);
+
+          logger.info('Re-queued previous failed review job on demand', {
+            repo: repo.fullName,
+            prNumber: pr.number,
+            commitSha: prDetails.head.sha,
+            jobId: updatedJob.id,
+          });
+
+          res.status(202).json({
+            data: {
+              message: 'Review job successfully re-queued for execution.',
+              reviewJobId: updatedJob.id,
+              pullRequestId: pr.id,
+              prNumber: pr.number,
+              commitSha: prDetails.head.sha,
+              status: updatedJob.status,
+            },
+          });
+          return;
+        }
       }
 
       // 4. Supersede any older in-flight jobs on this PR
@@ -1112,10 +1165,14 @@ repositoriesRouter.post(
         return;
       }
 
-      // 6. Create new ReviewJob
-      const idempotencyKey = forceRerun
-        ? `review-${pr.id}-${prDetails.head.sha}-rerun-${Date.now()}`
-        : `review-${pr.id}-${prDetails.head.sha}`;
+      // 6. Create new ReviewJob (guarantee unique idempotencyKey even if an existing row has baseKey)
+      const baseKey = `review-${pr.id}-${prDetails.head.sha}`;
+      const existingWithKey = await prisma.reviewJob.findUnique({
+        where: { idempotencyKey: baseKey },
+      });
+      const idempotencyKey = (forceRerun || existingWithKey)
+        ? `${baseKey}-rerun-${Date.now()}`
+        : baseKey;
 
       const reviewJob = await prisma.reviewJob.create({
         data: {
@@ -1163,3 +1220,717 @@ repositoriesRouter.post(
     }
   }
 );
+
+function getApiLlmProvider(): ILlmProvider {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openAiKey = process.env.OPENAI_API_KEY;
+  if (geminiKey && geminiKey.trim() !== '') {
+    return new GeminiProvider(geminiKey, process.env.AI_MODEL_GEMINI || 'gemini-3.5-flash');
+  }
+  if (openAiKey && openAiKey.trim() !== '') {
+    return new OpenAiProvider(openAiKey, process.env.AI_MODEL_OPENAI || 'gpt-4o');
+  }
+  return new MockLlmProvider();
+}
+
+function getApiEmbeddingProvider(): IEmbeddingProvider {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openAiKey = process.env.OPENAI_API_KEY;
+  if (geminiKey && geminiKey.trim() !== '') {
+    return new GeminiEmbeddingProvider(geminiKey);
+  }
+  if (openAiKey && openAiKey.trim() !== '') {
+    return new OpenAiEmbeddingProvider(openAiKey);
+  }
+  return new MockEmbeddingProvider();
+}
+
+/**
+ * POST /api/v1/repositories/:id/index
+ * Trigger repository codebase indexing
+ */
+repositoriesRouter.post(
+  '/:id/index',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const { commitSha, branch } = req.body || {};
+
+    const repo = await prisma.repository.findFirst({
+      where: {
+        id,
+        organizationId: req.organizationId!,
+      },
+    });
+
+    if (!repo) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Repository not found in your organization.' },
+      });
+    }
+
+    // Check if an indexing job is already running
+    const existingRunning = await prisma.repositoryIndexJob.findFirst({
+      where: {
+        repositoryId: repo.id,
+        status: { in: ['QUEUED', 'CLONING', 'CHUNKING', 'EMBEDDING'] },
+      },
+    });
+
+    if (existingRunning) {
+      return res.status(409).json({
+        error: {
+          code: 'INDEXING_ALREADY_IN_PROGRESS',
+          message: 'An indexing job is already active for this repository.',
+          jobId: existingRunning.id,
+        },
+      });
+    }
+
+    const indexJob = await prisma.repositoryIndexJob.create({
+      data: {
+        repositoryId: repo.id,
+        commitSha: commitSha || repo.lastIndexedCommitSha || 'HEAD',
+        branch: branch || repo.defaultBranch || 'main',
+        status: 'QUEUED',
+        statusMessage: 'Indexing job created and enqueued.',
+      },
+    });
+
+    await enqueueIndexJob(indexJob.id);
+
+    res.status(202).json({
+      data: {
+        message: 'Repository indexing job queued successfully.',
+        indexJob,
+      },
+    });
+  }
+);
+
+/**
+ * GET /api/v1/repositories/:id/index/status
+ * Get the latest indexing status and chunk metrics for a repository
+ */
+repositoriesRouter.get(
+  '/:id/index/status',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+
+    const repo = await prisma.repository.findFirst({
+      where: {
+        id,
+        organizationId: req.organizationId!,
+      },
+    });
+
+    if (!repo) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Repository not found in your organization.' },
+      });
+    }
+
+    const [latestJob, indexedFilesCount, totalChunksCount] = await Promise.all([
+      prisma.repositoryIndexJob.findFirst({
+        where: { repositoryId: repo.id },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.indexedFile.count({ where: { repositoryId: repo.id } }),
+      prisma.codeChunk.count({ where: { repositoryId: repo.id } }),
+    ]);
+
+    res.json({
+      data: {
+        repositoryId: repo.id,
+        fullName: repo.fullName,
+        lastIndexedAt: repo.lastIndexedAt,
+        lastIndexedCommitSha: repo.lastIndexedCommitSha,
+        indexedFilesCount,
+        totalChunksCount,
+        latestJob,
+      },
+    });
+  }
+);
+
+/**
+ * POST /api/v1/repositories/:id/qna
+ * Codebase Q&A: ask a question grounded in repository source evidence
+ */
+repositoriesRouter.post(
+  '/:id/qna',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const { question, conversationId } = req.body || {};
+
+    if (!question || typeof question !== 'string' || question.trim() === '') {
+      return res.status(400).json({
+        error: { code: 'INVALID_INPUT', message: 'Field "question" is required.' },
+      });
+    }
+
+    const repo = await prisma.repository.findFirst({
+      where: {
+        id,
+        organizationId: req.organizationId!,
+      },
+    });
+
+    if (!repo) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Repository not found in your organization.' },
+      });
+    }
+
+    // Authoritative monthly Codebase Q&A quota enforcement
+    const quota = await checkAndIncrementQnAQuota(repo.organizationId);
+    if (!quota.allowed) {
+      return res.status(403).json({
+        error: {
+          code: 'QUOTA_EXCEEDED',
+          message: quota.message || 'Monthly Codebase Q&A quota reached. Upgrade your plan to ask more questions.',
+          quota,
+        },
+      });
+    }
+
+    // Resolve or create conversation
+    let conversation = conversationId
+      ? await prisma.codebaseConversation.findFirst({
+          where: { id: conversationId, repositoryId: repo.id, userId: req.user!.id },
+          include: { messages: { orderBy: { createdAt: 'asc' }, take: 10 } },
+        })
+      : null;
+
+    if (!conversation) {
+      conversation = await prisma.codebaseConversation.create({
+        data: {
+          repositoryId: repo.id,
+          userId: req.user!.id,
+          title: question.slice(0, 80),
+        },
+        include: { messages: true },
+      });
+    }
+
+    // Record user message
+    await prisma.codebaseMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: 'USER',
+        content: question.trim(),
+      },
+    });
+
+    const llmProvider = getApiLlmProvider();
+    const embeddingProvider = getApiEmbeddingProvider();
+
+    // Run Q&A engine
+    const history = (conversation.messages || []).map((m) => ({
+      role: m.role as 'USER' | 'ASSISTANT',
+      content: m.content,
+    }));
+
+    const result = await askCodebaseQuestion({
+      repositoryId: repo.id,
+      repoFullName: repo.fullName,
+      question: question.trim(),
+      history,
+      llmProvider,
+      embeddingProvider,
+    });
+
+    // Record assistant response with citations and telemetry
+    const assistantMessage = await prisma.codebaseMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: 'ASSISTANT',
+        content: result.answer,
+        citationsJson: JSON.stringify({
+          citations: result.citations,
+          telemetry: result.telemetry,
+        }),
+        tokensUsed: result.tokensUsed,
+      },
+    });
+
+    // Meter tokens and cost to organization monthly usage
+    const now = new Date();
+    const periodYear = now.getFullYear();
+    const periodMonth = now.getMonth() + 1;
+    await prisma.usageRecord.upsert({
+      where: {
+        organizationId_periodYear_periodMonth: {
+          organizationId: repo.organizationId,
+          periodYear,
+          periodMonth,
+        },
+      },
+      create: {
+        organizationId: repo.organizationId,
+        periodYear,
+        periodMonth,
+        reviewCount: 0,
+        tokenCount: result.tokensUsed,
+        estimatedCostUsd: result.telemetry.cost.estimatedCostUsd,
+      },
+      update: {
+        tokenCount: { increment: result.tokensUsed },
+        estimatedCostUsd: { increment: result.telemetry.cost.estimatedCostUsd },
+      },
+    }).catch((err: any) => {
+      logger.warn('Failed to update UsageRecord for Q&A query', { error: err.message });
+    });
+
+    res.json({
+      data: {
+        conversationId: conversation.id,
+        messageId: assistantMessage.id,
+        answer: result.answer,
+        citations: result.citations,
+        tokensUsed: result.tokensUsed,
+        retrievedChunksCount: result.retrievedChunksCount,
+        telemetry: result.telemetry,
+      },
+    });
+  }
+);
+
+/**
+ * GET /api/v1/repositories/:id/qna/conversations
+ * List conversations for a repository
+ */
+repositoriesRouter.get(
+  '/:id/qna/conversations',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+
+    const conversations = await prisma.codebaseConversation.findMany({
+      where: {
+        repositoryId: id,
+        userId: req.user!.id,
+      },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        _count: { select: { messages: true } },
+      },
+      take: 20,
+    });
+
+    res.json({ data: conversations });
+  }
+);
+
+/**
+ * GET /api/v1/repositories/:id/qna/conversations/:convoId
+ * Get messages in a conversation
+ */
+repositoriesRouter.get(
+  '/:id/qna/conversations/:convoId',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id, convoId } = req.params;
+
+    const conversation = await prisma.codebaseConversation.findFirst({
+      where: {
+        id: convoId,
+        repositoryId: id,
+        userId: req.user!.id,
+      },
+      include: {
+        messages: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+
+    if (!conversation) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Conversation not found.' },
+      });
+    }
+
+    const formattedMessages = conversation.messages.map((m) => {
+      let citations: any[] = [];
+      let telemetry: any = undefined;
+      if (m.citationsJson) {
+        try {
+          const parsed = JSON.parse(m.citationsJson);
+          if (Array.isArray(parsed)) {
+            citations = parsed;
+          } else if (parsed && typeof parsed === 'object') {
+            citations = parsed.citations || [];
+            telemetry = parsed.telemetry || undefined;
+          }
+        } catch {}
+      }
+      return {
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        citations,
+        telemetry,
+        tokensUsed: m.tokensUsed,
+        createdAt: m.createdAt,
+      };
+    });
+
+    res.json({
+      data: {
+        ...conversation,
+        messages: formattedMessages,
+      },
+    });
+  }
+);
+
+/**
+ * POST /api/v1/repositories/:id/suggestions/test
+ * Generate unit/integration test proposal for a file
+ */
+repositoriesRouter.post(
+  '/:id/suggestions/test',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const { targetFile, diffSnippet, testFramework } = req.body || {};
+
+    if (!targetFile) {
+      return res.status(400).json({
+        error: { code: 'INVALID_INPUT', message: 'Field "targetFile" is required.' },
+      });
+    }
+
+    const repo = await prisma.repository.findFirst({
+      where: { id, organizationId: req.organizationId! },
+    });
+
+    if (!repo) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Repository not found.' },
+      });
+    }
+
+    // Retrieve file content from DB or GitHub
+    let fileContent = '';
+    const indexed = await prisma.indexedFile.findUnique({
+      where: { repositoryId_filePath: { repositoryId: repo.id, filePath: targetFile } },
+      include: { chunks: true },
+    });
+
+    if (indexed && indexed.chunks.length > 0) {
+      fileContent = indexed.chunks.map((c) => c.content).join('\n');
+    } else {
+      const activeInstallationId = await resolveActiveInstallation(repo.organizationId, repo.owner);
+      const github = getGitHubAppClient(activeInstallationId || undefined) || new MockGitHubAdapter();
+      try {
+        const remote = await github.fetchFileContent(repo.owner, repo.name, targetFile, repo.defaultBranch);
+        fileContent = remote.content;
+      } catch {
+        fileContent = `// File content placeholder for ${targetFile}`;
+      }
+    }
+
+    const llmProvider = getApiLlmProvider();
+    const proposal = await generateTestSuggestion({
+      targetFile,
+      fileContent,
+      diffSnippet,
+      testFramework,
+      llmProvider,
+    });
+
+    // Save test suggestion record
+    const saved = await prisma.testSuggestion.create({
+      data: {
+        repositoryId: repo.id,
+        behaviorTested: proposal.behaviorTested,
+        rationale: proposal.rationale,
+        targetFile: proposal.targetFile,
+        testFramework: proposal.testFramework,
+        proposedCode: proposal.proposedCode,
+        edgeCases: JSON.stringify(proposal.edgeCases),
+        existingCoverageNotes: proposal.existingCoverageNotes || null,
+        status: 'PROPOSED',
+      },
+    });
+
+    res.json({ data: saved });
+  }
+);
+
+/**
+ * GET /api/v1/repositories/:id/suggestions/tests
+ * List test suggestions for a repository
+ */
+repositoriesRouter.get(
+  '/:id/suggestions/tests',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+
+    const suggestions = await prisma.testSuggestion.findMany({
+      where: { repositoryId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    res.json({ data: suggestions });
+  }
+);
+
+/**
+ * POST /api/v1/repositories/:id/approvals/request
+ * Create a human approval request before any write action
+ */
+repositoriesRouter.post(
+  '/:id/approvals/request',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const { actionType, targetBranch, targetCommitSha, title, description, payload } = req.body || {};
+
+    if (!actionType || !targetBranch || !payload) {
+      return res.status(400).json({
+        error: { code: 'INVALID_INPUT', message: 'Fields actionType, targetBranch, and payload are required.' },
+      });
+    }
+
+    const repo = await prisma.repository.findFirst({
+      where: { id, organizationId: req.organizationId! },
+    });
+
+    if (!repo) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Repository not found.' } });
+    }
+
+    // Cryptographic one-time nonce
+    const nonce = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    const approval = await prisma.approvalRequest.create({
+      data: {
+        organizationId: req.organizationId!,
+        repositoryId: repo.id,
+        userId: req.user!.id,
+        actionType,
+        targetBranch,
+        targetCommitSha: targetCommitSha || 'HEAD',
+        title: title || `Proposed write action: ${actionType}`,
+        description: description || 'Human-in-the-loop developer authorization required.',
+        payloadJson: typeof payload === 'string' ? payload : JSON.stringify(payload),
+        nonce,
+        status: 'PENDING',
+        expiresAt,
+      },
+    });
+
+    res.status(201).json({
+      data: {
+        approvalId: approval.id,
+        nonce,
+        status: approval.status,
+        expiresAt: approval.expiresAt,
+        message: 'Approval request created. Authorized developer confirmation required before write execution.',
+      },
+    });
+  }
+);
+
+/**
+ * POST /api/v1/repositories/:id/approvals/:approvalId/execute
+ * Authorized developer approves and executes write action
+ */
+repositoriesRouter.post(
+  '/:id/approvals/:approvalId/execute',
+  requireRole(['OWNER', 'ADMIN']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id, approvalId } = req.params;
+    const { nonce, approve, rejectionReason } = req.body || {};
+
+    const approval = await prisma.approvalRequest.findFirst({
+      where: {
+        id: approvalId,
+        repositoryId: id,
+        organizationId: req.organizationId!,
+      },
+      include: { repository: true },
+    });
+
+    if (!approval) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Approval request not found.' } });
+    }
+
+    if (approval.status !== 'PENDING') {
+      return res.status(409).json({
+        error: { code: 'ALREADY_RESOLVED', message: `Request is already ${approval.status}. Replay blocked.` },
+      });
+    }
+
+    if (new Date() > approval.expiresAt) {
+      await prisma.approvalRequest.update({
+        where: { id: approval.id },
+        data: { status: 'EXPIRED' },
+      });
+      return res.status(410).json({ error: { code: 'EXPIRED', message: 'Approval request has expired.' } });
+    }
+
+    // Validate cryptographic nonce
+    if (!nonce || nonce !== approval.nonce) {
+      return res.status(403).json({ error: { code: 'INVALID_NONCE', message: 'Security nonce mismatch or missing.' } });
+    }
+
+    // Rejection branch
+    if (approve === false) {
+      const updated = await prisma.approvalRequest.update({
+        where: { id: approval.id },
+        data: {
+          status: 'REJECTED',
+          approvedByUserId: req.user!.id,
+          rejectionReason: rejectionReason || 'Rejected by developer.',
+        },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          organizationId: req.organizationId!,
+          userId: req.user!.id,
+          action: 'REJECT_WRITE_APPROVAL',
+          resourceType: 'ApprovalRequest',
+          resourceId: approval.id,
+          detailsJson: JSON.stringify({ actionType: approval.actionType, reason: rejectionReason }),
+        },
+      });
+
+      return res.json({ data: { status: 'REJECTED', approval: updated } });
+    }
+
+    // Approved branch -> Execute write via GitHub App
+    const activeInstallationId = await resolveActiveInstallation(
+      approval.repository.organizationId,
+      approval.repository.owner
+    );
+    const github = getGitHubAppClient(activeInstallationId || undefined) || new MockGitHubAdapter();
+
+    try {
+      let executionResult: any;
+
+      if (approval.actionType === 'CREATE_BRANCH' && github.createBranch) {
+        executionResult = await github.createBranch(
+          approval.repository.owner,
+          approval.repository.name,
+          approval.targetBranch,
+          approval.targetCommitSha
+        );
+      } else if ((approval.actionType === 'COMMIT_FILE' || approval.actionType === 'APPLY_PATCH') && github.commitFileChanges) {
+        const payload = JSON.parse(approval.payloadJson);
+        const files = Array.isArray(payload.files) ? payload.files : [{ path: payload.path, content: payload.content }];
+        executionResult = await github.commitFileChanges(
+          approval.repository.owner,
+          approval.repository.name,
+          approval.targetBranch,
+          approval.title,
+          files
+        );
+      } else if (approval.actionType === 'CREATE_PR' && github.createPullRequest) {
+        const payload = JSON.parse(approval.payloadJson);
+        executionResult = await github.createPullRequest(
+          approval.repository.owner,
+          approval.repository.name,
+          approval.title,
+          approval.description,
+          payload.headBranch || approval.targetBranch,
+          payload.baseBranch || approval.repository.defaultBranch
+        );
+      } else {
+        throw new Error(`Unsupported actionType: ${approval.actionType}`);
+      }
+
+      const updated = await prisma.approvalRequest.update({
+        where: { id: approval.id },
+        data: {
+          status: 'EXECUTED',
+          approvedByUserId: req.user!.id,
+          executedAt: new Date(),
+          executionResult: JSON.stringify(executionResult),
+        },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          organizationId: req.organizationId!,
+          userId: req.user!.id,
+          action: 'EXECUTE_WRITE_APPROVAL',
+          resourceType: 'ApprovalRequest',
+          resourceId: approval.id,
+          detailsJson: JSON.stringify({ actionType: approval.actionType, executionResult }),
+        },
+      });
+
+      res.json({
+        data: {
+          status: 'EXECUTED',
+          approval: updated,
+          executionResult,
+          message: 'Write action successfully executed with authorized confirmation.',
+        },
+      });
+    } catch (err: any) {
+      res.status(502).json({
+        error: { code: 'WRITE_EXECUTION_FAILED', message: `Execution failed on GitHub: ${err.message}` },
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/v1/repositories/:id/tools/execute
+ * Controlled read-only tool calling execution
+ */
+repositoriesRouter.post(
+  '/:id/tools/execute',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const { toolName, args } = req.body || {};
+
+    const tool = CODE_ASSISTANT_TOOLS[toolName];
+    if (!tool) {
+      return res.status(404).json({
+        error: {
+          code: 'TOOL_NOT_FOUND',
+          message: `Tool "${toolName}" not recognized. Permitted tools: ${Object.keys(CODE_ASSISTANT_TOOLS).join(', ')}`,
+        },
+      });
+    }
+
+    const repo = await prisma.repository.findFirst({
+      where: { id, organizationId: req.organizationId! },
+    });
+
+    if (!repo) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Repository not found in your organization.' } });
+    }
+
+    const activeInstallationId = await resolveActiveInstallation(repo.organizationId, repo.owner);
+    const github = getGitHubAppClient(activeInstallationId || undefined) || new MockGitHubAdapter();
+    const embeddingProvider = getApiEmbeddingProvider();
+
+    try {
+      const result = await tool.execute(args || {}, {
+        organizationId: req.organizationId!,
+        repositoryId: repo.id,
+        githubAdapter: github,
+        embeddingProvider,
+      });
+
+      res.json({ data: { toolName, result } });
+    } catch (err: any) {
+      res.status(400).json({
+        error: { code: 'TOOL_EXECUTION_ERROR', message: err.message },
+      });
+    }
+  }
+);
+
