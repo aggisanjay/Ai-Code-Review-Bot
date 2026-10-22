@@ -388,53 +388,6 @@ function CodebaseQnAContent() {
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
-
-            {/* Indexing Action with Force Reindex Dropdown */}
-            <div className="relative">
-              <div className="inline-flex rounded-xl shadow-sleek-sm">
-                <button
-                  onClick={() => handleTriggerIndexing(false)}
-                  disabled={isIndexing || !selectedRepoId}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-l-xl btn-primary text-xs font-semibold transition-all disabled:opacity-50"
-                  title="Run incremental codebase indexing"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isIndexing ? 'animate-spin' : ''}`} />
-                  <span className="hidden sm:inline">{isIndexing ? 'Indexing...' : 'Index Codebase'}</span>
-                  <span className="sm:hidden">{isIndexing ? '...' : 'Index'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowIndexMenu(!showIndexMenu)}
-                  disabled={isIndexing || !selectedRepoId}
-                  className="px-2 py-2 rounded-r-xl border-l border-white/20 btn-primary text-xs transition-all disabled:opacity-50"
-                  title="More indexing options"
-                >
-                  <ChevronDown className="w-3 h-3" />
-                </button>
-              </div>
-
-              {showIndexMenu && (
-                <div className="absolute right-0 mt-1.5 w-56 rounded-2xl bg-white border border-[#E4EAE6] shadow-xl p-1.5 z-50 text-xs font-mono space-y-1">
-                  <button
-                    onClick={() => handleTriggerIndexing(false)}
-                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F8FCFA] text-[#14211D] flex items-center justify-between"
-                  >
-                    <span>Incremental Sync</span>
-                    <span className="text-[10px] text-[#7A8C84]">Fast</span>
-                  </button>
-                  <button
-                    onClick={() => handleTriggerIndexing(true)}
-                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#EAF5EF] text-[#126B50] font-semibold flex items-center justify-between"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <RotateCcw className="w-3 h-3" />
-                      <span>Force Full Re-index</span>
-                    </span>
-                    <span className="text-[10px] text-[#126B50]">All chunks</span>
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
         }
       />
