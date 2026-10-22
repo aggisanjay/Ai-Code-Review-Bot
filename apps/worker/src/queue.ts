@@ -1,6 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
 import { processReviewJob } from './processors/review-job-processor';
+import { processIndexJob } from './processors/index-job-processor';
 
 export function startBullMqWorker(): Worker | null {
   const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -24,9 +25,15 @@ export function startBullMqWorker(): Worker | null {
 
     const worker = new Worker(
       'review-jobs',
-      async (job: Job<{ reviewJobId: string }>) => {
-        console.log(`[BullMQ Worker] Picked up job ${job.id} for ReviewJob ${job.data.reviewJobId}`);
-        await processReviewJob(job.data.reviewJobId);
+      async (job: Job<{ reviewJobId: string; indexJobId?: string }>) => {
+        if (job.name === 'process-index') {
+          const indexId = job.data.indexJobId || job.data.reviewJobId;
+          console.log(`[BullMQ Worker] Picked up index job ${job.id} for RepositoryIndexJob ${indexId}`);
+          await processIndexJob(indexId);
+        } else {
+          console.log(`[BullMQ Worker] Picked up job ${job.id} for ReviewJob ${job.data.reviewJobId}`);
+          await processReviewJob(job.data.reviewJobId);
+        }
       },
       {
         connection: redis,

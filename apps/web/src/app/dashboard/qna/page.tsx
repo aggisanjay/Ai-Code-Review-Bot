@@ -25,6 +25,13 @@ import {
   Coins,
   Zap,
   Cpu,
+  MessageSquare,
+  Plus,
+  Trash2,
+  History,
+  Menu,
+  X,
+  RotateCcw,
 } from 'lucide-react';
 import { Header } from '../../../components/dashboard/Header';
 import { MarkdownMessage } from '../../../components/dashboard/MarkdownMessage';
@@ -88,6 +95,7 @@ function CodebaseQnAContent() {
   const [selectedRepoId, setSelectedRepoId] = useState<string>('');
   const [indexingStatus, setIndexingStatus] = useState<any>(null);
   const [isIndexing, setIsIndexing] = useState(false);
+  const [showIndexMenu, setShowIndexMenu] = useState(false);
 
   const [conversations, setConversations] = useState<any[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -97,6 +105,7 @@ function CodebaseQnAContent() {
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [copiedCiteIdx, setCopiedCiteIdx] = useState<string | null>(null);
   const [collapsedCitations, setCollapsedCitations] = useState<Record<string, boolean>>({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleCitations = (msgId: string) => {
     setCollapsedCitations((prev) => ({
@@ -141,6 +150,31 @@ function CodebaseQnAContent() {
     loadInitialData();
   }, [router, searchParams]);
 
+  const loadConversationMessages = async (repoId: string, convoId: string) => {
+    if (!convoId) return;
+    try {
+      setIsLoading(true);
+      const res = await api.getConversation(repoId, convoId);
+      if (res?.data) {
+        setActiveConversationId(res.data.id);
+        const mapped: Message[] = (res.data.messages || []).map((m: any) => ({
+          id: m.id,
+          role: m.role as 'USER' | 'ASSISTANT',
+          content: m.content,
+          citations: m.citations,
+          tokensUsed: m.tokensUsed,
+          telemetry: m.telemetry,
+          createdAt: m.createdAt,
+        }));
+        setMessages(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to load conversation:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const loadRepoContext = async (repoId: string) => {
     try {
       const [statusRes, convosRes] = await Promise.all([
@@ -153,6 +187,13 @@ function CodebaseQnAContent() {
       }
       if (convosRes?.data) {
         setConversations(convosRes.data);
+        // Auto-load most recent thread if one exists
+        if (convosRes.data.length > 0) {
+          await loadConversationMessages(repoId, convosRes.data[0].id);
+        } else {
+          setActiveConversationId(null);
+          setMessages([]);
+        }
       }
     } catch (err) {
       console.warn('Failed to load repo context:', err);
@@ -166,11 +207,12 @@ function CodebaseQnAContent() {
     await loadRepoContext(repoId);
   };
 
-  const handleTriggerIndexing = async () => {
+  const handleTriggerIndexing = async (force: boolean = false) => {
     if (!selectedRepoId) return;
+    setShowIndexMenu(false);
     setIsIndexing(true);
     try {
-      await api.triggerIndexing(selectedRepoId);
+      await api.triggerIndexing(selectedRepoId, undefined, undefined, force);
       const pollInterval = setInterval(async () => {
         const statusRes = await api.getIndexingStatus(selectedRepoId);
         if (statusRes?.data) {
@@ -183,7 +225,7 @@ function CodebaseQnAContent() {
             setIsIndexing(false);
           }
         }
-      }, 3000);
+      }, 2500);
     } catch (err: any) {
       alert(`Indexing failed to start: ${err?.message}`);
       setIsIndexing(false);
@@ -221,7 +263,7 @@ function CodebaseQnAContent() {
         };
         setMessages((prev) => [...prev, assistantMsg]);
 
-        // Refresh conversation list in background
+        // Refresh conversation list in background so new thread appears in sidebar
         api.getConversations(selectedRepoId).then((r) => {
           if (r?.data) setConversations(r.data);
         }).catch(() => {});
@@ -244,32 +286,28 @@ function CodebaseQnAContent() {
 
   const handleSelectConversation = async (convoId: string) => {
     if (!convoId || convoId === activeConversationId) return;
-    try {
-      setIsLoading(true);
-      const res = await api.getConversation(selectedRepoId, convoId);
-      if (res?.data) {
-        setActiveConversationId(res.data.id);
-        const mapped: Message[] = (res.data.messages || []).map((m: any) => ({
-          id: m.id,
-          role: m.role as 'USER' | 'ASSISTANT',
-          content: m.content,
-          citations: m.citations,
-          tokensUsed: m.tokensUsed,
-          telemetry: m.telemetry,
-          createdAt: m.createdAt,
-        }));
-        setMessages(mapped);
-      }
-    } catch (err) {
-      console.error('Failed to load conversation:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    setIsSidebarOpen(false);
+    await loadConversationMessages(selectedRepoId, convoId);
   };
 
   const handleStartNewConversation = () => {
     setActiveConversationId(null);
     setMessages([]);
+    setIsSidebarOpen(false);
+  };
+
+  const handleDeleteConversation = async (e: React.MouseEvent, convoId: string) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this conversation thread?')) return;
+    try {
+      await api.deleteConversation(selectedRepoId, convoId);
+      setConversations((prev) => prev.filter((c) => c.id !== convoId));
+      if (activeConversationId === convoId) {
+        handleStartNewConversation();
+      }
+    } catch (err: any) {
+      alert(`Failed to delete conversation: ${err?.message || 'Error'}`);
+    }
   };
 
   const handleCopyCitation = (text: string, citeKey: string) => {
@@ -286,7 +324,7 @@ function CodebaseQnAContent() {
   ];
 
   return (
-    <div className="flex-1 pb-16 bg-[#F7F9F8] min-h-screen flex flex-col">
+    <div className="flex-1 pb-12 bg-[#F7F9F8] min-h-screen flex flex-col">
       <Header
         title="Codebase Q&A Assistant"
         description="Ask deep architectural questions grounded in genuine source code evidence, symbols, and citations."
@@ -296,7 +334,7 @@ function CodebaseQnAContent() {
               <select
                 value={selectedRepoId}
                 onChange={(e) => handleSelectRepo(e.target.value)}
-                className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold"
+                className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer"
               >
                 {repositories.map((repo) => (
                   <option key={repo.id} value={repo.id}>
@@ -306,379 +344,412 @@ function CodebaseQnAContent() {
               </select>
             )}
 
-            {conversations.length > 0 && (
-              <select
-                value={activeConversationId || '__NEW__'}
-                onChange={(e) => {
-                  if (e.target.value === '__NEW__') {
-                    handleStartNewConversation();
-                  } else {
-                    handleSelectConversation(e.target.value);
-                  }
-                }}
-                className="bg-white border border-[#E4EAE6] text-[#52635B] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-medium max-w-[160px] truncate"
-              >
-                <option value="__NEW__">+ New Thread</option>
-                {conversations.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.title || 'Untitled Thread'}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {messages.length > 0 && (
-              <button
-                type="button"
-                onClick={handleStartNewConversation}
-                className="px-3 py-2 rounded-xl bg-white border border-[#E4EAE6] hover:bg-[#F8FCFA] text-[#14211D] text-xs font-mono font-semibold shadow-sleek-sm transition-all"
-                title="Start a new conversation thread"
-              >
-                + New Thread
-              </button>
-            )}
-
+            {/* Mobile Sidebar Toggle */}
             <button
-              onClick={handleTriggerIndexing}
-              disabled={isIndexing || !selectedRepoId}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-primary text-xs font-semibold shadow-sleek-sm transition-all"
+              type="button"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="md:hidden flex items-center gap-1 px-3 py-2 rounded-xl bg-white border border-[#E4EAE6] text-xs font-mono font-semibold shadow-sleek-sm text-[#14211D]"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isIndexing ? 'animate-spin' : ''}`} />
-              <span>{isIndexing ? 'Indexing...' : 'Index Codebase'}</span>
+              <History className="w-3.5 h-3.5" />
+              <span>Threads ({conversations.length})</span>
             </button>
+
+            {/* New Thread Button */}
+            <button
+              type="button"
+              onClick={handleStartNewConversation}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#E4EAE6] hover:bg-[#F8FCFA] text-[#14211D] text-xs font-mono font-semibold shadow-sleek-sm transition-all"
+              title="Start a fresh conversation thread"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#126B50]" />
+              <span className="hidden sm:inline">New Thread</span>
+            </button>
+
+            {/* Indexing Action with Force Reindex Dropdown */}
+            <div className="relative">
+              <div className="inline-flex rounded-xl shadow-sleek-sm">
+                <button
+                  onClick={() => handleTriggerIndexing(false)}
+                  disabled={isIndexing || !selectedRepoId}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-l-xl btn-primary text-xs font-semibold transition-all disabled:opacity-50"
+                  title="Run incremental codebase indexing"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isIndexing ? 'animate-spin' : ''}`} />
+                  <span>{isIndexing ? 'Indexing...' : 'Index Codebase'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowIndexMenu(!showIndexMenu)}
+                  disabled={isIndexing || !selectedRepoId}
+                  className="px-2 py-2 rounded-r-xl border-l border-white/20 btn-primary text-xs transition-all disabled:opacity-50"
+                  title="More indexing options"
+                >
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </div>
+
+              {showIndexMenu && (
+                <div className="absolute right-0 mt-1.5 w-56 rounded-2xl bg-white border border-[#E4EAE6] shadow-xl p-1.5 z-50 text-xs font-mono space-y-1">
+                  <button
+                    onClick={() => handleTriggerIndexing(false)}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#F8FCFA] text-[#14211D] flex items-center justify-between"
+                  >
+                    <span>Incremental Sync</span>
+                    <span className="text-[10px] text-[#7A8C84]">Fast</span>
+                  </button>
+                  <button
+                    onClick={() => handleTriggerIndexing(true)}
+                    className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#EAF5EF] text-[#126B50] font-semibold flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Force Full Re-index</span>
+                    </span>
+                    <span className="text-[10px] text-[#126B50]">All chunks</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         }
       />
 
-      <div className="px-6 sm:px-8 pt-6 max-w-5xl mx-auto w-full flex-1 flex flex-col space-y-4">
-        {/* Indexing Status Card Banner */}
-        {indexingStatus && (
-          <div className="p-4 rounded-2xl bg-white border border-[#E4EAE6] flex flex-wrap items-center justify-between gap-3 text-xs font-mono shadow-sleek-sm">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-semibold text-[11px]">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#16835B]" />
-                <span>Indexed</span>
-              </span>
-              <span className="text-[#14211D]">
-                <strong>{indexingStatus.indexedFilesCount}</strong> files (
-                <strong>{indexingStatus.totalChunksCount}</strong> code chunks)
-              </span>
-              {indexingStatus.lastIndexedCommitSha && (
-                <span className="text-[#66736D]">
-                  SHA: <strong className="text-[#14211D]">@{indexingStatus.lastIndexedCommitSha.substring(0, 7)}</strong>
-                </span>
-              )}
+      <div className="px-4 sm:px-8 pt-4 max-w-7xl mx-auto w-full flex-1 flex flex-col md:flex-row gap-6 items-stretch">
+        {/* ========================================================================= */}
+        {/* CONVERSATION HISTORY SIDEBAR                                              */}
+        {/* ========================================================================= */}
+        <aside
+          className={`${
+            isSidebarOpen ? 'fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4' : 'hidden md:flex'
+          } md:static md:w-72 lg:w-80 shrink-0 flex-col space-y-3`}
+        >
+          {isSidebarOpen && (
+            <div className="flex items-center justify-between pb-2 border-b border-[#E4EAE6] md:hidden">
+              <span className="text-xs font-mono font-bold text-[#14211D]">Past Threads</span>
+              <button onClick={() => setIsSidebarOpen(false)} className="p-1 rounded-lg hover:bg-gray-100">
+                <X className="w-4 h-4 text-[#66736D]" />
+              </button>
+            </div>
+          )}
+
+          <div className="p-3.5 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm flex flex-col flex-1 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#14211D]">
+                <History className="w-4 h-4 text-[#126B50]" />
+                <span>Threads ({conversations.length})</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleStartNewConversation}
+                className="text-[11px] font-mono font-bold text-[#126B50] hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" />
+                <span>New</span>
+              </button>
             </div>
 
-            <div className="flex items-center gap-2 text-[11px] text-[#66736D]">
-              {indexingStatus.latestJob?.status === 'QUEUED' ||
-              indexingStatus.latestJob?.status === 'CHUNKING' ||
-              indexingStatus.latestJob?.status === 'EMBEDDING' ? (
-                <span className="text-[#B7791F] font-semibold flex items-center gap-1.5 bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-[#FDE68A]">
-                  <RefreshCw className="w-3 h-3 animate-spin text-[#B7791F]" />
-                  <span>Processing ({indexingStatus.latestJob.statusMessage || 'embedding'})</span>
-                </span>
+            <div className="flex-1 overflow-y-auto space-y-1.5 max-h-[calc(100vh-280px)] pr-1">
+              {conversations.length === 0 ? (
+                <div className="text-center py-10 px-3 text-[#7A8C84] text-xs font-mono space-y-2">
+                  <MessageSquare className="w-6 h-6 mx-auto text-[#CBD5E1]" />
+                  <p>No past threads found for this repository.</p>
+                  <p className="text-[10px] text-[#94A3B8]">Ask a question to start your first grounded thread.</p>
+                </div>
               ) : (
-                <span>
-                  Last synced: <strong className="text-[#14211D]">{indexingStatus.lastIndexedAt ? new Date(indexingStatus.lastIndexedAt).toLocaleTimeString() : 'never'}</strong>
-                </span>
+                conversations.map((convo) => {
+                  const isActive = convo.id === activeConversationId;
+                  const messageCount = convo._count?.messages || 0;
+                  const dateStr = new Date(convo.updatedAt || convo.createdAt).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                  });
+
+                  return (
+                    <div
+                      key={convo.id}
+                      onClick={() => handleSelectConversation(convo.id)}
+                      className={`group relative flex items-start justify-between p-3 rounded-xl border text-xs cursor-pointer transition-all ${
+                        isActive
+                          ? 'bg-[#EAF5EF] border-[#C7E4D6] text-[#0E543E] font-semibold shadow-sm'
+                          : 'bg-[#FAFDFB] hover:bg-white border-[#E4EAE6] text-[#14211D] hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="flex-1 min-w-0 pr-2 space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          {isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#126B50] shrink-0" />}
+                          <span className="font-sans line-clamp-2 text-xs leading-snug">
+                            {convo.title || 'Untitled Thread'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-[#7A8C84]">
+                          <span>{dateStr}</span>
+                          <span>•</span>
+                          <span>{messageCount} msg{messageCount === 1 ? '' : 's'}</span>
+                          {convo.user?.name && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate max-w-[80px]">{convo.user.name}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteConversation(e, convo.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-[#94A3B8] hover:text-[#DC2626] hover:bg-red-50 transition-all shrink-0 mt-0.5"
+                        title="Delete thread"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
-        )}
+        </aside>
 
-        {/* Chat Stream View */}
-        <div className="flex-1 overflow-y-auto space-y-5 py-2">
-          {messages.length === 0 ? (
-            <div className="py-12 px-6 rounded-2xl bg-white border border-[#E4EAE6] text-center shadow-sleek-sm max-w-2xl mx-auto my-auto space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-[#126B50] mx-auto shadow-sm">
-                <Sparkles className="w-7 h-7" />
+        {/* ========================================================================= */}
+        {/* MAIN CHAT AREA                                                            */}
+        {/* ========================================================================= */}
+        <div className="flex-1 flex flex-col space-y-4 min-w-0">
+          {/* Indexing Status Card Banner */}
+          {indexingStatus && (
+            <div className="p-4 rounded-2xl bg-white border border-[#E4EAE6] flex flex-wrap items-center justify-between gap-3 text-xs font-mono shadow-sleek-sm">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-semibold text-[11px]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#16835B]" />
+                  <span>Indexed</span>
+                </span>
+                <span className="text-[#14211D]">
+                  <strong>{indexingStatus.indexedFilesCount}</strong> files (
+                  <strong>{indexingStatus.totalChunksCount}</strong> code chunks)
+                </span>
+                {indexingStatus.lastIndexedCommitSha && (
+                  <span className="text-[#66736D]">
+                    SHA: <strong className="text-[#14211D]">@{indexingStatus.lastIndexedCommitSha.substring(0, 7)}</strong>
+                  </span>
+                )}
               </div>
 
-              <div>
-                <h3 className="text-lg font-bold text-[#14211D] font-display">Understand your codebase instantly</h3>
-                <p className="text-xs sm:text-sm text-[#66736D] mt-1.5 max-w-md mx-auto font-mono leading-relaxed">
-                  ReviewFlow AI indexes repository revisions, extracts semantic scopes, and answers developer questions with verified line citations.
-                </p>
-              </div>
-
-              {/* Sample Prompts */}
-              <div className="space-y-2 pt-2 text-left">
-                <div className="text-[11px] uppercase tracking-wider text-[#66736D] font-mono font-bold px-1">
-                  Recommended architectural queries:
-                </div>
-                {sampleQuestions.map((sq, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleSendMessage(sq)}
-                    className="w-full text-left text-xs bg-[#F8FCFA] hover:bg-[#EAF5EF] border border-[#E2EDE6] hover:border-[#C7E4D6] text-[#14211D] rounded-xl p-3.5 transition-all shadow-sleek-sm flex items-center justify-between group font-mono font-medium"
-                  >
-                    <span>{sq}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#66736D] group-hover:text-[#126B50] group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 text-[11px] text-[#66736D]">
+                {indexingStatus.latestJob?.status === 'QUEUED' ||
+                indexingStatus.latestJob?.status === 'CLONING' ||
+                indexingStatus.latestJob?.status === 'CHUNKING' ||
+                indexingStatus.latestJob?.status === 'EMBEDDING' ? (
+                  <span className="text-[#B7791F] font-semibold flex items-center gap-1.5 bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-[#FDE68A]">
+                    <RefreshCw className="w-3 h-3 animate-spin text-[#B7791F]" />
+                    <span>Processing ({indexingStatus.latestJob.statusMessage || 'embedding'})</span>
+                  </span>
+                ) : (
+                  <span>
+                    Last synced: <strong className="text-[#14211D]">{indexingStatus.lastIndexedAt ? new Date(indexingStatus.lastIndexedAt).toLocaleTimeString() : 'never'}</strong>
+                  </span>
+                )}
               </div>
             </div>
-          ) : (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex flex-col ${
-                  msg.role === 'USER' ? 'items-end' : 'items-start'
-                }`}
-              >
+          )}
+
+          {/* Chat Stream View */}
+          <div className="flex-1 overflow-y-auto space-y-5 py-2 min-h-[460px]">
+            {messages.length === 0 ? (
+              <div className="py-12 px-6 rounded-2xl bg-white border border-[#E4EAE6] text-center shadow-sleek-sm max-w-2xl mx-auto my-auto space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-[#126B50] mx-auto shadow-sm">
+                  <Sparkles className="w-7 h-7" />
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-bold text-[#14211D] font-display">Understand your codebase instantly</h3>
+                  <p className="text-xs sm:text-sm text-[#66736D] mt-1.5 max-w-md mx-auto font-mono leading-relaxed">
+                    ReviewFlow AI indexes repository revisions, extracts semantic scopes, and answers developer questions with verified line citations.
+                  </p>
+                </div>
+
+                {/* Sample Prompts */}
+                <div className="space-y-2 pt-2 text-left">
+                  <div className="text-[11px] uppercase tracking-wider text-[#66736D] font-mono font-bold px-1">
+                    Recommended architectural queries:
+                  </div>
+                  {sampleQuestions.map((sq, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSendMessage(sq)}
+                      className="w-full text-left text-xs bg-[#F8FCFA] hover:bg-[#EAF5EF] border border-[#E2EDE6] hover:border-[#C7E4D6] text-[#14211D] rounded-xl p-3.5 transition-all shadow-sleek-sm flex items-center justify-between group font-mono font-medium"
+                    >
+                      <span>{sq}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#66736D] group-hover:text-[#126B50] group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              messages.map((msg) => (
                 <div
-                  className={`text-xs sm:text-sm leading-relaxed ${
-                    msg.role === 'USER'
-                      ? 'max-w-2xl rounded-2xl rounded-br-sm bg-[#126B50] text-white p-4 shadow-sm'
-                      : 'max-w-4xl w-full rounded-2xl rounded-bl-sm bg-white border border-[#E4EAE6] text-[#14211D] p-5 sm:p-6 shadow-sleek-sm space-y-4'
+                  key={msg.id}
+                  className={`flex flex-col ${
+                    msg.role === 'USER' ? 'items-end' : 'items-start'
                   }`}
                 >
-                  {msg.role === 'USER' ? (
-                    <div className="whitespace-pre-wrap font-sans leading-relaxed">{msg.content}</div>
-                  ) : (
-                    <>
-                      <MarkdownMessage content={msg.content} />
+                  <div
+                    className={`text-xs sm:text-sm leading-relaxed ${
+                      msg.role === 'USER'
+                        ? 'max-w-2xl rounded-2xl rounded-br-sm bg-[#126B50] text-white p-4 shadow-sm'
+                        : 'max-w-4xl w-full rounded-2xl rounded-bl-sm bg-white border border-[#E4EAE6] text-[#14211D] p-5 sm:p-6 shadow-sleek-sm space-y-4'
+                    }`}
+                  >
+                    {msg.role === 'USER' ? (
+                      <div className="whitespace-pre-wrap font-sans leading-relaxed">{msg.content}</div>
+                    ) : (
+                      <>
+                        <MarkdownMessage content={msg.content} />
 
-                      {/* Telemetry & Evaluation Inspector Strip */}
-                      {msg.telemetry && (
-                        <div className="pt-3 border-t border-[#E4EAE6] space-y-2.5">
-                          <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#52635B]">
-                            <span className="flex items-center gap-1.5 text-[#126B50]">
-                              <Activity className="w-3.5 h-3.5" />
-                              <span>Evaluation & Operational Telemetry</span>
-                            </span>
-                            <span className="text-[10px] text-[#66736D] font-normal">
-                              Grounding Verification
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono">
-                            {/* 1. Evaluation */}
-                            <div className="bg-[#F8FCFA] border border-[#E2EDE6] rounded-xl p-2.5 space-y-1">
-                              <div className="flex items-center gap-1 text-[10px] text-[#52635B] font-semibold">
-                                <ShieldCheck className="w-3 h-3 text-[#16835B]" />
-                                <span>Evaluation</span>
-                              </div>
-                              <div className="text-xs font-bold text-[#14211D]">
-                                {msg.telemetry.evaluation.groundedScore}% Grounded
-                              </div>
-                              <div className="text-[10px] text-[#126B50] font-semibold flex items-center gap-1">
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    msg.telemetry.evaluation.confidence === 'HIGH'
-                                      ? 'bg-[#16835B]'
-                                      : msg.telemetry.evaluation.confidence === 'MEDIUM'
-                                      ? 'bg-[#D97706]'
-                                      : 'bg-[#DC2626]'
-                                  }`}
-                                />
-                                <span>{msg.telemetry.evaluation.confidence} Conf</span>
-                              </div>
+                        {/* Telemetry & Evaluation Inspector Strip */}
+                        {msg.telemetry && (
+                          <div className="pt-3 border-t border-[#E4EAE6] space-y-2.5">
+                            <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#52635B]">
+                              <span className="flex items-center gap-1.5 text-[#126B50]">
+                                <Activity className="w-3.5 h-3.5" />
+                                <span>Evaluation & Operational Telemetry</span>
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] text-[10px]">
+                                Grounded: {msg.telemetry.evaluation.groundedScore}%
+                              </span>
                             </div>
 
-                            {/* 2. Source Provenance */}
-                            <div className="bg-[#F8FCFA] border border-[#E2EDE6] rounded-xl p-2.5 space-y-1">
-                              <div className="flex items-center gap-1 text-[10px] text-[#52635B] font-semibold">
-                                <FileCode2 className="w-3 h-3 text-[#126B50]" />
-                                <span>Source Provenance</span>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono">
+                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
+                                <div className="text-[#7A8C84] text-[10px]">Confidence & Verdict</div>
+                                <div className="font-bold text-[#111C18] mt-0.5 truncate">
+                                  {msg.telemetry.evaluation.confidence} • {msg.telemetry.evaluation.verdict}
+                                </div>
                               </div>
-                              <div
-                                className="text-xs font-bold text-[#14211D] truncate"
-                                title={msg.telemetry.source.files.join(', ')}
-                              >
-                                {msg.telemetry.source.files.length}{' '}
-                                {msg.telemetry.source.files.length === 1 ? 'file' : 'files'}
+                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
+                                <div className="text-[#7A8C84] text-[10px]">Latency Breakdown</div>
+                                <div className="font-bold text-[#111C18] mt-0.5">
+                                  {msg.telemetry.latency.totalMs}ms ({msg.telemetry.latency.retrievalMs}ms ret / {msg.telemetry.latency.generationMs}ms gen)
+                                </div>
                               </div>
-                              <div className="text-[10px] text-[#66736D] truncate">
-                                {msg.telemetry.source.totalChunksRetrieved} chunks
-                                {msg.telemetry.source.commitSha
-                                  ? ` • @${msg.telemetry.source.commitSha.substring(0, 7)}`
-                                  : ''}
+                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
+                                <div className="text-[#7A8C84] text-[10px]">Cost & Tokens</div>
+                                <div className="font-bold text-[#111C18] mt-0.5">
+                                  {msg.telemetry.cost.tokensUsed} tokens (${msg.telemetry.cost.estimatedCostUsd.toFixed(5)})
+                                </div>
                               </div>
-                            </div>
-
-                            {/* 3. Metered Cost */}
-                            <div className="bg-[#F8FCFA] border border-[#E2EDE6] rounded-xl p-2.5 space-y-1">
-                              <div className="flex items-center gap-1 text-[10px] text-[#52635B] font-semibold">
-                                <Coins className="w-3 h-3 text-[#B7791F]" />
-                                <span>Metered Cost</span>
-                              </div>
-                              <div className="text-xs font-bold text-[#14211D]">
-                                ${msg.telemetry.cost.estimatedCostUsd.toFixed(5)}
-                              </div>
-                              <div className="text-[10px] text-[#66736D]">
-                                {msg.telemetry.cost.tokensUsed.toLocaleString()} tokens
-                              </div>
-                            </div>
-
-                            {/* 4. Latency Breakdown */}
-                            <div className="bg-[#F8FCFA] border border-[#E2EDE6] rounded-xl p-2.5 space-y-1">
-                              <div className="flex items-center gap-1 text-[10px] text-[#52635B] font-semibold">
-                                <Zap className="w-3 h-3 text-[#D97706]" />
-                                <span>Latency</span>
-                              </div>
-                              <div className="text-xs font-bold text-[#14211D]">
-                                {msg.telemetry.latency.totalMs}ms
-                              </div>
-                              <div
-                                className="text-[10px] text-[#66736D]"
-                                title={`Retrieval: ${msg.telemetry.latency.retrievalMs}ms, Generation: ${msg.telemetry.latency.generationMs}ms`}
-                              >
-                                {msg.telemetry.latency.retrievalMs}ms / {msg.telemetry.latency.generationMs}ms
-                              </div>
-                            </div>
-
-                            {/* 5. Fallback Status */}
-                            <div className="bg-[#F8FCFA] border border-[#E2EDE6] rounded-xl p-2.5 space-y-1 col-span-2 sm:col-span-1">
-                              <div className="flex items-center gap-1 text-[10px] text-[#52635B] font-semibold">
-                                <Cpu className="w-3 h-3 text-[#126B50]" />
-                                <span>Fallback Status</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    msg.telemetry.fallback.fallbackTriggered
-                                      ? 'bg-[#D97706]'
-                                      : 'bg-[#16835B]'
-                                  }`}
-                                />
-                                <span className="text-xs font-bold text-[#14211D] truncate">
-                                  {msg.telemetry.fallback.status === 'DIRECT' ? 'Direct' : 'Fallback'}
-                                </span>
-                              </div>
-                              <div
-                                className="text-[10px] text-[#66736D] truncate"
-                                title={`${msg.telemetry.fallback.provider} (${msg.telemetry.fallback.model})`}
-                              >
-                                {msg.telemetry.fallback.model}
+                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
+                                <div className="text-[#7A8C84] text-[10px]">Provider / Model</div>
+                                <div className="font-bold text-[#111C18] mt-0.5 truncate">
+                                  {msg.telemetry.fallback.provider} ({msg.telemetry.fallback.model})
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </>
-                  )}
+                        )}
 
-                  {/* Verified Citations Drawer */}
-                  {msg.citations && msg.citations.length > 0 && (
-                    <div className="pt-3 border-t border-[#E4EAE6] space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <button
-                          type="button"
-                          onClick={() => toggleCitations(msg.id)}
-                          className="text-[11px] font-mono font-bold text-[#126B50] flex items-center gap-1.5 hover:text-[#0E543E] transition-colors group cursor-pointer"
-                        >
-                          <FileCode2 className="w-3.5 h-3.5" />
-                          <span>Source Evidence Citations ({msg.citations.length})</span>
-                          <span className="text-[10px] text-[#66736D] font-medium ml-1.5 px-2 py-0.5 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] group-hover:bg-[#D4ECE0]">
-                            {collapsedCitations[msg.id] ? '▸ Expand citations' : '▾ Collapse'}
-                          </span>
-                        </button>
-                      </div>
+                        {/* Citations Expandable Section */}
+                        {msg.citations && msg.citations.length > 0 && (
+                          <div className="pt-3 border-t border-[#E4EAE6]">
+                            <button
+                              type="button"
+                              onClick={() => toggleCitations(msg.id)}
+                              className="flex items-center justify-between w-full text-left text-xs font-mono font-bold text-[#14211D] hover:text-[#126B50] transition-colors"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <FileCode2 className="w-3.5 h-3.5 text-[#126B50]" />
+                                <span>Source Evidence Citations ({msg.citations.length})</span>
+                              </span>
+                              {collapsedCitations[msg.id] ? (
+                                <ChevronRight className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
+                            </button>
 
-                      {!collapsedCitations[msg.id] && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {msg.citations.map((cite, cIdx) => {
-                            const citeKey = `${msg.id}-${cIdx}`;
-                            return (
-                              <div
-                                key={cIdx}
-                                className="bg-[#F8FCFA] border border-[#E2EDE6] rounded-xl p-3 text-xs font-mono space-y-1.5 shadow-sm"
-                              >
-                                <div className="flex items-center justify-between text-[#126B50] font-bold">
-                                  <span className="truncate max-w-[200px]" title={cite.filePath}>
-                                    {cite.filePath}
-                                  </span>
-                                  <span className="text-[10px] bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] px-2 py-0.5 rounded-full font-bold">
-                                    L{cite.startLine}-L{cite.endLine}
-                                  </span>
-                                </div>
+                            {!collapsedCitations[msg.id] && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-2.5">
+                                {msg.citations.map((cite, cIdx) => {
+                                  const citeKey = `${msg.id}-${cIdx}`;
+                                  const isCopied = copiedCiteIdx === citeKey;
 
-                                {cite.snippet && (
-                                  <div className="text-[11px] text-[#52635B] bg-white p-2 rounded-lg border border-[#E4EAE6] font-mono max-h-20 overflow-y-auto whitespace-pre-wrap">
-                                    {cite.snippet}
-                                  </div>
-                                )}
+                                  return (
+                                    <div
+                                      key={cIdx}
+                                      className="p-3 rounded-xl bg-[#F8FCFA] border border-[#E4EAE6] text-xs font-mono space-y-1.5 group hover:border-[#126B50]/30 transition-all"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-bold text-[#14211D] truncate max-w-[200px]" title={cite.filePath}>
+                                          {cite.filePath}
+                                        </span>
+                                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-white border border-[#E4EAE6] text-[#126B50] font-semibold shrink-0">
+                                          L{cite.startLine}-L{cite.endLine}
+                                        </span>
+                                      </div>
 
-                                <div className="flex justify-end pt-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleCopyCitation(cite.snippet || cite.filePath, citeKey)}
-                                    className="text-[10px] text-[#66736D] hover:text-[#126B50] flex items-center gap-1 font-mono font-medium"
-                                  >
-                                    {copiedCiteIdx === citeKey ? (
-                                      <>
-                                        <Check className="w-3 h-3 text-[#16835B]" />
-                                        <span>Copied</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Copy className="w-3 h-3" />
-                                        <span>Copy Snippet</span>
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
+                                      {cite.snippet && (
+                                        <div className="p-2 rounded bg-white border border-[#E4EAE6] text-[11px] text-[#475467] overflow-x-auto font-mono whitespace-pre line-clamp-3">
+                                          {cite.snippet}
+                                        </div>
+                                      )}
+
+                                      <div className="flex items-center justify-between pt-1 text-[10px] text-[#7A8C84]">
+                                        <span>Confidence Grounded</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => handleCopyCitation(`[${cite.filePath}#L${cite.startLine}-L${cite.endLine}]`, citeKey)}
+                                          className="hover:text-[#126B50] flex items-center gap-1"
+                                        >
+                                          {isCopied ? <Check className="w-3 h-3 text-[#126B50]" /> : <Copy className="w-3 h-3" />}
+                                          <span>{isCopied ? 'Copied' : 'Copy Citation'}</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {msg.tokensUsed ? (
-                    <div className="text-[10px] font-mono text-[#66736D] text-right">
-                      {msg.tokensUsed.toLocaleString()} tokens grounded
-                    </div>
-                  ) : null}
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-          {isLoading && (
-            <div className="flex items-center gap-2.5 text-xs font-mono text-[#52635B] bg-white border border-[#E4EAE6] rounded-2xl p-4 max-w-md shadow-sleek-sm">
-              <RefreshCw className="w-4 h-4 animate-spin text-[#126B50]" />
-              <span>Retrieving source chunks & synthesizing evidence-grounded answer...</span>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Bar */}
-        <div className="pt-2">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-            className="flex items-center gap-2 p-2 rounded-2xl bg-white border border-[#E4EAE6] focus-within:border-[#126B50] focus-within:ring-2 focus-within:ring-[#126B50]/10 shadow-sleek-sm transition-all"
-          >
-            <input
-              type="text"
-              value={inputQuestion}
-              onChange={(e) => setInputQuestion(e.target.value)}
-              placeholder="Ask anything about this repository (e.g., How does authorization work?)..."
-              disabled={isLoading || !selectedRepoId}
-              className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-[#14211D] placeholder-[#98A2B3] focus:outline-none font-sans"
-            />
-            <button
-              type="submit"
-              disabled={isLoading || !inputQuestion.trim() || !selectedRepoId}
-              className="p-2.5 rounded-xl btn-primary text-white disabled:opacity-40 transition-all shadow-sm"
-              title="Submit query"
+          {/* Input Bar */}
+          <div className="pt-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="flex items-center gap-2 p-2 rounded-2xl bg-white border border-[#E4EAE6] focus-within:border-[#126B50] focus-within:ring-2 focus-within:ring-[#126B50]/10 shadow-sleek-sm transition-all"
             >
-              <Send className="w-4 h-4" />
-            </button>
-          </form>
+              <input
+                type="text"
+                value={inputQuestion}
+                onChange={(e) => setInputQuestion(e.target.value)}
+                placeholder="Ask anything about this repository (e.g., How does authorization work?)..."
+                disabled={isLoading || !selectedRepoId}
+                className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-[#14211D] placeholder-[#98A2B3] focus:outline-none font-sans"
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !inputQuestion.trim() || !selectedRepoId}
+                className="p-2.5 rounded-xl btn-primary text-white disabled:opacity-40 transition-all shadow-sm"
+                title="Submit query"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
 
-          <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-[#66736D] px-2 mt-2">
-            <span>All responses are grounded strictly in indexed repository files.</span>
-            <span>Zero execution of untrusted repository code.</span>
+            <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-[#66736D] px-2 mt-2">
+              <span>All responses are grounded strictly in indexed repository files.</span>
+              <span>Zero execution of untrusted repository code.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -700,4 +771,3 @@ export default function CodebaseQnAPage() {
     </Suspense>
   );
 }
-

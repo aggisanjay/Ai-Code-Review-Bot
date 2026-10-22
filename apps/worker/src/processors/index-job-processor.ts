@@ -95,12 +95,15 @@ export async function processIndexJob(jobId: string, options?: ProcessIndexJobOp
       },
     });
 
+    const isForce = job.statusMessage?.includes('FORCE_REINDEX') || false;
+
     // 4. Run repository indexing pipeline
     const indexResult = await indexRepository({
       repositoryId: repository.id,
       commitSha: job.commitSha,
       branch: job.branch,
       jobId: job.id,
+      force: isForce,
       githubAdapter: github,
       embeddingProvider,
       onProgress: async (percent, message) => {
@@ -121,7 +124,7 @@ export async function processIndexJob(jobId: string, options?: ProcessIndexJobOp
       data: {
         status: 'COMPLETED',
         progressPercent: 100,
-        statusMessage: `Successfully indexed ${indexResult.totalFiles} files (${indexResult.totalChunks} chunks).`,
+        statusMessage: `Successfully indexed ${indexResult.totalFiles} files (${indexResult.totalChunks} code chunks available).`,
         totalFiles: indexResult.totalFiles,
         indexedFiles: indexResult.indexedFiles,
         totalChunks: indexResult.totalChunks,

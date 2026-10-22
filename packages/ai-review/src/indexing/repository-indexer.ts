@@ -9,6 +9,7 @@ export interface IndexRepositoryParams {
   commitSha?: string;
   branch?: string;
   jobId?: string;
+  force?: boolean;
   githubAdapter: IGitHubAdapter;
   embeddingProvider: IEmbeddingProvider;
   onProgress?: (percent: number, message: string) => Promise<void>;
@@ -21,6 +22,7 @@ export interface IndexingResult {
   unchangedFiles: number;
   deletedFiles: number;
   totalChunks: number;
+  chunksCreated: number;
   durationSeconds: number;
   tokensUsed: number;
 }
@@ -84,17 +86,19 @@ export async function indexRepository(params: IndexRepositoryParams): Promise<In
     });
   }
 
-  // Determine changed or new files
-  const filesToIndex = eligibleItems.filter((item) => {
-    const existing = existingFileMap.get(item.path);
-    // If we have an existing record with the exact git blob sha, skip re-indexing
-    return !existing || existing.contentHash !== item.sha;
-  });
+  // Determine changed or new files (or all eligible files if force is requested)
+  const filesToIndex = params.force
+    ? eligibleItems
+    : eligibleItems.filter((item) => {
+        const existing = existingFileMap.get(item.path);
+        // If we have an existing record with the exact git blob sha, skip re-indexing
+        return !existing || existing.contentHash !== item.sha;
+      });
 
   const unchangedCount = eligibleItems.length - filesToIndex.length;
   await onProgress?.(
     40,
-    `Incremental check: ${filesToIndex.length} modified/new files to index, ${unchangedCount} unchanged, ${filesToDelete.length} removed.`
+    `Incremental check: ${filesToIndex.length} files to index${params.force ? ' (forced re-index)' : ''}, ${unchangedCount} unchanged, ${filesToDelete.length} removed.`
   );
 
   let totalChunksCreated = 0;
@@ -207,8 +211,16 @@ export async function indexRepository(params: IndexRepositoryParams): Promise<In
     },
   });
 
+  // Count cumulative code chunks currently stored in database for this repository
+  const totalChunksInRepo = await prisma.codeChunk.count({
+    where: { repositoryId },
+  });
+
   const durationSeconds = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
-  await onProgress?.(100, `Successfully completed indexing ${eligibleItems.length} files (${totalChunksCreated} chunks created).`);
+  await onProgress?.(
+    100,
+    `Successfully completed indexing ${eligibleItems.length} files (${totalChunksInRepo} total code chunks available, ${totalChunksCreated} newly created).`
+  );
 
   return {
     commitSha: commitSha!,
@@ -216,7 +228,8 @@ export async function indexRepository(params: IndexRepositoryParams): Promise<In
     indexedFiles: filesToIndex.length,
     unchangedFiles: unchangedCount,
     deletedFiles: filesToDelete.length,
-    totalChunks: totalChunksCreated,
+    totalChunks: totalChunksInRepo,
+    chunksCreated: totalChunksCreated,
     durationSeconds,
     tokensUsed: totalTokensUsed,
   };

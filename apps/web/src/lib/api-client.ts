@@ -203,10 +203,10 @@ class ApiClient {
   }
 
   // Repository Indexing
-  async triggerIndexing(repoId: string, commitSha?: string, branch?: string) {
+  async triggerIndexing(repoId: string, commitSha?: string, branch?: string, force?: boolean) {
     return this.fetch<{ message: string; indexJob: any }>(`/repositories/${repoId}/index`, {
       method: 'POST',
-      body: JSON.stringify({ commitSha, branch }),
+      body: JSON.stringify({ commitSha, branch, force }),
     });
   }
 
@@ -269,12 +269,18 @@ class ApiClient {
     });
   }
 
-  async getConversations(repoId: string) {
-    return this.fetch<any[]>(`/repositories/${repoId}/qna/conversations`);
+  async getConversations(repoId: string, mineOnly?: boolean) {
+    return this.fetch<any[]>(`/repositories/${repoId}/qna/conversations${mineOnly ? '?mine=true' : ''}`);
   }
 
   async getConversation(repoId: string, convoId: string) {
     return this.fetch<any>(`/repositories/${repoId}/qna/conversations/${convoId}`);
+  }
+
+  async deleteConversation(repoId: string, convoId: string) {
+    return this.fetch<any>(`/repositories/${repoId}/qna/conversations/${convoId}`, {
+      method: 'DELETE',
+    });
   }
 
   // Test Suggestions & Improvements

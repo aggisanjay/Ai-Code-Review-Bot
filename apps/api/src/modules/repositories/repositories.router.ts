@@ -1254,7 +1254,7 @@ repositoriesRouter.post(
   requireRole(['OWNER', 'ADMIN', 'MEMBER']),
   async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
-    const { commitSha, branch } = req.body || {};
+    const { commitSha, branch, force } = req.body || {};
 
     const repo = await prisma.repository.findFirst({
       where: {
@@ -1293,7 +1293,7 @@ repositoriesRouter.post(
         commitSha: commitSha || repo.lastIndexedCommitSha || 'HEAD',
         branch: branch || repo.defaultBranch || 'main',
         status: 'QUEUED',
-        statusMessage: 'Indexing job created and enqueued.',
+        statusMessage: force ? 'FORCE_REINDEX: Indexing job created and enqueued.' : 'Indexing job created and enqueued.',
       },
     });
 
@@ -1399,7 +1399,11 @@ repositoriesRouter.post(
     // Resolve or create conversation
     let conversation = conversationId
       ? await prisma.codebaseConversation.findFirst({
-          where: { id: conversationId, repositoryId: repo.id, userId: req.user!.id },
+          where: {
+            id: conversationId,
+            repositoryId: repo.id,
+            repository: { organizationId: repo.organizationId },
+          },
           include: { messages: { orderBy: { createdAt: 'asc' }, take: 10 } },
         })
       : null;
@@ -1500,24 +1504,39 @@ repositoriesRouter.post(
 
 /**
  * GET /api/v1/repositories/:id/qna/conversations
- * List conversations for a repository
+ * List conversations for a repository within the organization
  */
 repositoriesRouter.get(
   '/:id/qna/conversations',
   requireRole(['OWNER', 'ADMIN', 'MEMBER']),
   async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
+    const { mine } = req.query as { mine?: string };
+
+    const repo = await prisma.repository.findFirst({
+      where: {
+        id,
+        organizationId: req.organizationId!,
+      },
+    });
+
+    if (!repo) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Repository not found in your organization.' },
+      });
+    }
 
     const conversations = await prisma.codebaseConversation.findMany({
       where: {
         repositoryId: id,
-        userId: req.user!.id,
+        ...(mine === 'true' && req.user?.id ? { userId: req.user.id } : {}),
       },
       orderBy: { updatedAt: 'desc' },
       include: {
+        user: { select: { id: true, name: true, email: true } },
         _count: { select: { messages: true } },
       },
-      take: 20,
+      take: 50,
     });
 
     res.json({ data: conversations });
@@ -1538,9 +1557,10 @@ repositoriesRouter.get(
       where: {
         id: convoId,
         repositoryId: id,
-        userId: req.user!.id,
+        repository: { organizationId: req.organizationId! },
       },
       include: {
+        user: { select: { id: true, name: true, email: true } },
         messages: { orderBy: { createdAt: 'asc' } },
       },
     });
@@ -1582,6 +1602,38 @@ repositoriesRouter.get(
         messages: formattedMessages,
       },
     });
+  }
+);
+
+/**
+ * DELETE /api/v1/repositories/:id/qna/conversations/:convoId
+ * Delete a conversation thread
+ */
+repositoriesRouter.delete(
+  '/:id/qna/conversations/:convoId',
+  requireRole(['OWNER', 'ADMIN', 'MEMBER']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { id, convoId } = req.params;
+
+    const conversation = await prisma.codebaseConversation.findFirst({
+      where: {
+        id: convoId,
+        repositoryId: id,
+        repository: { organizationId: req.organizationId! },
+      },
+    });
+
+    if (!conversation) {
+      return res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'Conversation not found.' },
+      });
+    }
+
+    await prisma.codebaseConversation.delete({
+      where: { id: convoId },
+    });
+
+    res.json({ data: { success: true, message: 'Conversation deleted.' } });
   }
 );
 
