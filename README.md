@@ -86,49 +86,174 @@ npm run test:benchmark
 
 ## 🏗️ Architecture & Pipeline Flow
 
+ReviewFlow AI is engineered as an event-driven, multi-tenant distributed system designed for zero-trust codebase analysis, high-throughput pull request review, and verifiable citation generation.
+
 ```mermaid
-graph TD
-    GH[GitHub App Webhooks & REST API] -->|HMAC-SHA256 Signed| API[ReviewFlow API Server :4000]
-    USER[Developer / Web UI] -->|JWT Session / Cookie| WEB[Next.js Web Frontend :3000]
-    WEB -->|Authenticated REST & SSE| API
-
-    API -->|Persist State| DB[(Neon PostgreSQL Database)]
-    API -->|Durable Dispatch| REDIS[(BullMQ Redis Queue :6379)]
-
-    REDIS -->|Atomic Claim Job| WORKER[ReviewFlow Background Worker]
-
-    subgraph IndexingPipeline [Repository Indexing Pipeline]
-        WORKER -->|1. Traverse Git Tree| TREE[Tree Walker & Hash Comparison]
-        TREE -->|2. Syntax Chunking| CHUNKER[Language-Aware Chunker]
-        CHUNKER -->|3. Generate Vectors| EMBED[Gemini / OpenAI Embeddings]
-        EMBED -->|4. Persist Chunks| CHUNKS[(CodeChunk Vector Store)]
+flowchart TD
+    subgraph Ingress ["1. Ingress & Client Layer"]
+        GH["GitHub App Webhooks<br/>(PR Created, Synced, Commented)"]
+        USER["Developer / Web Browser<br/>(JWT Session, Cookie)"]
+        WEB["Next.js 14 Web Frontend (:3000)<br/>(Framer Motion, 3D Canvas, Recharts)"]
     end
 
-    subgraph QnAPipeline [Codebase Q&A & Retrieval]
-        USER_Q[Developer Query] --> QUOTA_QNA[Monthly Q&A Quota Check]
-        QUOTA_QNA --> RETRIEVER[Hybrid Vector & Keyword Retriever]
-        CHUNKS --> RETRIEVER
-        RETRIEVER --> CONTEXT[Context Assembly with Token Limits]
-        CONTEXT --> LLM_QNA[Gemini Grounded Reasoning]
-        LLM_QNA --> CITATIONS[Verified Citations [file#L-L]]
+    subgraph ControlPlane ["2. Control Plane & API Service (:4000)"]
+        API["Express REST API Server"]
+        HMAC["HMAC-SHA256 Webhook Verifier"]
+        AUTH["JWT & Org Multi-Tenant Guard"]
+        QUOTA["Billing & Token Quota Meter"]
     end
 
-    subgraph ReviewPipeline [Multi-Pillar Review Pipeline]
-        WORKER -->|1. Atomic Claim| ATOMIC[Status QUEUED -> FETCHING_DIFF]
-        ATOMIC -->|2. Fetch Real Diff| DIFF_PARSER[Diff Parser]
-        DIFF_PARSER -->|3. Deterministic Scanners| AST[Correctness, Perf, Sec, Test, Maint AST]
-        DIFF_PARSER -->|4. Structured Reasoning| LLM_REV[Gemini / OpenAI Review Engine]
-        AST --> MERGE[Grounded Findings Validator]
-        LLM_REV --> MERGE
-        MERGE --> CHECK_RUN[GitHub Check Runs & Comments]
+    subgraph DataQueue ["3. Storage & Queue Infrastructure"]
+        REDIS[("BullMQ Redis Queue (:6379)<br/>(Priority Queues & DLQ)")]
+        DB[("Neon PostgreSQL Database<br/>(Prisma ORM & Connection Pool)")]
+        VECTORS[("CodeChunk Vector Store<br/>(Cosine Index & Full-Text Search)")]
     end
 
-    subgraph WriteApproval [Safe Two-Phase Write Protocol]
-        SUGGEST[Test / Improvement Proposal] --> NONCE[Generate 64-char Cryptographic Nonce]
-        NONCE --> PENDING[(ApprovalRequest Database Record)]
-        DEV_AUTH[Developer Explicit Approval] --> REVALIDATE[Verify Target SHA & Permissions]
-        REVALIDATE --> EXECUTE_WRITE[Execute Branch & PR via GitHub App]
+    subgraph WorkerPlane ["4. Asynchronous Background Worker (:5000)"]
+        WORKER["ReviewFlow Worker Loop"]
+        ATOMIC["Atomic Lease Manager<br/>(QUEUED -> FETCHING_DIFF)"]
+        DIFF["Git Diff & Patch Parser"]
+        AST["5-Pillar Deterministic AST Engine"]
+        LLM_ENG["Multi-Model Reasoning Engine<br/>(Gemini / OpenAI Fallback Chain)"]
+        VAL["Grounded Findings Validator"]
     end
+
+    subgraph ExternalIntegrations ["5. External Services & Providers"]
+        GEMINI["Google Gemini API<br/>(gemini-2.5-flash / gemini-2.5-pro)"]
+        OPENAI["OpenAI API<br/>(gpt-4o / text-embedding-3)"]
+        OCTOKIT["GitHub REST & GraphQL API<br/>(Check Runs & Inline Comments)"]
+        STRIPE["Stripe Billing & Webhooks"]
+    end
+
+    %% Connections
+    GH -->|HMAC-SHA256 Signature| HMAC
+    HMAC --> API
+    USER --> WEB
+    WEB -->|REST & SSE Streams| AUTH
+    AUTH --> API
+    API --> QUOTA
+    QUOTA -->|Verify Subscription| STRIPE
+    API -->|Persist Job State| DB
+    API -->|Enqueue Review / Index Job| REDIS
+
+    REDIS -->|Claim Next Job| WORKER
+    WORKER --> ATOMIC
+    ATOMIC -->|Atomic State Lock| DB
+    WORKER --> DIFF
+    DIFF --> AST
+    DIFF --> LLM_ENG
+    LLM_ENG -->|Structured Reasoning| GEMINI
+    GEMINI -.->|Automatic Fallback| OPENAI
+    AST --> VAL
+    LLM_ENG --> VAL
+    VAL -->|Publish Verdict & Line Comments| OCTOKIT
+    VAL -->|Persist Findings| DB
+
+    %% Vector Indexing & QnA
+    WORKER -->|Tree Sync| VECTORS
+    API -->|Hybrid Vector + Lexical Search| VECTORS
+```
+
+---
+
+### Detailed Pipeline Workflows
+
+#### 1. Automated Pull Request Code Review Pipeline
+```mermaid
+sequenceDiagram
+    autonumber
+    participant GitHub as GitHub App
+    participant API as ReviewFlow API (:4000)
+    participant Redis as BullMQ Redis
+    participant Worker as Background Worker
+    participant AST as Static AST Scanners
+    participant AI as Gemini / OpenAI
+    participant DB as PostgreSQL
+
+    GitHub->>API: Webhook (pull_request.opened / synchronize)
+    API->>API: Verify HMAC-SHA256 Webhook Signature
+    API->>DB: Check Repository Policy & Organization Quotas
+    API->>DB: Create ReviewJob (status: QUEUED)
+    API->>Redis: Enqueue review-job
+    API-->>GitHub: 202 Accepted (Check Run: in_progress)
+
+    Redis->>Worker: Dispatch job
+    Worker->>DB: Atomic lease transition: QUEUED -> FETCHING_DIFF
+    Worker->>GitHub: Fetch PR Git unified diff & commit metadata
+    Worker->>Worker: Parse diff into hunks, added lines & boundaries
+
+    par Deterministic Static Analysis
+        Worker->>AST: Execute Security, Correctness, Perf, Testing, Maint rules
+        AST-->>Worker: Deterministic findings with exact line coordinates
+    and AI-Powered Reasoning
+        Worker->>AI: Send diff within <UNTRUSTED_DIFF> security quarantine
+        AI-->>Worker: Structured JSON findings (5 pillars, rationale, fix)
+    end
+
+    Worker->>Worker: Deduplicate, merge & validate line ranges against diff
+    Worker->>DB: Persist findings, token telemetry & execution latency
+    Worker->>GitHub: Update Check Run verdict (SUCCESS / FAILURE on Critical)
+    opt Repository Policy: autoPostInlineComments = true
+        Worker->>GitHub: Publish line-level comments on changed files
+    end
+    Worker->>DB: Update ReviewJob (status: COMPLETED)
+```
+
+#### 2. Whole-Codebase Indexing & Semantic Vector Pipeline
+```mermaid
+flowchart LR
+    A["1. Git Tree Walk"] -->|Filter lockfiles & binaries| B["2. Syntax Chunker"]
+    B -->|Extract class, func, interface| C["3. Vector Embeddings"]
+    C -->|Gemini / OpenAI API| D["4. Vector Store (PostgreSQL)"]
+    D -->|SHA-256 Tree Comparison| E["5. Stale Chunk Purge & Incremental Sync"]
+```
+- **Syntax-Aware Code Chunking**: Language parsers inspect source code structures (classes, functions, interfaces, type declarations), ensuring semantic boundaries are never severed mid-function.
+- **Incremental SHA-256 Tree Comparison**: Traverses repository trees to compare file commit SHAs against the database, re-embedding only modified files and dropping chunks for deleted paths.
+- **Quota-Aware Rate Limiting**: Batches embedding calls with exponential backoff to maximize throughput while respecting Google Gemini and OpenAI tier limits.
+
+#### 3. Grounded Codebase Q&A & Citation Synthesis Flow
+```mermaid
+flowchart TD
+    Q["Developer Question in UI"] --> QC["Monthly Q&A Quota Verification"]
+    QC --> HYB["Hybrid Retrieval: Cosine Similarity + Keyword Match"]
+    HYB --> CTX["Token-Budgeted Context Assembler"]
+    CTX --> QUAR["Quarantine Context inside <UNTRUSTED_CODE>"]
+    QUAR --> REAS["Gemini Structured Reasoning Engine"]
+    REAS --> CITE["Citation Synthesizer: [filePath#L{start}-L{end}]"]
+    CITE --> GUARD{"Evidence Sufficient?"}
+    GUARD -- Yes --> OUT["Stream Answer with Clickable Line Citations"]
+    GUARD -- No --> HONEST["Honest Guardrail: Explicitly Acknowledge Limitation"]
+```
+- **Zero Hallucination Guardrail**: The assistant is instructed to refuse to extrapolate beyond provided code snippets. If the indexed knowledge base lacks sufficient evidence, it explicitly reports that the codebase does not provide adequate context.
+- **Verifiable Citations**: Every asserted claim is directly tagged with verifiable file and line bounds (`[src/auth/service.ts#L42-L89]`).
+
+#### 4. Safe Human-in-the-Loop Two-Phase Write Protocol
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Dev as Developer
+    participant UI as Web Dashboard
+    participant API as ReviewFlow API
+    participant DB as PostgreSQL
+    participant GH as GitHub API
+
+    Dev->>UI: Request Unit Test or Fix Proposal
+    UI->>API: POST /repositories/:id/suggest-tests
+    API->>API: Generate test code & target file path
+    API->>API: Generate 64-character SHA-256 Cryptographic Nonce
+    API->>DB: Save ApprovalRequest (status: PENDING, nonce, targetBranch, targetSha)
+    API-->>UI: Return proposal preview (Zero Autonomous Writes)
+
+    Note over Dev,UI: Developer inspects code, diff & target branch in UI
+
+    Dev->>UI: Click "Approve & Execute via GitHub"
+    UI->>API: POST /repositories/:id/approvals/:approvalId/execute (with nonce)
+    API->>DB: Validate cryptographic nonce & expiration timestamp
+    API->>GH: Revalidate target branch commit SHA (ensure no mid-flight race)
+    API->>GH: Create branch: reviewflow/test-{hash}
+    API->>GH: Commit proposed code & open Pull Request
+    API->>DB: Mark ApprovalRequest as EXECUTED with audit trail
+    API-->>UI: Return new PR link & commit confirmation
 ```
 
 ---
