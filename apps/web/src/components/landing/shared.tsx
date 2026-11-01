@@ -84,4 +84,3 @@ export function SectionHead({ kicker, title, body, center = false }: {
     </div>
   );
 }
-

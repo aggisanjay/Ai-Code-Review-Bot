@@ -13,10 +13,10 @@ interface HeaderProps {
 
 export function Header({ title, description, action, isConnected }: HeaderProps) {
   return (
-    <header className="h-16 border-b border-[#E2EDE6] bg-white/95 px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md">
+    <header className="h-16 border-b border-[rgba(255,255,255,0.09)] bg-[#04070A]/95 px-6 flex items-center justify-between sticky top-0 z-40 backdrop-blur-md">
       <div>
-        <h1 className="text-sm sm:text-base font-bold text-[#111C18] tracking-tight font-display">{title}</h1>
-        {description && <p className="text-xs text-[#52635B] mt-0.5">{description}</p>}
+        <h1 className="text-sm sm:text-base font-bold text-[#F3F7F5] tracking-tight font-display">{title}</h1>
+        {description && <p className="text-xs text-[#B4C0BB] mt-0.5">{description}</p>}
       </div>
 
       <div className="flex items-center gap-3">
@@ -25,8 +25,8 @@ export function Header({ title, description, action, isConnected }: HeaderProps)
           <div
             className={`hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border text-[11px] font-mono font-medium ${
               isConnected
-                ? 'bg-[#EBF7F0] border-[#C3EBD7] text-[#063B2C]'
-                : 'bg-[#F8FCFA] border-[#E2EDE6] text-[#52635B]'
+                ? 'bg-[rgba(52,229,165,0.10)] border-[rgba(52,229,165,0.28)] text-[#34E5A5]'
+                : 'bg-[rgba(255,255,255,0.035)] border-[rgba(255,255,255,0.09)] text-[#B4C0BB]'
             }`}
           >
             <span
@@ -42,7 +42,7 @@ export function Header({ title, description, action, isConnected }: HeaderProps)
 
         <Link
           href="/docs"
-          className="text-xs text-[#52635B] hover:text-[#063B2C] flex items-center gap-1.5 transition-colors font-mono font-medium"
+          className="text-xs text-[#B4C0BB] hover:text-[#34E5A5] flex items-center gap-1.5 transition-colors font-mono font-medium"
         >
           <span>Docs</span>
           <ExternalLink className="w-3.5 h-3.5" />

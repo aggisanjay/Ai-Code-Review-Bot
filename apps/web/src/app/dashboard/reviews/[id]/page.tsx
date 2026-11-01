@@ -211,9 +211,9 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[60vh] bg-[#F7F9F8]">
-        <div className="flex items-center gap-3 text-[#66736D] font-mono text-xs">
-          <RefreshCw className="w-4 h-4 animate-spin text-[#126B50]" />
+      <div className="flex-1 flex items-center justify-center min-h-[60vh] bg-[#04070A]">
+        <div className="flex items-center gap-3 text-[#9AA7A1] font-mono text-xs">
+          <RefreshCw className="w-4 h-4 animate-spin text-[#34E5A5]" />
           <span>Loading pull request review analysis...</span>
         </div>
       </div>
@@ -222,12 +222,12 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
 
   if (notFound || !job) {
     return (
-      <div className="flex-1 pb-16 bg-[#F7F9F8]">
+      <div className="flex-1 pb-16 bg-[#04070A]">
         <Header title="Review Details" />
-        <div className="max-w-2xl mx-auto mt-20 p-8 rounded-2xl bg-white border border-[#E4EAE6] text-center space-y-4 shadow-sleek-md">
-          <AlertCircle className="w-8 h-8 text-[#B7791F] mx-auto" />
-          <h2 className="text-base font-bold text-[#14211D] font-display">Review Job Not Found</h2>
-          <p className="text-xs text-[#66736D] font-mono">
+        <div className="max-w-2xl mx-auto mt-20 p-8 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-center space-y-4 shadow-sleek-md">
+          <AlertCircle className="w-8 h-8 text-[#FFB454] mx-auto" />
+          <h2 className="text-base font-bold text-[#F3F7F5] font-display">Review Job Not Found</h2>
+          <p className="text-xs text-[#9AA7A1] font-mono">
             The requested review ID does not exist or belongs to another tenant organization.
           </p>
           <Link
@@ -264,7 +264,7 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
   const githubPrUrl = `https://github.com/${repo.fullName || repo.name}/pull/${pr.number}`;
 
   return (
-    <div className="flex-1 pb-16 bg-[#F7F9F8]">
+    <div className="flex-1 pb-16 bg-[#04070A]">
       <Header
         title={`Review: ${repo.fullName || repo.name}#${pr.number}`}
         description="Pull request review analysis with inline code annotations and check run status."
@@ -275,7 +275,7 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
             disabled={isRetrying || status === 'QUEUED'}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl btn-secondary text-xs font-semibold shadow-sleek-sm"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin text-[#126B50]' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin text-[#34E5A5]' : ''}`} />
             <span>{isRetrying ? 'Re-Queueing...' : 'Re-Run Review'}</span>
           </button>
         }
@@ -286,7 +286,7 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
         <div className="flex items-center justify-between">
           <Link
             href="/dashboard/pull-requests"
-            className="text-xs text-[#66736D] hover:text-[#126B50] flex items-center gap-1 font-mono transition-colors font-medium"
+            className="text-xs text-[#9AA7A1] hover:text-[#34E5A5] flex items-center gap-1 font-mono transition-colors font-medium"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Back to Pull Requests</span>
@@ -296,7 +296,7 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
             href={githubPrUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#126B50] hover:underline font-mono flex items-center gap-1.5 font-semibold"
+            className="text-xs text-[#34E5A5] hover:underline font-mono flex items-center gap-1.5 font-semibold"
           >
             <span>View on GitHub (#{pr.number})</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -304,7 +304,7 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
         </div>
 
         {/* Real-Time Review Pipeline Status & Progress Bar */}
-        <div className="p-5 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-3">
+        <div className="p-5 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
               <span
@@ -312,77 +312,77 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
                   status === 'COMPLETED'
                     ? 'bg-[#16835B]'
                     : status === 'FAILED'
-                    ? 'bg-[#C43D4B]'
-                    : 'bg-[#B7791F] animate-pulse'
+                    ? 'bg-[#FF5D6C]'
+                    : 'bg-[#FFB454] animate-pulse'
                 }`}
               />
-              <span className="text-xs font-bold font-mono text-[#14211D] uppercase tracking-wider">
+              <span className="text-xs font-bold font-mono text-[#F3F7F5] uppercase tracking-wider">
                 Pipeline Status: {status}
               </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-semibold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-semibold">
                 {sseConnected ? 'SSE Live Stream: Connected' : 'Live Sync Active'}
               </span>
             </div>
-            <span className="text-xs font-mono font-bold text-[#126B50]">{progressPercent}%</span>
+            <span className="text-xs font-mono font-bold text-[#34E5A5]">{progressPercent}%</span>
           </div>
 
-          <div className="w-full h-2 rounded-full bg-[#F7F9F8] overflow-hidden border border-[#E4EAE6]">
+          <div className="w-full h-2 rounded-full bg-[#04070A] overflow-hidden border border-[rgba(255,255,255,0.09)]">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                status === 'FAILED' ? 'bg-[#C43D4B]' : 'bg-[#126B50]'
+                status === 'FAILED' ? 'bg-[#FF5D6C]' : 'bg-[#126B50]'
               }`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-[#66736D] font-mono">
+          <div className="flex items-center justify-between text-[11px] text-[#9AA7A1] font-mono">
             <span>{statusMessage}</span>
-            <span>Target Commit: <strong className="text-[#14211D]">{job.commitSha?.substring(0, 7) || 'HEAD'}</strong></span>
+            <span>Target Commit: <strong className="text-[#F3F7F5]">{job.commitSha?.substring(0, 7) || 'HEAD'}</strong></span>
           </div>
         </div>
 
         {job.errorMessage && (
-          <div className="p-4 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <AlertCircle className="w-4 h-4 text-[#C43D4B] shrink-0" />
+          <div className="p-4 rounded-xl bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <AlertCircle className="w-4 h-4 text-[#FF6B7A] shrink-0" />
             <span>Failure Notice: {job.errorMessage}</span>
           </div>
         )}
 
         {retryMessage && (
-          <div className="p-4 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <Sparkles className="w-4 h-4 text-[#126B50] shrink-0" />
+          <div className="p-4 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <Sparkles className="w-4 h-4 text-[#34E5A5] shrink-0" />
             <span>{retryMessage}</span>
           </div>
         )}
 
         {/* PR Header & Branches Overview Card */}
-        <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm">
+        <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm">
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
             <div>
               <div className="flex items-center gap-2.5 mb-2">
-                <span className="text-xs font-mono text-[#66736D] font-medium">
+                <span className="text-xs font-mono text-[#9AA7A1] font-medium">
                   {repo.fullName || repo.name}#{pr.number}
                 </span>
                 <span
                   className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full font-mono ${
                     overallRisk === 'CRITICAL'
-                      ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
+                      ? 'bg-[rgba(255,93,108,0.10)] text-[#FF6B7A] border border-[rgba(255,93,108,0.32)]'
                       : overallRisk === 'HIGH'
-                      ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
+                      ? 'bg-[rgba(255,180,84,0.10)] text-[#FFB454] border border-[rgba(255,180,84,0.32)]'
                       : overallRisk === 'SAFE'
-                      ? 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
-                      : 'bg-[#F7F9F8] text-[#14211D] border border-[#E4EAE6]'
+                      ? 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)]'
+                      : 'bg-[#04070A] text-[#F3F7F5] border border-[rgba(255,255,255,0.09)]'
                   }`}
                 >
                   OVERALL RISK: {overallRisk}
                 </span>
                 {job.publishedToGitHub && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-mono font-bold border border-[rgba(52,229,165,0.28)]">
                     GitHub Checks Published
                   </span>
                 )}
               </div>
-              <h2 className="text-xl font-bold text-[#14211D] tracking-tight font-display">{pr.title}</h2>
+              <h2 className="text-xl font-bold text-[#F3F7F5] tracking-tight font-display">{pr.title}</h2>
             </div>
 
             <div className="flex items-center gap-3">
@@ -390,37 +390,37 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
                 <img
                   src={pr.authorAvatarUrl}
                   alt={pr.author}
-                  className="w-8 h-8 rounded-full border border-[#E4EAE6]"
+                  className="w-8 h-8 rounded-full border border-[rgba(255,255,255,0.09)]"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-[#EAF5EF] text-[#126B50] flex items-center justify-center text-[11px] font-mono font-bold">
+                <div className="w-8 h-8 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] flex items-center justify-center text-[11px] font-mono font-bold">
                   {(pr.author || 'U').substring(0, 2).toUpperCase()}
                 </div>
               )}
               <div className="text-xs">
-                <span className="text-[#14211D] font-bold block">@{pr.author}</span>
-                <span className="text-[#66736D] font-mono text-[10px]">Author</span>
+                <span className="text-[#F3F7F5] font-bold block">@{pr.author}</span>
+                <span className="text-[#9AA7A1] font-mono text-[10px]">Author</span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs text-[#66736D] font-mono pt-4 border-t border-[#E4EAE6]">
+          <div className="flex flex-wrap items-center gap-4 text-xs text-[#9AA7A1] font-mono pt-4 border-t border-[rgba(255,255,255,0.09)]">
             <div className="flex items-center gap-1.5">
-              <GitBranch className="w-3.5 h-3.5 text-[#126B50]" />
-              <span className="font-semibold text-[#126B50]">{pr.headBranch}</span>
+              <GitBranch className="w-3.5 h-3.5 text-[#34E5A5]" />
+              <span className="font-semibold text-[#34E5A5]">{pr.headBranch}</span>
               <span>→</span>
-              <span className="text-[#14211D] font-medium">{pr.baseBranch}</span>
+              <span className="text-[#F3F7F5] font-medium">{pr.baseBranch}</span>
             </div>
             <span>•</span>
             <div>
               <span>Commit: </span>
-              <span className="text-[#14211D] font-bold">{job.commitSha?.substring(0, 7) || 'HEAD'}</span>
+              <span className="text-[#F3F7F5] font-bold">{job.commitSha?.substring(0, 7) || 'HEAD'}</span>
             </div>
             {job.durationSeconds && (
               <>
                 <span>•</span>
                 <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[#66736D]" />
+                  <Clock className="w-3.5 h-3.5 text-[#9AA7A1]" />
                   <span>Processed in {job.durationSeconds}s</span>
                 </div>
               </>
@@ -432,39 +432,39 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
               </>
             )}
             <span>•</span>
-            <span className="text-[#126B50] font-semibold">Model: gemini-3.5-flash</span>
+            <span className="text-[#34E5A5] font-semibold">Model: gemini-3.5-flash</span>
           </div>
         </div>
 
         {/* AI Senior Reviewer Assessment Summary */}
         {result && (
-          <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#126B50]" />
+              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#F3F7F5] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#34E5A5]" />
                 <span>Assessment Summary & Findings</span>
               </h3>
-              <span className="text-[11px] font-mono text-[#66736D]">
+              <span className="text-[11px] font-mono text-[#9AA7A1]">
                 Saved ~{result.estimatedReviewTimeSavedMinutes || 15} mins of review
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#14211D] leading-relaxed bg-[#F7F9F8] p-4 rounded-xl border border-[#E4EAE6]">
+            <p className="text-xs sm:text-sm text-[#F3F7F5] leading-relaxed bg-[#04070A] p-4 rounded-xl border border-[rgba(255,255,255,0.09)]">
               {result.summary}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
               {/* Blockers */}
               {blockers.length > 0 && (
-                <div className="p-4 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4]">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#C43D4B] mb-2 flex items-center gap-1.5 font-mono">
-                    <ShieldAlert className="w-4 h-4 text-[#C43D4B]" />
+                <div className="p-4 rounded-xl bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)]">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B7A] mb-2 flex items-center gap-1.5 font-mono">
+                    <ShieldAlert className="w-4 h-4 text-[#FF6B7A]" />
                     <span>Merge Blockers ({blockers.length})</span>
                   </h4>
-                  <ul className="space-y-1.5 text-xs text-[#14211D]">
+                  <ul className="space-y-1.5 text-xs text-[#F3F7F5]">
                     {blockers.map((b, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="text-[#C43D4B] font-bold">•</span>
+                        <span className="text-[#FF6B7A] font-bold">•</span>
                         <span>{b}</span>
                       </li>
                     ))}
@@ -474,15 +474,15 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
 
               {/* Strengths */}
               {keyStrengths.length > 0 && (
-                <div className="p-4 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6]">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#126B50] mb-2 flex items-center gap-1.5 font-mono">
-                    <CheckCircle2 className="w-4 h-4 text-[#16835B]" />
+                <div className="p-4 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)]">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#34E5A5] mb-2 flex items-center gap-1.5 font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-[#34E5A5]" />
                     <span>Architectural Strengths</span>
                   </h4>
-                  <ul className="space-y-1.5 text-xs text-[#14211D]">
+                  <ul className="space-y-1.5 text-xs text-[#F3F7F5]">
                     {keyStrengths.map((s, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="text-[#16835B] font-bold">•</span>
+                        <span className="text-[#34E5A5] font-bold">•</span>
                         <span>{s}</span>
                       </li>
                     ))}
@@ -496,16 +496,16 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
         {/* Changed Files & Inline Findings */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+            <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#F3F7F5]">
               Inline Review Findings ({findings.length})
             </h3>
           </div>
 
           {findings.length === 0 ? (
-            <div className="p-10 rounded-2xl bg-white border border-[#E4EAE6] text-center space-y-2 shadow-sleek-sm">
-              <CheckCircle2 className="w-7 h-7 text-[#16835B] mx-auto" />
-              <h4 className="text-base font-bold text-[#14211D] font-display">No Issues Detected</h4>
-              <p className="text-xs text-[#66736D] font-mono">
+            <div className="p-10 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-center space-y-2 shadow-sleek-sm">
+              <CheckCircle2 className="w-7 h-7 text-[#34E5A5] mx-auto" />
+              <h4 className="text-base font-bold text-[#F3F7F5] font-display">No Issues Detected</h4>
+              <p className="text-xs text-[#9AA7A1] font-mono">
                 The pull request changes passed all deterministic scanners and review policies.
               </p>
             </div>
@@ -514,14 +514,14 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
               {findings.map((f: any) => (
                 <div
                   key={f.id}
-                  className={`p-5 rounded-2xl bg-white border transition-all shadow-sleek-sm ${
+                  className={`p-5 rounded-2xl bg-[#0A1115] border transition-all shadow-sleek-sm ${
                     f.dismissed
-                      ? 'opacity-60 border-[#E4EAE6]'
+                      ? 'opacity-60 border-[rgba(255,255,255,0.09)]'
                       : f.severity === 'CRITICAL'
-                      ? 'border-[#F8B4B4] ring-1 ring-[#C43D4B]/20'
+                      ? 'border-[rgba(255,93,108,0.32)] ring-1 ring-[rgba(255,93,108,0.45)]/20'
                       : f.severity === 'HIGH'
-                      ? 'border-[#FDE68A] ring-1 ring-[#B7791F]/20'
-                      : 'border-[#E4EAE6]'
+                      ? 'border-[rgba(255,180,84,0.32)] ring-1 ring-[rgba(255,180,84,0.45)]/20'
+                      : 'border-[rgba(255,255,255,0.09)]'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4 mb-2.5">
@@ -529,58 +529,58 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
                       <span
                         className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full ${
                           f.severity === 'CRITICAL'
-                            ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
+                            ? 'bg-[rgba(255,93,108,0.10)] text-[#FF6B7A] border border-[rgba(255,93,108,0.32)]'
                             : f.severity === 'HIGH'
-                            ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
-                            : 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
+                            ? 'bg-[rgba(255,180,84,0.10)] text-[#FFB454] border border-[rgba(255,180,84,0.32)]'
+                            : 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)]'
                         }`}
                       >
                         {f.severity}
                       </span>
-                      <span className="text-sm font-bold text-[#14211D] font-display">{f.title}</span>
+                      <span className="text-sm font-bold text-[#F3F7F5] font-display">{f.title}</span>
                     </div>
 
                     {!f.dismissed ? (
                       <button
                         onClick={() => handleDismissFinding(f.id, 'Dismissed by reviewer')}
-                        className="text-[11px] text-[#66736D] hover:text-[#C43D4B] font-mono font-medium hover:underline"
+                        className="text-[11px] text-[#9AA7A1] hover:text-[#FF6B7A] font-mono font-medium hover:underline"
                       >
                         Dismiss
                       </button>
                     ) : (
-                      <span className="text-[11px] text-[#66736D] font-mono italic">
+                      <span className="text-[11px] text-[#9AA7A1] font-mono italic">
                         Dismissed ({f.dismissReason || 'Reviewed'})
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs sm:text-sm text-[#14211D] mb-3 leading-relaxed">{f.explanation}</p>
+                  <p className="text-xs sm:text-sm text-[#F3F7F5] mb-3 leading-relaxed">{f.explanation}</p>
 
-                  <div className="bg-[#F7F9F8] p-3 rounded-xl border border-[#E4EAE6] font-mono text-[11px] mb-3 space-y-1">
-                    <div className="text-[#66736D]">
-                      File: <strong className="text-[#14211D]">{f.filePath}:{f.startLine}</strong>
+                  <div className="bg-[#04070A] p-3 rounded-xl border border-[rgba(255,255,255,0.09)] font-mono text-[11px] mb-3 space-y-1">
+                    <div className="text-[#9AA7A1]">
+                      File: <strong className="text-[#F3F7F5]">{f.filePath}:{f.startLine}</strong>
                     </div>
                     {f.evidence && (
-                      <pre className="text-[#C43D4B] overflow-x-auto whitespace-pre-wrap pt-1">{f.evidence}</pre>
+                      <pre className="text-[#FF6B7A] overflow-x-auto whitespace-pre-wrap pt-1">{f.evidence}</pre>
                     )}
                   </div>
 
-                  <div className="text-xs text-[#14211D] font-mono bg-[#EAF5EF] p-3.5 rounded-xl border border-[#C7E4D6]">
-                    <span className="font-bold text-[#126B50] block mb-1">Remediation Guidance:</span>
+                  <div className="text-xs text-[#F3F7F5] font-mono bg-[rgba(52,229,165,0.10)] p-3.5 rounded-xl border border-[rgba(52,229,165,0.28)]">
+                    <span className="font-bold text-[#34E5A5] block mb-1">Remediation Guidance:</span>
                     <span>{f.remediation}</span>
                     {f.suggestedPatch && (
-                      <pre className="mt-2 text-[#14211D] bg-white p-3 rounded-lg border border-[#C7E4D6] overflow-x-auto whitespace-pre-wrap">
+                      <pre className="mt-2 text-[#F3F7F5] bg-[#0A1115] p-3 rounded-lg border border-[rgba(52,229,165,0.28)] overflow-x-auto whitespace-pre-wrap">
                         {f.suggestedPatch}
                       </pre>
                     )}
                   </div>
 
                   {/* Developer Review Feedback Toolbar (Section 11) */}
-                  <div className="mt-3 pt-3 border-t border-[#E4EAE6] flex flex-wrap items-center justify-between gap-2.5 text-xs">
-                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#66736D]">
+                  <div className="mt-3 pt-3 border-t border-[rgba(255,255,255,0.09)] flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#9AA7A1]">
                       <span>Review Quality Feedback:</span>
                       {f.feedbacks && f.feedbacks.length > 0 && (
-                        <span className="font-semibold text-[#126B50] bg-[#EAF5EF] px-2 py-0.5 rounded-full border border-[#C7E4D6]">
+                        <span className="font-semibold text-[#34E5A5] bg-[rgba(52,229,165,0.10)] px-2 py-0.5 rounded-full border border-[rgba(52,229,165,0.28)]">
                           ✓ Marked as {f.feedbacks[f.feedbacks.length - 1].feedbackType.replace('_', ' ')}
                         </span>
                       )}
@@ -606,8 +606,8 @@ export default function ReviewDetailPage({ params }: { params: { id: string } })
                             onClick={() => handleFeedback(f.id, item.type)}
                             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-mono font-medium transition-all ${
                               isSelected
-                                ? 'bg-[#126B50] text-white border-[#126B50] shadow-sm font-semibold'
-                                : `bg-white border-[#E4EAE6] text-[#52635B] ${item.color}`
+                                ? 'bg-[#126B50] text-white border-[rgba(52,229,165,0.45)] shadow-sm font-semibold'
+                                : `bg-[#0A1115] border-[rgba(255,255,255,0.09)] text-[#B4C0BB] ${item.color}`
                             }`}
                           >
                             <Icon className={`w-3 h-3 ${isSubmitting ? 'animate-spin' : ''}`} />

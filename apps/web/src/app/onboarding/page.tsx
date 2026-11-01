@@ -262,29 +262,29 @@ function OnboardingContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F7F9F8] text-[#14211D] flex items-center justify-center">
+      <div className="min-h-screen bg-[#04070A] text-[#F3F7F5] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-6 h-6 text-[#126B50] animate-spin" />
-          <span className="text-xs font-mono text-[#66736D]">Loading workspace onboarding...</span>
+          <RefreshCw className="w-6 h-6 text-[#34E5A5] animate-spin" />
+          <span className="text-xs font-mono text-[#9AA7A1]">Loading workspace onboarding...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F9F8] text-[#14211D] flex flex-col justify-between">
+    <div className="min-h-screen bg-[#04070A] text-[#F3F7F5] flex flex-col justify-between">
       {/* Top Navbar */}
-      <header className="border-b border-[#E4EAE6] bg-white/90 backdrop-blur px-6 h-16 flex items-center justify-between">
+      <header className="border-b border-[rgba(255,255,255,0.09)] bg-[#04070A]/90 backdrop-blur px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center shadow-sm">
-            <GitPullRequest className="w-4 h-4 text-[#126B50]" />
+          <div className="w-8 h-8 rounded-lg bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] flex items-center justify-center shadow-sm">
+            <GitPullRequest className="w-4 h-4 text-[#34E5A5]" />
           </div>
-          <span className="font-bold text-sm text-[#14211D] font-display">
-            ReviewFlow AI <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">Production Setup</span>
+          <span className="font-bold text-sm text-[#F3F7F5] font-display">
+            ReviewFlow AI <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-mono font-bold border border-[rgba(52,229,165,0.28)]">Production Setup</span>
           </span>
         </Link>
 
-        <div className="text-xs text-[#66736D] font-mono font-semibold">
+        <div className="text-xs text-[#9AA7A1] font-mono font-semibold">
           Step {currentStep} of {STEPS.length}
         </div>
       </header>
@@ -306,7 +306,7 @@ function OnboardingContent() {
               />
               <span
                 className={`text-[11px] font-mono hidden sm:block ${
-                  s.id === currentStep ? 'text-[#126B50] font-bold' : 'text-[#66736D]'
+                  s.id === currentStep ? 'text-[#34E5A5] font-bold' : 'text-[#9AA7A1]'
                 }`}
               >
                 {s.title}
@@ -317,34 +317,34 @@ function OnboardingContent() {
 
         {/* Global Feedback Banners */}
         {error && (
-          <div className="mb-4 p-3.5 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <AlertCircle className="w-4 h-4 text-[#C43D4B] shrink-0" />
+          <div className="mb-4 p-3.5 rounded-xl bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <AlertCircle className="w-4 h-4 text-[#FF6B7A] shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-4 p-3.5 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0" />
+          <div className="mb-4 p-3.5 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-[#34E5A5] shrink-0" />
             <span>{successMessage}</span>
           </div>
         )}
 
         {/* Wizard Step Content */}
-        <div className="bg-white border border-[#E4EAE6] rounded-2xl p-7 sm:p-8 shadow-sleek-md">
+        <div className="bg-[#0A1115] border border-[rgba(255,255,255,0.09)] rounded-2xl p-7 sm:p-8 shadow-sleek-md">
           {/* STEP 1: Organization */}
           {currentStep === 1 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-lg font-bold text-[#14211D] mb-1 font-display">Step 1: Your Organization Space</h2>
-                <p className="text-xs sm:text-sm text-[#66736D]">
+                <h2 className="text-lg font-bold text-[#F3F7F5] mb-1 font-display">Step 1: Your Organization Space</h2>
+                <p className="text-xs sm:text-sm text-[#9AA7A1]">
                   Organizations isolate your connected repositories, pull request reviews, and policies securely.
                 </p>
               </div>
 
               <div className="space-y-4 pt-1">
                 <div>
-                  <label className="block text-xs font-semibold text-[#14211D] mb-1.5">
+                  <label className="block text-xs font-semibold text-[#F3F7F5] mb-1.5">
                     Organization Name
                   </label>
                   <input
@@ -355,16 +355,16 @@ function OnboardingContent() {
                       setOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-'));
                     }}
                     placeholder="e.g. Acme Corp"
-                    className="w-full px-3.5 py-2.5 bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl text-xs sm:text-sm text-[#14211D] focus:outline-none focus:border-[#126B50] font-mono"
+                    className="w-full px-3.5 py-2.5 bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl text-xs sm:text-sm text-[#F3F7F5] focus:outline-none focus:border-[rgba(52,229,165,0.45)] font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#14211D] mb-1.5">
+                  <label className="block text-xs font-semibold text-[#F3F7F5] mb-1.5">
                     Tenant Workspace URL
                   </label>
                   <div className="flex items-center">
-                    <span className="px-3.5 py-2.5 bg-[#F7F9F8] text-[#66736D] text-xs rounded-l-xl border border-r-0 border-[#E4EAE6] font-mono">
+                    <span className="px-3.5 py-2.5 bg-[#04070A] text-[#9AA7A1] text-xs rounded-l-xl border border-r-0 border-[rgba(255,255,255,0.09)] font-mono">
                       reviewflow.ai/
                     </span>
                     <input
@@ -372,14 +372,14 @@ function OnboardingContent() {
                       value={orgSlug}
                       onChange={(e) => setOrgSlug(e.target.value)}
                       placeholder="acme-corp"
-                      className="w-full px-3.5 py-2.5 bg-[#F7F9F8] border border-[#E4EAE6] rounded-r-xl text-xs sm:text-sm text-[#126B50] font-mono font-medium focus:outline-none focus:border-[#126B50]"
+                      className="w-full px-3.5 py-2.5 bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-r-xl text-xs sm:text-sm text-[#34E5A5] font-mono font-medium focus:outline-none focus:border-[rgba(52,229,165,0.45)]"
                     />
                   </div>
                 </div>
 
                 {user && (
-                  <div className="text-[11px] font-mono text-[#66736D] pt-1">
-                    Logged in as: <strong className="text-[#14211D]">{user.email}</strong> ({user.role})
+                  <div className="text-[11px] font-mono text-[#9AA7A1] pt-1">
+                    Logged in as: <strong className="text-[#F3F7F5]">{user.email}</strong> ({user.role})
                   </div>
                 )}
               </div>
@@ -390,43 +390,43 @@ function OnboardingContent() {
           {currentStep === 2 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-lg font-bold text-[#14211D] mb-1 font-display">Step 2: Connect GitHub App</h2>
-                <p className="text-xs sm:text-sm text-[#66736D]">
+                <h2 className="text-lg font-bold text-[#F3F7F5] mb-1 font-display">Step 2: Connect GitHub App</h2>
+                <p className="text-xs sm:text-sm text-[#9AA7A1]">
                   Install our single, shared GitHub App on your personal account or organization. No private keys, PATs, or API keys required.
                 </p>
               </div>
 
               {installations.length > 0 ? (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] flex items-center justify-between">
                     <div className="flex items-center gap-3.5">
                       {installations[0].avatarUrl ? (
                         <img
                           src={installations[0].avatarUrl}
                           alt={installations[0].accountLogin}
-                          className="w-9 h-9 rounded-full border border-[#E4EAE6]"
+                          className="w-9 h-9 rounded-full border border-[rgba(255,255,255,0.09)]"
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-xl bg-white border border-[#E4EAE6] flex items-center justify-center">
-                          <Github className="w-5 h-5 text-[#126B50]" />
+                        <div className="w-9 h-9 rounded-xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] flex items-center justify-center">
+                          <Github className="w-5 h-5 text-[#34E5A5]" />
                         </div>
                       )}
                       <div>
-                        <h4 className="text-xs sm:text-sm font-bold text-[#14211D] font-display">
+                        <h4 className="text-xs sm:text-sm font-bold text-[#F3F7F5] font-display">
                           @{installations[0].accountLogin}
                         </h4>
-                        <p className="text-[11px] text-[#126B50] font-mono font-medium">
+                        <p className="text-[11px] text-[#34E5A5] font-mono font-medium">
                           Verified GitHub App Installation #{installations[0].installationId}
                         </p>
                       </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white text-[#126B50] text-[11px] font-mono font-bold border border-[#C7E4D6] shadow-sm">
-                      <Check className="w-3.5 h-3.5 text-[#16835B]" />
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#0A1115] text-[#34E5A5] text-[11px] font-mono font-bold border border-[rgba(52,229,165,0.28)] shadow-sm">
+                      <Check className="w-3.5 h-3.5 text-[#34E5A5]" />
                       <span>Connected</span>
                     </span>
                   </div>
 
-                  <p className="text-xs text-[#66736D] font-mono">
+                  <p className="text-xs text-[#9AA7A1] font-mono">
                     You can proceed to select repositories or click below to authorize additional GitHub organizations.
                   </p>
 
@@ -440,15 +440,15 @@ function OnboardingContent() {
                   </button>
                 </div>
               ) : (
-                <div className="p-8 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] text-center space-y-4">
-                  <div className="w-14 h-14 rounded-2xl bg-white border border-[#E4EAE6] flex items-center justify-center mx-auto text-[#14211D] shadow-sm">
-                    <Github className="w-7 h-7 text-[#126B50]" />
+                <div className="p-8 rounded-2xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] text-center space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] flex items-center justify-center mx-auto text-[#F3F7F5] shadow-sm">
+                    <Github className="w-7 h-7 text-[#34E5A5]" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#14211D] font-display">
+                    <h3 className="text-base font-bold text-[#F3F7F5] font-display">
                       Official ReviewFlow AI GitHub App
                     </h3>
-                    <p className="text-xs sm:text-sm text-[#66736D] max-w-md mx-auto mt-1 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-[#9AA7A1] max-w-md mx-auto mt-1 leading-relaxed">
                       Click below to redirect to GitHub. Select your account or organization and grant access to the repositories you want monitored.
                     </p>
                   </div>
@@ -467,7 +467,7 @@ function OnboardingContent() {
                     <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                   </button>
 
-                  <div className="pt-3 border-t border-[#E4EAE6] text-[11px] font-mono text-[#66736D]">
+                  <div className="pt-3 border-t border-[rgba(255,255,255,0.09)] text-[11px] font-mono text-[#9AA7A1]">
                     <p>Permissions: Read code diffs & pull requests • Write check runs & comments</p>
                   </div>
                 </div>
@@ -480,8 +480,8 @@ function OnboardingContent() {
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-[#14211D] mb-1 font-display">Step 3: Select Repositories</h2>
-                  <p className="text-xs sm:text-sm text-[#66736D]">
+                  <h2 className="text-lg font-bold text-[#F3F7F5] mb-1 font-display">Step 3: Select Repositories</h2>
+                  <p className="text-xs sm:text-sm text-[#9AA7A1]">
                     Enable automated AI code reviews for the repositories authorized in your GitHub App installation.
                   </p>
                 </div>
@@ -490,22 +490,22 @@ function OnboardingContent() {
                   disabled={isLoadingRepos}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-secondary text-[11px] font-mono"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingRepos ? 'animate-spin text-[#126B50]' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingRepos ? 'animate-spin text-[#34E5A5]' : ''}`} />
                   <span>Refresh</span>
                 </button>
               </div>
 
               {isLoadingRepos ? (
-                <div className="py-10 text-center text-xs font-mono text-[#66736D] flex flex-col items-center gap-2">
-                  <RefreshCw className="w-6 h-6 animate-spin text-[#126B50]" />
+                <div className="py-10 text-center text-xs font-mono text-[#9AA7A1] flex flex-col items-center gap-2">
+                  <RefreshCw className="w-6 h-6 animate-spin text-[#34E5A5]" />
                   <span>Fetching authorized repositories from GitHub API...</span>
                 </div>
               ) : availableRepos.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] text-center space-y-3.5">
-                  <GitBranch className="w-8 h-8 text-[#66736D] mx-auto" />
+                <div className="p-8 rounded-2xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] text-center space-y-3.5">
+                  <GitBranch className="w-8 h-8 text-[#9AA7A1] mx-auto" />
                   <div>
-                    <h4 className="text-sm font-bold text-[#14211D]">No Repositories Found</h4>
-                    <p className="text-xs text-[#66736D] max-w-sm mx-auto mt-1 font-mono">
+                    <h4 className="text-sm font-bold text-[#F3F7F5]">No Repositories Found</h4>
+                    <p className="text-xs text-[#9AA7A1] max-w-sm mx-auto mt-1 font-mono">
                       No repositories were granted during GitHub App installation, or permissions are pending.
                     </p>
                   </div>
@@ -526,17 +526,17 @@ function OnboardingContent() {
                         key={repo.id}
                         className={`p-3.5 rounded-xl border transition-all flex items-center justify-between ${
                           isConnected
-                            ? 'bg-[#EAF5EF] border-[#C7E4D6] text-[#14211D]'
-                            : 'bg-[#F7F9F8] border-[#E4EAE6] text-[#66736D]'
+                            ? 'bg-[rgba(52,229,165,0.10)] border-[rgba(52,229,165,0.28)] text-[#F3F7F5]'
+                            : 'bg-[#04070A] border-[rgba(255,255,255,0.09)] text-[#9AA7A1]'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <GitBranch className={`w-4 h-4 ${isConnected ? 'text-[#126B50]' : 'text-[#66736D]'}`} />
+                          <GitBranch className={`w-4 h-4 ${isConnected ? 'text-[#34E5A5]' : 'text-[#9AA7A1]'}`} />
                           <div>
-                            <div className="text-xs font-bold text-[#14211D] font-mono">
+                            <div className="text-xs font-bold text-[#F3F7F5] font-mono">
                               {repo.fullName}
                             </div>
-                            <div className="text-[11px] text-[#66736D] font-mono">
+                            <div className="text-[11px] text-[#9AA7A1] font-mono">
                               Default: {repo.defaultBranch} • {repo.private ? 'Private' : 'Public'}
                             </div>
                           </div>
@@ -548,7 +548,7 @@ function OnboardingContent() {
                           className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all ${
                             isConnected
                               ? 'bg-[#126B50] text-white hover:bg-[#0B523D]'
-                              : 'bg-white border border-[#E4EAE6] text-[#14211D] hover:bg-[#F7F9F8]'
+                              : 'bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] hover:bg-[#04070A]'
                           }`}
                         >
                           {isConnected ? 'Monitored' : 'Enable'}
@@ -566,8 +566,8 @@ function OnboardingContent() {
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-[#14211D] mb-1 font-display">Step 4: Real Open Pull Requests</h2>
-                  <p className="text-xs sm:text-sm text-[#66736D]">
+                  <h2 className="text-lg font-bold text-[#F3F7F5] mb-1 font-display">Step 4: Real Open Pull Requests</h2>
+                  <p className="text-xs sm:text-sm text-[#9AA7A1]">
                     Fetched directly from GitHub. Trigger an on-demand AI review with Google Gemini ({appInfo?.aiModel || 'gemini-3.5-flash'}) to inspect live findings.
                   </p>
                 </div>
@@ -576,22 +576,22 @@ function OnboardingContent() {
                   disabled={isLoadingPrs}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-secondary text-[11px] font-mono"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingPrs ? 'animate-spin text-[#126B50]' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingPrs ? 'animate-spin text-[#34E5A5]' : ''}`} />
                   <span>Refresh PRs</span>
                 </button>
               </div>
 
               {isLoadingPrs ? (
-                <div className="py-10 text-center text-xs font-mono text-[#66736D] flex flex-col items-center gap-2">
-                  <RefreshCw className="w-6 h-6 animate-spin text-[#126B50]" />
+                <div className="py-10 text-center text-xs font-mono text-[#9AA7A1] flex flex-col items-center gap-2">
+                  <RefreshCw className="w-6 h-6 animate-spin text-[#34E5A5]" />
                   <span>Loading open pull requests from GitHub API...</span>
                 </div>
               ) : openPrs.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] text-center space-y-3.5">
-                  <GitPullRequest className="w-8 h-8 text-[#66736D] mx-auto" />
+                <div className="p-8 rounded-2xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] text-center space-y-3.5">
+                  <GitPullRequest className="w-8 h-8 text-[#9AA7A1] mx-auto" />
                   <div>
-                    <h4 className="text-sm font-bold text-[#14211D]">No Open Pull Requests Found</h4>
-                    <p className="text-xs text-[#66736D] max-w-sm mx-auto mt-1 font-mono">
+                    <h4 className="text-sm font-bold text-[#F3F7F5]">No Open Pull Requests Found</h4>
+                    <p className="text-xs text-[#9AA7A1] max-w-sm mx-auto mt-1 font-mono">
                       Your connected repository currently has no open pull requests. When you create or update a PR on GitHub, ReviewFlow will analyze it automatically.
                     </p>
                   </div>
@@ -612,18 +612,18 @@ function OnboardingContent() {
                     return (
                       <div
                         key={pr.number}
-                        className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between gap-3"
+                        className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-[#126B50] font-bold">
+                            <span className="text-xs font-mono text-[#34E5A5] font-bold">
                               #{pr.number}
                             </span>
-                            <h4 className="text-xs font-bold text-[#14211D] truncate max-w-xs font-display">
+                            <h4 className="text-xs font-bold text-[#F3F7F5] truncate max-w-xs font-display">
                               {pr.title}
                             </h4>
                           </div>
-                          <div className="flex items-center gap-2 text-[11px] font-mono text-[#66736D] mt-1">
+                          <div className="flex items-center gap-2 text-[11px] font-mono text-[#9AA7A1] mt-1">
                             <span>@{pr.author}</span>
                             <span>•</span>
                             <span>{pr.sourceBranch} → {pr.targetBranch}</span>
@@ -637,16 +637,16 @@ function OnboardingContent() {
                             <span
                               className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full border font-bold ${
                                 latestJob.status === 'COMPLETED'
-                                  ? 'bg-[#EAF5EF] border-[#C7E4D6] text-[#126B50]'
+                                  ? 'bg-[rgba(52,229,165,0.10)] border-[rgba(52,229,165,0.28)] text-[#34E5A5]'
                                   : latestJob.status === 'FAILED'
-                                  ? 'bg-[#FDE8E8] border-[#F8B4B4] text-[#C43D4B]'
-                                  : 'bg-[#FEF3C7] border-[#FDE68A] text-[#B7791F]'
+                                  ? 'bg-[rgba(255,93,108,0.10)] border-[rgba(255,93,108,0.32)] text-[#FF6B7A]'
+                                  : 'bg-[rgba(255,180,84,0.10)] border-[rgba(255,180,84,0.32)] text-[#FFB454]'
                               }`}
                             >
                               {latestJob.status} ({latestJob.overallRisk || 'PENDING'})
                             </span>
                           ) : (
-                            <span className="text-[11px] font-mono text-[#66736D]">
+                            <span className="text-[11px] font-mono text-[#9AA7A1]">
                               Not reviewed
                             </span>
                           )}
@@ -670,7 +670,7 @@ function OnboardingContent() {
           )}
 
           {/* Navigation Controls */}
-          <div className="mt-8 pt-5 border-t border-[#E4EAE6] flex items-center justify-between">
+          <div className="mt-8 pt-5 border-t border-[rgba(255,255,255,0.09)] flex items-center justify-between">
             {currentStep > 1 ? (
               <button
                 type="button"
@@ -707,7 +707,7 @@ function OnboardingContent() {
         </div>
       </main>
 
-      <footer className="py-4 text-center text-xs text-[#66736D] font-mono">
+      <footer className="py-4 text-center text-xs text-[#9AA7A1] font-mono">
         ReviewFlow AI • Enterprise GitHub App Connection • Zero untrusted execution guarantees
       </footer>
     </div>
@@ -718,8 +718,8 @@ export default function OnboardingPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F7F9F8] text-[#14211D] flex items-center justify-center">
-          <RefreshCw className="w-6 h-6 text-[#126B50] animate-spin" />
+        <div className="min-h-screen bg-[#04070A] text-[#F3F7F5] flex items-center justify-center">
+          <RefreshCw className="w-6 h-6 text-[#34E5A5] animate-spin" />
         </div>
       }
     >

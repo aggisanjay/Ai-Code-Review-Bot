@@ -231,40 +231,40 @@ export function ArchitectureExplorer() {
   return (
     <div className="w-full">
       {/* Top Header & Simulation Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 pb-5 border-b border-[#E2EDE6] gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 pb-5 border-b border-[rgba(255,255,255,0.09)] gap-4">
         <div>
-          <div className="text-[11px] font-mono text-[#063B2C] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-2">
+          <div className="text-[11px] font-mono text-[#34E5A5] font-semibold uppercase tracking-wider mb-1.5 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
             <span>Live Pipeline Architecture Execution</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#111C18] tracking-tight font-display">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#F3F7F5] tracking-tight font-display">
             Defense in Depth Review Pipeline
           </h2>
         </div>
 
         {/* Live Simulation Controls */}
         <div className="flex items-center gap-2.5">
-          <div className="text-xs font-mono text-[#52635B] bg-[#F8FCFA] border border-[#E2EDE6] px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
-            <Clock className="w-3.5 h-3.5 text-[#063B2C]" />
+          <div className="text-xs font-mono text-[#B4C0BB] bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+            <Clock className="w-3.5 h-3.5 text-[#34E5A5]" />
             <span>Avg Pipeline Latency: </span>
-            <span className="text-[#111C18] font-bold">~5.4s</span>
+            <span className="text-[#F3F7F5] font-bold">~5.4s</span>
           </div>
 
           <button
             type="button"
             onClick={() => setIsPlaying(!isPlaying)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-[#F8FCFA] border border-[#E2EDE6] text-xs font-medium text-[#111C18] shadow-sm transition-all duration-fast"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0A1115] hover:bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-xs font-medium text-[#F3F7F5] shadow-sm transition-all duration-fast"
             title={isPlaying ? 'Pause Auto-Simulation' : 'Play Auto-Simulation'}
           >
             {isPlaying ? (
               <>
-                <Pause className="w-3 h-3 text-[#063B2C]" />
-                <span className="text-[11px] font-mono font-semibold text-[#063B2C]">Live Auto-Play</span>
+                <Pause className="w-3 h-3 text-[#34E5A5]" />
+                <span className="text-[11px] font-mono font-semibold text-[#34E5A5]">Live Auto-Play</span>
               </>
             ) : (
               <>
-                <Play className="w-3 h-3 text-[#52635B]" />
-                <span className="text-[11px] font-mono text-[#52635B]">Paused</span>
+                <Play className="w-3 h-3 text-[#B4C0BB]" />
+                <span className="text-[11px] font-mono text-[#B4C0BB]">Paused</span>
               </>
             )}
           </button>
@@ -273,7 +273,7 @@ export function ArchitectureExplorer() {
             <button
               type="button"
               onClick={prevStage}
-              className="p-1.5 rounded-full bg-white hover:bg-[#F8FCFA] border border-[#E2EDE6] text-[#52635B] hover:text-[#111C18] transition-colors shadow-sm"
+              className="p-1.5 rounded-full bg-[#0A1115] hover:bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-[#B4C0BB] hover:text-[#F3F7F5] transition-colors shadow-sm"
               aria-label="Previous Stage"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -281,7 +281,7 @@ export function ArchitectureExplorer() {
             <button
               type="button"
               onClick={nextStage}
-              className="p-1.5 rounded-full bg-white hover:bg-[#F8FCFA] border border-[#E2EDE6] text-[#52635B] hover:text-[#111C18] transition-colors shadow-sm"
+              className="p-1.5 rounded-full bg-[#0A1115] hover:bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-[#B4C0BB] hover:text-[#F3F7F5] transition-colors shadow-sm"
               aria-label="Next Stage"
             >
               <ChevronRight className="w-3.5 h-3.5" />
@@ -300,15 +300,15 @@ export function ArchitectureExplorer() {
               onClick={() => selectStage(idx)}
               className={`p-3.5 rounded-2xl border text-left transition-all duration-fast relative overflow-hidden ${
                 isActive
-                  ? 'border-[#063B2C] shadow-sm bg-white'
-                  : 'bg-white/70 border-[#E2EDE6] hover:bg-white hover:border-[#CADCD2]'
+                  ? 'border-[#063B2C] shadow-sm bg-[#0A1115]'
+                  : 'bg-[#04070A]/70 border-[rgba(255,255,255,0.09)] hover:bg-[#0A1115] hover:border-[#CADCD2]'
               }`}
             >
               {/* Smooth Framer Motion Active Indicator */}
               {isActive && (
                 <motion.div
                   layoutId="active-stage-pill"
-                  className="absolute inset-0 bg-[#EBF7F0] border-2 border-[#063B2C] rounded-2xl -z-0"
+                  className="absolute inset-0 bg-[rgba(52,229,165,0.10)] border-2 border-[#063B2C] rounded-2xl -z-0"
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
@@ -320,7 +320,7 @@ export function ArchitectureExplorer() {
                   initial={{ width: '0%' }}
                   animate={{ width: '100%' }}
                   transition={{ duration: 4.2, ease: 'linear' }}
-                  className="absolute bottom-0 left-0 h-1 bg-[#063B2C] rounded-full z-10"
+                  className="absolute bottom-0 left-0 h-1 bg-[#126B50] rounded-full z-10"
                 />
               )}
 
@@ -328,16 +328,16 @@ export function ArchitectureExplorer() {
                 <div className="flex items-center justify-between text-[11px] font-mono mb-1.5">
                   <span
                     className={`font-bold ${
-                      isActive ? 'text-[#063B2C]' : 'text-[#52635B]'
+                      isActive ? 'text-[#34E5A5]' : 'text-[#B4C0BB]'
                     }`}
                   >
                     STAGE {stage.stepNum}
                   </span>
-                  <span className="text-[#7A8C84]">{stage.latency}</span>
+                  <span className="text-[#7F8C86]">{stage.latency}</span>
                 </div>
                 <div
                   className={`text-xs font-semibold line-clamp-1 ${
-                    isActive ? 'text-[#111C18]' : 'text-[#52635B]'
+                    isActive ? 'text-[#F3F7F5]' : 'text-[#B4C0BB]'
                   }`}
                 >
                   {stage.name.replace(/^\d+\.\s*/, '')}
@@ -349,11 +349,11 @@ export function ArchitectureExplorer() {
       </div>
 
       {/* Interactive Pipeline Timeline Flow Line */}
-      <div className="hidden sm:flex items-center justify-between px-6 py-2 mb-6 bg-[#F8FCFA] rounded-full border border-[#E2EDE6] text-xs font-mono text-[#52635B]">
+      <div className="hidden sm:flex items-center justify-between px-6 py-2 mb-6 bg-[rgba(255,255,255,0.035)] rounded-full border border-[rgba(255,255,255,0.09)] text-xs font-mono text-[#B4C0BB]">
         <div className="flex items-center gap-2">
           <Activity className="w-3.5 h-3.5 text-[#10B981] animate-pulse" />
-          <span className="text-[#111C18] font-semibold">Active Execution Pipeline:</span>
-          <span className="text-[#063B2C] font-mono">Stage {activeStageIndex + 1} of 5</span>
+          <span className="text-[#F3F7F5] font-semibold">Active Execution Pipeline:</span>
+          <span className="text-[#34E5A5] font-mono">Stage {activeStageIndex + 1} of 5</span>
         </div>
         <div className="flex items-center gap-3">
           {stages.map((s, i) => (
@@ -361,7 +361,7 @@ export function ArchitectureExplorer() {
               <span
                 className={`transition-colors duration-fast ${
                   i === activeStageIndex
-                    ? 'text-[#063B2C] font-bold underline decoration-2 underline-offset-4'
+                    ? 'text-[#34E5A5] font-bold underline decoration-2 underline-offset-4'
                     : i < activeStageIndex
                     ? 'text-[#10B981]'
                     : 'text-[#CADCD2]'
@@ -376,7 +376,7 @@ export function ArchitectureExplorer() {
       </div>
 
       {/* Stage Deep Dive Telemetry Box with Fluid Slide Transitions */}
-      <div className="bg-white border border-[#E2EDE6] rounded-3xl p-6 sm:p-8 shadow-sm overflow-hidden min-h-[380px] relative">
+      <div className="bg-[#0A1115] border border-[rgba(255,255,255,0.09)] rounded-3xl p-6 sm:p-8 shadow-sm overflow-hidden min-h-[380px] relative">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={current.id}
@@ -388,37 +388,37 @@ export function ArchitectureExplorer() {
             className="w-full space-y-6"
           >
             {/* Stage Title and Latency Badge */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#E2EDE6]">
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[rgba(255,255,255,0.09)]">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-xs px-3 py-1 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-bold">
+                <span className="font-mono text-xs px-3 py-1 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-bold">
                   STAGE {current.stepNum} • {current.badge}
                 </span>
-                <h3 className="text-lg sm:text-xl font-bold text-[#111C18] font-display">
+                <h3 className="text-lg sm:text-xl font-bold text-[#F3F7F5] font-display">
                   {current.name}
                 </h3>
               </div>
               <div className="flex items-center gap-2 font-mono text-xs">
-                <span className="text-[#52635B]">Stage Time Budget:</span>
-                <span className="text-[#063B2C] font-bold bg-[#EBF7F0] px-2.5 py-0.5 rounded-full border border-[#C3EBD7]">
+                <span className="text-[#B4C0BB]">Stage Time Budget:</span>
+                <span className="text-[#34E5A5] font-bold bg-[rgba(52,229,165,0.10)] px-2.5 py-0.5 rounded-full border border-[rgba(52,229,165,0.28)]">
                   {current.latency}
                 </span>
               </div>
             </div>
 
             {/* Stage Summary */}
-            <p className="text-sm text-[#52635B] leading-relaxed">
+            <p className="text-sm text-[#B4C0BB] leading-relaxed">
               {current.summary}
             </p>
 
             {/* Technical Invariants & Security Controls Grids */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
               {/* Technical Invariants Card */}
-              <div className="bg-[#F8FCFA] p-5 rounded-2xl border border-[#E2EDE6] space-y-3">
-                <div className="text-[11px] font-mono text-[#111C18] font-semibold uppercase tracking-wider flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-[#063B2C]" />
+              <div className="bg-[rgba(255,255,255,0.035)] p-5 rounded-2xl border border-[rgba(255,255,255,0.09)] space-y-3">
+                <div className="text-[11px] font-mono text-[#F3F7F5] font-semibold uppercase tracking-wider flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-[#34E5A5]" />
                   <span>Core Invariants & Technical Details</span>
                 </div>
-                <ul className="space-y-2.5 text-xs text-[#52635B]">
+                <ul className="space-y-2.5 text-xs text-[#B4C0BB]">
                   {current.technicalDetails.map((detail, idx) => (
                     <motion.li
                       key={idx}
@@ -427,20 +427,20 @@ export function ArchitectureExplorer() {
                       transition={{ delay: idx * 0.05 + 0.1, duration: 0.25 }}
                       className="flex items-start gap-2.5"
                     >
-                      <span className="text-[#063B2C] font-bold text-xs leading-4 shrink-0">›</span>
-                      <span className="leading-relaxed text-[#111C18]">{detail}</span>
+                      <span className="text-[#34E5A5] font-bold text-xs leading-4 shrink-0">›</span>
+                      <span className="leading-relaxed text-[#F3F7F5]">{detail}</span>
                     </motion.li>
                   ))}
                 </ul>
               </div>
 
               {/* Security Controls Card */}
-              <div className="bg-[#F8FCFA] p-5 rounded-2xl border border-[#E2EDE6] space-y-3">
-                <div className="text-[11px] font-mono text-[#111C18] font-semibold uppercase tracking-wider flex items-center gap-2">
+              <div className="bg-[rgba(255,255,255,0.035)] p-5 rounded-2xl border border-[rgba(255,255,255,0.09)] space-y-3">
+                <div className="text-[11px] font-mono text-[#F3F7F5] font-semibold uppercase tracking-wider flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-[#10B981]" />
                   <span>Security Controls & Sandboxing</span>
                 </div>
-                <ul className="space-y-2.5 text-xs text-[#52635B]">
+                <ul className="space-y-2.5 text-xs text-[#B4C0BB]">
                   {current.securityControls.map((ctrl, idx) => (
                     <motion.li
                       key={idx}
@@ -450,7 +450,7 @@ export function ArchitectureExplorer() {
                       className="flex items-start gap-2.5"
                     >
                       <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
-                      <span className="leading-relaxed text-[#111C18]">{ctrl}</span>
+                      <span className="leading-relaxed text-[#F3F7F5]">{ctrl}</span>
                     </motion.li>
                   ))}
                 </ul>
@@ -458,7 +458,7 @@ export function ArchitectureExplorer() {
             </div>
 
             {/* Bottom Stepper Action */}
-            <div className="pt-3 flex items-center justify-between text-xs font-mono text-[#52635B] border-t border-[#E2EDE6]">
+            <div className="pt-3 flex items-center justify-between text-xs font-mono text-[#B4C0BB] border-t border-[rgba(255,255,255,0.09)]">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#10B981]" />
                 <span>Zero Execution Sandbox Enforced</span>
@@ -467,7 +467,7 @@ export function ArchitectureExplorer() {
               <button
                 type="button"
                 onClick={nextStage}
-                className="inline-flex items-center gap-1.5 text-[#063B2C] font-semibold hover:underline"
+                className="inline-flex items-center gap-1.5 text-[#34E5A5] font-semibold hover:underline"
               >
                 <span>Advance to next stage</span>
                 <ArrowRight className="w-3.5 h-3.5" />

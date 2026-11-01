@@ -5,17 +5,17 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #111C18;
-  --muted: #52635B;
-  --forest: #063B2C;
+  --background: #04070A;
+  --foreground: #F3F7F5;
+  --muted: #9AA7A1;
+  --forest: #126B50;
   --forest-hover: #0A4D3A;
   --mint-accent: #10B981;
-  --mint-surface: #EBF7F0;
-  --mint-light: #F4FAF6;
-  --border: #E2EDE6;
-  --border-subtle: #EEF6F1;
-  --card: #FFFFFF;
+  --mint-surface: rgba(52,229,165,0.10);
+  --mint-light: rgba(255,255,255,0.035);
+  --border: rgba(255,255,255,0.09);
+  --border-subtle: rgba(255,255,255,0.06);
+  --card: #0A1115;
 }
 
 html {
@@ -23,8 +23,8 @@ html {
 }
 
 body {
-  color: #111C18;
-  background: #FFFFFF;
+  color: #F3F7F5;
+  background: #04070A;
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -38,52 +38,52 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8FCFA;
+  background: #04070A;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4E3DB;
+  background: rgba(255,255,255,0.14);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #063B2C;
+  background: #34E5A5;
 }
 
 /* Background grid & subtle dot pattern */
 .bg-grid-pattern {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(20, 33, 29, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(20, 33, 29, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
 }
 
 .bg-dot-pattern {
   background-size: 24px 24px;
-  background-image: radial-gradient(rgba(20, 33, 29, 0.07) 1.2px, transparent 1.2px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1.2px, transparent 1.2px);
 }
 
 /* Fintara Ambient Mint Glow */
 .fintara-hero-glow {
-  background: radial-gradient(ellipse 80% 50% at 50% -10%, #D8F3E5 0%, #EDF8F2 45%, #FFFFFF 90%);
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(52,229,165,0.14) 0%, rgba(77,163,255,0.05) 45%, #04070A 90%);
 }
 
 .fintara-subtle-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(216, 243, 229, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(52, 229, 165, 0.10) 0%, rgba(4, 7, 10, 0) 70%);
 }
 
 /* Fintara Floating Pill Navbar */
 .fintara-pill-nav {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(226, 237, 230, 0.85);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(255, 255, 255, 0.09);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 /* Sleek surface cards */
 .surface-card {
-  background: #FFFFFF;
-  border: 1px solid #E2EDE6;
-  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02)), #0A1115;
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 20px 40px -24px rgba(0,0,0,0.7);
 }
 
 .surface-card-hover {
@@ -91,14 +91,14 @@ body {
 }
 
 .surface-card-hover:hover {
-  border-color: #B2E0C7;
-  box-shadow: 0 10px 25px -5px rgba(6, 59, 44, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-color: rgba(52,229,165,0.35);
+  box-shadow: 0 0 0 1px rgba(52,229,165,0.12), 0 18px 40px -16px rgba(52,229,165,0.18);
   transform: translateY(-1px);
 }
 
 /* Fintara Signature Forest Pill Buttons */
 .btn-forest-pill {
-  background: #063B2C;
+  background: #126B50;
   color: #FFFFFF;
   border-radius: 9999px;
   font-weight: 600;
@@ -107,8 +107,8 @@ body {
 }
 
 .btn-forest-pill:hover {
-  background: #0A4D3A;
-  box-shadow: 0 4px 14px rgba(6, 59, 44, 0.2);
+  background: #16835B;
+  box-shadow: 0 6px 22px rgba(52, 229, 165, 0.28);
   transform: translateY(-1px);
 }
 
@@ -118,9 +118,9 @@ body {
 }
 
 .btn-white-pill {
-  background: #FFFFFF;
-  color: #111C18;
-  border: 1px solid #DDE7E1;
+  background: rgba(255,255,255,0.05);
+  color: #F3F7F5;
+  border: 1px solid rgba(255,255,255,0.14);
   border-radius: 9999px;
   font-weight: 500;
   box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px;
@@ -128,9 +128,9 @@ body {
 }
 
 .btn-white-pill:hover {
-  background: #F8FCFA;
-  border-color: #CADCD2;
-  color: #063B2C;
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.28);
+  color: #FFFFFF;
   transform: translateY(-1px);
 }
 
@@ -140,7 +140,7 @@ body {
 
 /* Backward compatibility aliases */
 .btn-primary {
-  background: #063B2C;
+  background: #126B50;
   color: #FFFFFF;
   border-radius: 9999px;
   font-weight: 600;
@@ -149,15 +149,15 @@ body {
 }
 
 .btn-primary:hover {
-  background: #0A4D3A;
-  box-shadow: 0 4px 14px rgba(6, 59, 44, 0.2);
+  background: #16835B;
+  box-shadow: 0 6px 22px rgba(52, 229, 165, 0.28);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: #FFFFFF;
-  color: #111C18;
-  border: 1px solid #DDE7E1;
+  background: rgba(255,255,255,0.05);
+  color: #F3F7F5;
+  border: 1px solid rgba(255,255,255,0.14);
   border-radius: 9999px;
   font-weight: 500;
   box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px;
@@ -165,9 +165,9 @@ body {
 }
 
 .btn-secondary:hover {
-  background: #F8FCFA;
-  border-color: #CADCD2;
-  color: #063B2C;
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.28);
+  color: #FFFFFF;
   transform: translateY(-1px);
 }
 

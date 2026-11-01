@@ -324,7 +324,7 @@ function CodebaseQnAContent() {
   ];
 
   return (
-    <div className="flex-1 pb-12 bg-[#F7F9F8] min-h-screen flex flex-col">
+    <div className="flex-1 pb-12 bg-[#04070A] min-h-screen flex flex-col">
       <Header
         title="Codebase Q&A Assistant"
         description="Ask deep architectural questions grounded in genuine source code evidence, symbols, and citations."
@@ -334,7 +334,7 @@ function CodebaseQnAContent() {
               <select
                 value={selectedRepoId}
                 onChange={(e) => handleSelectRepo(e.target.value)}
-                className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer max-w-[180px] sm:max-w-[220px] truncate"
+                className="bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer max-w-[180px] sm:max-w-[220px] truncate"
               >
                 {repositories.map((repo) => (
                   <option key={repo.id} value={repo.id}>
@@ -355,7 +355,7 @@ function CodebaseQnAContent() {
                   handleSelectConversation(val);
                 }
               }}
-              className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer max-w-[180px] sm:max-w-[240px] truncate"
+              className="bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sleek-sm font-semibold cursor-pointer max-w-[180px] sm:max-w-[240px] truncate"
               title="Select or switch conversation thread"
             >
               <option value="">+ New Thread ({conversations.length} saved)</option>
@@ -370,10 +370,10 @@ function CodebaseQnAContent() {
             <button
               type="button"
               onClick={handleStartNewConversation}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#E4EAE6] hover:bg-[#F8FCFA] text-[#14211D] text-xs font-mono font-semibold shadow-sleek-sm transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] hover:bg-[rgba(255,255,255,0.035)] text-[#F3F7F5] text-xs font-mono font-semibold shadow-sleek-sm transition-all"
               title="Start a fresh conversation thread"
             >
-              <Plus className="w-3.5 h-3.5 text-[#126B50]" />
+              <Plus className="w-3.5 h-3.5 text-[#34E5A5]" />
               <span className="hidden sm:inline">New</span>
             </button>
 
@@ -382,7 +382,7 @@ function CodebaseQnAContent() {
               <button
                 type="button"
                 onClick={(e) => handleDeleteConversation(e, activeConversationId)}
-                className="p-2 rounded-xl bg-white border border-[#E4EAE6] text-[#94A3B8] hover:text-[#DC2626] hover:bg-red-50 shadow-sleek-sm transition-all"
+                className="p-2 rounded-xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#94A3B8] hover:text-[#FF6B7A] hover:bg-red-50 shadow-sleek-sm transition-all"
                 title="Delete current thread"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -395,35 +395,35 @@ function CodebaseQnAContent() {
       <div className="px-4 sm:px-8 pt-4 max-w-5xl mx-auto w-full flex-1 flex flex-col space-y-4">
         {/* Indexing Status Card Banner */}
         {indexingStatus && (
-            <div className="p-4 rounded-2xl bg-white border border-[#E4EAE6] flex flex-wrap items-center justify-between gap-3 text-xs font-mono shadow-sleek-sm">
+            <div className="p-4 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] flex flex-wrap items-center justify-between gap-3 text-xs font-mono shadow-sleek-sm">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-semibold text-[11px]">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#16835B]" />
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-semibold text-[11px]">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#34E5A5]" />
                   <span>Indexed</span>
                 </span>
-                <span className="text-[#14211D]">
+                <span className="text-[#F3F7F5]">
                   <strong>{indexingStatus.indexedFilesCount}</strong> files (
                   <strong>{indexingStatus.totalChunksCount}</strong> code chunks)
                 </span>
                 {indexingStatus.lastIndexedCommitSha && (
-                  <span className="text-[#66736D]">
-                    SHA: <strong className="text-[#14211D]">@{indexingStatus.lastIndexedCommitSha.substring(0, 7)}</strong>
+                  <span className="text-[#9AA7A1]">
+                    SHA: <strong className="text-[#F3F7F5]">@{indexingStatus.lastIndexedCommitSha.substring(0, 7)}</strong>
                   </span>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 text-[11px] text-[#66736D]">
+              <div className="flex items-center gap-2 text-[11px] text-[#9AA7A1]">
                 {indexingStatus.latestJob?.status === 'QUEUED' ||
                 indexingStatus.latestJob?.status === 'CLONING' ||
                 indexingStatus.latestJob?.status === 'CHUNKING' ||
                 indexingStatus.latestJob?.status === 'EMBEDDING' ? (
-                  <span className="text-[#B7791F] font-semibold flex items-center gap-1.5 bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-[#FDE68A]">
-                    <RefreshCw className="w-3 h-3 animate-spin text-[#B7791F]" />
+                  <span className="text-[#FFB454] font-semibold flex items-center gap-1.5 bg-[rgba(255,180,84,0.10)] px-2.5 py-0.5 rounded-full border border-[rgba(255,180,84,0.32)]">
+                    <RefreshCw className="w-3 h-3 animate-spin text-[#FFB454]" />
                     <span>Processing ({indexingStatus.latestJob.statusMessage || 'embedding'})</span>
                   </span>
                 ) : (
                   <span>
-                    Last synced: <strong className="text-[#14211D]">{indexingStatus.lastIndexedAt ? new Date(indexingStatus.lastIndexedAt).toLocaleTimeString() : 'never'}</strong>
+                    Last synced: <strong className="text-[#F3F7F5]">{indexingStatus.lastIndexedAt ? new Date(indexingStatus.lastIndexedAt).toLocaleTimeString() : 'never'}</strong>
                   </span>
                 )}
               </div>
@@ -433,21 +433,21 @@ function CodebaseQnAContent() {
           {/* Chat Stream View */}
           <div className="flex-1 overflow-y-auto space-y-5 py-2 min-h-[460px]">
             {messages.length === 0 ? (
-              <div className="py-12 px-6 rounded-2xl bg-white border border-[#E4EAE6] text-center shadow-sleek-sm max-w-2xl mx-auto my-auto space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center text-[#126B50] mx-auto shadow-sm">
+              <div className="py-12 px-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-center shadow-sleek-sm max-w-2xl mx-auto my-auto space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] flex items-center justify-center text-[#34E5A5] mx-auto shadow-sm">
                   <Sparkles className="w-7 h-7" />
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-bold text-[#14211D] font-display">Understand your codebase instantly</h3>
-                  <p className="text-xs sm:text-sm text-[#66736D] mt-1.5 max-w-md mx-auto font-mono leading-relaxed">
+                  <h3 className="text-lg font-bold text-[#F3F7F5] font-display">Understand your codebase instantly</h3>
+                  <p className="text-xs sm:text-sm text-[#9AA7A1] mt-1.5 max-w-md mx-auto font-mono leading-relaxed">
                     ReviewFlow AI indexes repository revisions, extracts semantic scopes, and answers developer questions with verified line citations.
                   </p>
                 </div>
 
                 {/* Sample Prompts */}
                 <div className="space-y-2 pt-2 text-left">
-                  <div className="text-[11px] uppercase tracking-wider text-[#66736D] font-mono font-bold px-1">
+                  <div className="text-[11px] uppercase tracking-wider text-[#9AA7A1] font-mono font-bold px-1">
                     Recommended architectural queries:
                   </div>
                   {sampleQuestions.map((sq, idx) => (
@@ -455,10 +455,10 @@ function CodebaseQnAContent() {
                       key={idx}
                       type="button"
                       onClick={() => handleSendMessage(sq)}
-                      className="w-full text-left text-xs bg-[#F8FCFA] hover:bg-[#EAF5EF] border border-[#E2EDE6] hover:border-[#C7E4D6] text-[#14211D] rounded-xl p-3.5 transition-all shadow-sleek-sm flex items-center justify-between group font-mono font-medium"
+                      className="w-full text-left text-xs bg-[rgba(255,255,255,0.035)] hover:bg-[rgba(52,229,165,0.10)] border border-[rgba(255,255,255,0.09)] hover:border-[rgba(52,229,165,0.28)] text-[#F3F7F5] rounded-xl p-3.5 transition-all shadow-sleek-sm flex items-center justify-between group font-mono font-medium"
                     >
                       <span>{sq}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-[#66736D] group-hover:text-[#126B50] group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                      <ArrowRight className="w-3.5 h-3.5 text-[#9AA7A1] group-hover:text-[#34E5A5] group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
                     </button>
                   ))}
                 </div>
@@ -475,7 +475,7 @@ function CodebaseQnAContent() {
                     className={`text-xs sm:text-sm leading-relaxed ${
                       msg.role === 'USER'
                         ? 'max-w-2xl rounded-2xl rounded-br-sm bg-[#126B50] text-white p-4 shadow-sm'
-                        : 'max-w-4xl w-full rounded-2xl rounded-bl-sm bg-white border border-[#E4EAE6] text-[#14211D] p-5 sm:p-6 shadow-sleek-sm space-y-4'
+                        : 'max-w-4xl w-full rounded-2xl rounded-bl-sm bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] p-5 sm:p-6 shadow-sleek-sm space-y-4'
                     }`}
                   >
                     {msg.role === 'USER' ? (
@@ -486,39 +486,39 @@ function CodebaseQnAContent() {
 
                         {/* Telemetry & Evaluation Inspector Strip */}
                         {msg.telemetry && (
-                          <div className="pt-3 border-t border-[#E4EAE6] space-y-2.5">
-                            <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#52635B]">
-                              <span className="flex items-center gap-1.5 text-[#126B50]">
+                          <div className="pt-3 border-t border-[rgba(255,255,255,0.09)] space-y-2.5">
+                            <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#B4C0BB]">
+                              <span className="flex items-center gap-1.5 text-[#34E5A5]">
                                 <Activity className="w-3.5 h-3.5" />
                                 <span>Evaluation & Operational Telemetry</span>
                               </span>
-                              <span className="px-2 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] text-[10px]">
+                              <span className="px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] text-[10px]">
                                 Grounded: {msg.telemetry.evaluation.groundedScore}%
                               </span>
                             </div>
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono">
-                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                                <div className="text-[#7A8C84] text-[10px]">Confidence & Verdict</div>
-                                <div className="font-bold text-[#111C18] mt-0.5 truncate">
+                              <div className="p-2 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)]">
+                                <div className="text-[#7F8C86] text-[10px]">Confidence & Verdict</div>
+                                <div className="font-bold text-[#F3F7F5] mt-0.5 truncate">
                                   {msg.telemetry.evaluation.confidence} • {msg.telemetry.evaluation.verdict}
                                 </div>
                               </div>
-                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                                <div className="text-[#7A8C84] text-[10px]">Latency Breakdown</div>
-                                <div className="font-bold text-[#111C18] mt-0.5">
+                              <div className="p-2 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)]">
+                                <div className="text-[#7F8C86] text-[10px]">Latency Breakdown</div>
+                                <div className="font-bold text-[#F3F7F5] mt-0.5">
                                   {msg.telemetry.latency.totalMs}ms ({msg.telemetry.latency.retrievalMs}ms ret / {msg.telemetry.latency.generationMs}ms gen)
                                 </div>
                               </div>
-                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                                <div className="text-[#7A8C84] text-[10px]">Cost & Tokens</div>
-                                <div className="font-bold text-[#111C18] mt-0.5">
+                              <div className="p-2 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)]">
+                                <div className="text-[#7F8C86] text-[10px]">Cost & Tokens</div>
+                                <div className="font-bold text-[#F3F7F5] mt-0.5">
                                   {msg.telemetry.cost.tokensUsed} tokens (${msg.telemetry.cost.estimatedCostUsd.toFixed(5)})
                                 </div>
                               </div>
-                              <div className="p-2 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                                <div className="text-[#7A8C84] text-[10px]">Provider / Model</div>
-                                <div className="font-bold text-[#111C18] mt-0.5 truncate">
+                              <div className="p-2 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)]">
+                                <div className="text-[#7F8C86] text-[10px]">Provider / Model</div>
+                                <div className="font-bold text-[#F3F7F5] mt-0.5 truncate">
                                   {msg.telemetry.fallback.provider} ({msg.telemetry.fallback.model})
                                 </div>
                               </div>
@@ -528,14 +528,14 @@ function CodebaseQnAContent() {
 
                         {/* Citations Expandable Section */}
                         {msg.citations && msg.citations.length > 0 && (
-                          <div className="pt-3 border-t border-[#E4EAE6]">
+                          <div className="pt-3 border-t border-[rgba(255,255,255,0.09)]">
                             <button
                               type="button"
                               onClick={() => toggleCitations(msg.id)}
-                              className="flex items-center justify-between w-full text-left text-xs font-mono font-bold text-[#14211D] hover:text-[#126B50] transition-colors"
+                              className="flex items-center justify-between w-full text-left text-xs font-mono font-bold text-[#F3F7F5] hover:text-[#34E5A5] transition-colors"
                             >
                               <span className="flex items-center gap-1.5">
-                                <FileCode2 className="w-3.5 h-3.5 text-[#126B50]" />
+                                <FileCode2 className="w-3.5 h-3.5 text-[#34E5A5]" />
                                 <span>Source Evidence Citations ({msg.citations.length})</span>
                               </span>
                               {collapsedCitations[msg.id] ? (
@@ -554,31 +554,31 @@ function CodebaseQnAContent() {
                                   return (
                                     <div
                                       key={cIdx}
-                                      className="p-3 rounded-xl bg-[#F8FCFA] border border-[#E4EAE6] text-xs font-mono space-y-1.5 group hover:border-[#126B50]/30 transition-all"
+                                      className="p-3 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-xs font-mono space-y-1.5 group hover:border-[rgba(52,229,165,0.45)]/30 transition-all"
                                     >
                                       <div className="flex items-center justify-between">
-                                        <span className="font-bold text-[#14211D] truncate max-w-[200px]" title={cite.filePath}>
+                                        <span className="font-bold text-[#F3F7F5] truncate max-w-[200px]" title={cite.filePath}>
                                           {cite.filePath}
                                         </span>
-                                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-white border border-[#E4EAE6] text-[#126B50] font-semibold shrink-0">
+                                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#34E5A5] font-semibold shrink-0">
                                           L{cite.startLine}-L{cite.endLine}
                                         </span>
                                       </div>
 
                                       {cite.snippet && (
-                                        <div className="p-2 rounded bg-white border border-[#E4EAE6] text-[11px] text-[#475467] overflow-x-auto font-mono whitespace-pre line-clamp-3">
+                                        <div className="p-2 rounded bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[11px] text-[#475467] overflow-x-auto font-mono whitespace-pre line-clamp-3">
                                           {cite.snippet}
                                         </div>
                                       )}
 
-                                      <div className="flex items-center justify-between pt-1 text-[10px] text-[#7A8C84]">
+                                      <div className="flex items-center justify-between pt-1 text-[10px] text-[#7F8C86]">
                                         <span>Confidence Grounded</span>
                                         <button
                                           type="button"
                                           onClick={() => handleCopyCitation(`[${cite.filePath}#L${cite.startLine}-L${cite.endLine}]`, citeKey)}
-                                          className="hover:text-[#126B50] flex items-center gap-1"
+                                          className="hover:text-[#34E5A5] flex items-center gap-1"
                                         >
-                                          {isCopied ? <Check className="w-3 h-3 text-[#126B50]" /> : <Copy className="w-3 h-3" />}
+                                          {isCopied ? <Check className="w-3 h-3 text-[#34E5A5]" /> : <Copy className="w-3 h-3" />}
                                           <span>{isCopied ? 'Copied' : 'Copy Citation'}</span>
                                         </button>
                                       </div>
@@ -605,7 +605,7 @@ function CodebaseQnAContent() {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="flex items-center gap-2 p-2 rounded-2xl bg-white border border-[#E4EAE6] focus-within:border-[#126B50] focus-within:ring-2 focus-within:ring-[#126B50]/10 shadow-sleek-sm transition-all"
+              className="flex items-center gap-2 p-2 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] focus-within:border-[rgba(52,229,165,0.45)] focus-within:ring-2 focus-within:ring-[rgba(52,229,165,0.45)]/10 shadow-sleek-sm transition-all"
             >
               <input
                 type="text"
@@ -613,7 +613,7 @@ function CodebaseQnAContent() {
                 onChange={(e) => setInputQuestion(e.target.value)}
                 placeholder="Ask anything about this repository (e.g., How does authorization work?)..."
                 disabled={isLoading || !selectedRepoId}
-                className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-[#14211D] placeholder-[#98A2B3] focus:outline-none font-sans"
+                className="flex-1 bg-transparent px-3 py-2 text-xs sm:text-sm text-[#F3F7F5] placeholder-[#98A2B3] focus:outline-none font-sans"
               />
               <button
                 type="submit"
@@ -625,7 +625,7 @@ function CodebaseQnAContent() {
               </button>
             </form>
 
-            <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-[#66736D] px-2 mt-2">
+            <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-[#9AA7A1] px-2 mt-2">
               <span>All responses are grounded strictly in indexed repository files.</span>
               <span>Zero execution of untrusted repository code.</span>
             </div>
@@ -639,8 +639,8 @@ export default function CodebaseQnAPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F7F9F8] p-8 text-[#66736D] font-mono text-xs flex items-center justify-center">
-          <RefreshCw className="w-5 h-5 animate-spin text-[#126B50] mr-2" />
+        <div className="min-h-screen bg-[#04070A] p-8 text-[#9AA7A1] font-mono text-xs flex items-center justify-center">
+          <RefreshCw className="w-5 h-5 animate-spin text-[#34E5A5] mr-2" />
           <span>Loading codebase Q&A assistant...</span>
         </div>
       }

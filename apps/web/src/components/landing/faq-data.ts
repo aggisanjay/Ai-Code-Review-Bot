@@ -49,4 +49,3 @@ export const FAQS = [
       'When an organization reaches its plan limit, incoming review jobs are safely queued and administrators are notified on the dashboard and via email. You can upgrade your tier or add on-demand review packs anytime from the settings panel without interrupting your development flow.',
   },
 ];
-

@@ -215,29 +215,29 @@ export function Hero3D() {
           <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing select-none" />
           
           {/* Subtle Telemetry Overlay Tags */}
-          <div className="absolute bottom-4 left-4 flex items-center gap-2 font-mono text-[11px] text-[#14211D] bg-white/95 border border-[#E4EAE6] px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-sleek-md">
+          <div className="absolute bottom-4 left-4 flex items-center gap-2 font-mono text-[11px] text-[#F3F7F5] bg-[#04070A]/95 border border-[rgba(255,255,255,0.09)] px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-sleek-md">
             <span className="w-1.5 h-1.5 rounded-full bg-[#16835B] animate-pulse" />
             <span className="font-semibold">AST_PARSER: ACTIVE</span>
             <span className="text-[#C7E4D6]">|</span>
-            <span className="text-[#66736D]">DIFF_DEPTH: 48 FILES</span>
+            <span className="text-[#9AA7A1]">DIFF_DEPTH: 48 FILES</span>
           </div>
 
-          <div className="absolute top-4 right-4 font-mono text-[11px] text-[#14211D] bg-white/95 border border-[#E4EAE6] px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-sleek-md">
-            <span className="text-[#66736D]">GROUNDING: </span>
-            <span className="text-[#126B50] font-semibold">ZERO-HALLUCINATION</span>
+          <div className="absolute top-4 right-4 font-mono text-[11px] text-[#F3F7F5] bg-[#04070A]/95 border border-[rgba(255,255,255,0.09)] px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-sleek-md">
+            <span className="text-[#9AA7A1]">GROUNDING: </span>
+            <span className="text-[#34E5A5] font-semibold">ZERO-HALLUCINATION</span>
           </div>
         </>
       ) : (
         <div className="w-full h-full flex items-center justify-center p-6">
-          <div className="w-80 bg-white rounded-2xl p-6 border border-[#E4EAE6] shadow-sleek-md">
-            <div className="flex items-center justify-between text-xs font-mono text-[#66736D] mb-4">
-              <span className="font-semibold text-[#14211D]">SECURITY_MONOLITH</span>
-              <span className="text-[#16835B]">ONLINE</span>
+          <div className="w-80 bg-[#0A1115] rounded-2xl p-6 border border-[rgba(255,255,255,0.09)] shadow-sleek-md">
+            <div className="flex items-center justify-between text-xs font-mono text-[#9AA7A1] mb-4">
+              <span className="font-semibold text-[#F3F7F5]">SECURITY_MONOLITH</span>
+              <span className="text-[#34E5A5]">ONLINE</span>
             </div>
             <div className="space-y-2 text-xs font-mono text-zinc-400">
-              <div className="h-2 w-full bg-[#EAF5EF] rounded" />
+              <div className="h-2 w-full bg-[rgba(52,229,165,0.10)] rounded" />
               <div className="h-2 w-3/4 bg-[#126B50]/30 rounded" />
-              <div className="h-2 w-5/6 bg-[#EAF5EF] rounded" />
+              <div className="h-2 w-5/6 bg-[rgba(52,229,165,0.10)] rounded" />
             </div>
           </div>
         </div>

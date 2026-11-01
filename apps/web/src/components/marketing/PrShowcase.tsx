@@ -147,53 +147,53 @@ export function PrShowcase() {
   return (
     <div className="w-full">
       {/* GitHub PR Meta Header */}
-      <div className="bg-white border border-[#E2EDE6] rounded-t-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+      <div className="bg-[#0A1115] border border-[rgba(255,255,255,0.09)] rounded-t-3xl p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-[#063B2C] flex items-center justify-center text-white shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-[#126B50] flex items-center justify-center text-white shadow-sm">
             <GitPullRequest className="w-5 h-5 text-white" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs text-[#52635B]">acme-cloud / auth-service</span>
+              <span className="font-mono text-xs text-[#B4C0BB]">acme-cloud / auth-service</span>
               <span className="text-[#C3EBD7]">/</span>
-              <span className="font-semibold text-xs text-[#111C18]">PR #142</span>
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-mono font-bold">
+              <span className="font-semibold text-xs text-[#F3F7F5]">PR #142</span>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-mono font-bold">
                 Open PR
               </span>
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#F8FCFA] text-[#52635B] border border-[#E2EDE6] font-mono font-medium">
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[rgba(255,255,255,0.035)] text-[#B4C0BB] border border-[rgba(255,255,255,0.09)] font-mono font-medium">
                 Live AST • 100% Grounded
               </span>
             </div>
-            <div className="text-sm font-bold text-[#111C18] mt-1 font-display">
+            <div className="text-sm font-bold text-[#F3F7F5] mt-1 font-display">
               feat(auth): Add biometric MFA session verify and token refresh
             </div>
           </div>
         </div>
 
         {/* Branch Tags */}
-        <div className="flex items-center gap-2 text-xs font-mono text-[#52635B]">
-          <span className="px-2.5 py-1 rounded-lg bg-[#F8FCFA] border border-[#E2EDE6] flex items-center gap-1.5">
-            <GitBranch className="w-3.5 h-3.5 text-[#063B2C]" />
+        <div className="flex items-center gap-2 text-xs font-mono text-[#B4C0BB]">
+          <span className="px-2.5 py-1 rounded-lg bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] flex items-center gap-1.5">
+            <GitBranch className="w-3.5 h-3.5 text-[#34E5A5]" />
             <span>feat/mfa-verify</span>
           </span>
           <span>→</span>
-          <span className="px-2.5 py-1 rounded-lg bg-[#F8FCFA] border border-[#E2EDE6] font-semibold text-[#111C18]">
+          <span className="px-2.5 py-1 rounded-lg bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] font-semibold text-[#F3F7F5]">
             main
           </span>
         </div>
       </div>
 
       {/* Main Dual-Pane Inspection Canvas */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 border-x border-b border-[#E2EDE6] rounded-b-3xl bg-[#F8FCFA] overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 border-x border-b border-[rgba(255,255,255,0.09)] rounded-b-3xl bg-[rgba(255,255,255,0.035)] overflow-hidden">
         {/* Left Column: Finding Selector Carousel */}
-        <div className="lg:col-span-5 p-5 border-b lg:border-b-0 lg:border-r border-[#E2EDE6] bg-white flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 p-5 border-b lg:border-b-0 lg:border-r border-[rgba(255,255,255,0.09)] bg-[#0A1115] flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-[#E2EDE6]">
-              <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#52635B] flex items-center gap-2">
+            <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-[rgba(255,255,255,0.09)]">
+              <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#B4C0BB] flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
                 <span>Identified Findings ({findings.length})</span>
               </div>
-              <div className="text-[11px] font-mono text-[#063B2C] font-semibold bg-[#EBF7F0] px-2.5 py-0.5 rounded-full border border-[#C3EBD7]">
+              <div className="text-[11px] font-mono text-[#34E5A5] font-semibold bg-[rgba(52,229,165,0.10)] px-2.5 py-0.5 rounded-full border border-[rgba(52,229,165,0.28)]">
                 Zero Hallucinations
               </div>
             </div>
@@ -211,15 +211,15 @@ export function PrShowcase() {
                     onClick={() => setSelectedFinding(idx)}
                     className={`w-full text-left p-4 rounded-2xl border transition-all duration-fast text-xs relative overflow-hidden ${
                       isSelected
-                        ? 'border-[#063B2C] shadow-sm bg-white'
-                        : 'border-[#E2EDE6] bg-[#F8FCFA] hover:bg-white hover:border-[#CADCD2]'
+                        ? 'border-[#063B2C] shadow-sm bg-[#0A1115]'
+                        : 'border-[rgba(255,255,255,0.09)] bg-[rgba(255,255,255,0.035)] hover:bg-[#0A1115] hover:border-[#CADCD2]'
                     }`}
                   >
                     {/* Sliding active finding pill */}
                     {isSelected && (
                       <motion.div
                         layoutId="active-finding-pill"
-                        className="absolute inset-0 bg-[#EBF7F0] border-2 border-[#063B2C] rounded-2xl -z-0"
+                        className="absolute inset-0 bg-[rgba(52,229,165,0.10)] border-2 border-[#063B2C] rounded-2xl -z-0"
                         transition={{ type: 'spring', stiffness: 400, damping: 32 }}
                       />
                     )}
@@ -229,10 +229,10 @@ export function PrShowcase() {
                         <span
                           className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full font-mono uppercase tracking-wider ${
                             f.severity === 'CRITICAL'
-                              ? 'bg-red-50 text-[#DC2626] border border-red-200'
+                              ? 'bg-red-50 text-[#FF6B7A] border border-red-200'
                               : f.severity === 'HIGH'
-                              ? 'bg-amber-50 text-[#D97706] border border-amber-200'
-                              : 'bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7]'
+                              ? 'bg-amber-50 text-[#FFB454] border border-amber-200'
+                              : 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)]'
                           }`}
                         >
                           {f.severity}
@@ -240,22 +240,22 @@ export function PrShowcase() {
 
                         <div className="flex items-center gap-2">
                           {isItemPatched && (
-                            <span className="text-[10px] font-mono font-bold text-[#10B981] bg-[#EBF7F0] px-2 py-0.5 rounded-full flex items-center gap-1 border border-[#C3EBD7]">
+                            <span className="text-[10px] font-mono font-bold text-[#10B981] bg-[rgba(52,229,165,0.10)] px-2 py-0.5 rounded-full flex items-center gap-1 border border-[rgba(52,229,165,0.28)]">
                               <Check className="w-3 h-3" />
                               <span>Patched</span>
                             </span>
                           )}
-                          <span className="font-mono text-[11px] text-[#7A8C84]">{f.lines}</span>
+                          <span className="font-mono text-[11px] text-[#7F8C86]">{f.lines}</span>
                         </div>
                       </div>
 
-                      <h4 className="font-bold text-xs sm:text-sm text-[#111C18] line-clamp-2">
+                      <h4 className="font-bold text-xs sm:text-sm text-[#F3F7F5] line-clamp-2">
                         {f.title}
                       </h4>
 
-                      <div className="flex items-center justify-between text-[11px] font-mono text-[#52635B] pt-0.5">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-[#B4C0BB] pt-0.5">
                         <span className="truncate max-w-[200px]">{f.file}</span>
-                        <span className="text-[#063B2C] font-semibold">{f.confidence}% Grounded</span>
+                        <span className="text-[#34E5A5] font-semibold">{f.confidence}% Grounded</span>
                       </div>
                     </div>
                   </button>
@@ -272,13 +272,13 @@ export function PrShowcase() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25, ease: MOTION_EASE }}
-              className="pt-3 border-t border-[#E2EDE6] space-y-2.5"
+              className="pt-3 border-t border-[rgba(255,255,255,0.09)] space-y-2.5"
             >
-              <div className="text-[11px] font-mono text-[#52635B] flex items-center justify-between">
+              <div className="text-[11px] font-mono text-[#B4C0BB] flex items-center justify-between">
                 <span>{current.cwe}</span>
-                <span className="text-[#063B2C] font-semibold">Rule: {current.ruleId}</span>
+                <span className="text-[#34E5A5] font-semibold">Rule: {current.ruleId}</span>
               </div>
-              <p className="text-xs text-[#111C18] leading-relaxed bg-[#F8FCFA] p-3.5 rounded-2xl border border-[#E2EDE6]">
+              <p className="text-xs text-[#F3F7F5] leading-relaxed bg-[rgba(255,255,255,0.035)] p-3.5 rounded-2xl border border-[rgba(255,255,255,0.09)]">
                 {current.explanation}
               </p>
             </motion.div>
@@ -288,10 +288,10 @@ export function PrShowcase() {
         {/* Right Column: Interactive Code Diff & Inline Suggestion Canvas */}
         <div className="lg:col-span-7 p-5 sm:p-6 flex flex-col justify-between space-y-5">
           {/* File Tab Header with Commit Button */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E2EDE6]">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[rgba(255,255,255,0.09)]">
             <div className="flex items-center gap-2">
-              <FileCode2 className="w-4 h-4 text-[#063B2C]" />
-              <span className="font-mono text-xs font-semibold text-[#111C18]">{current.file}</span>
+              <FileCode2 className="w-4 h-4 text-[#34E5A5]" />
+              <span className="font-mono text-xs font-semibold text-[#F3F7F5]">{current.file}</span>
             </div>
 
             {/* Commit / Revert Button */}
@@ -300,9 +300,9 @@ export function PrShowcase() {
                 <button
                   type="button"
                   onClick={handleResetCommit}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#F8FCFA] border border-[#E2EDE6] text-xs font-mono text-[#52635B] hover:text-[#111C18] flex items-center gap-1.5 shadow-sm transition-all duration-fast"
+                  className="px-3 py-1.5 rounded-full bg-[#0A1115] hover:bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-xs font-mono text-[#B4C0BB] hover:text-[#F3F7F5] flex items-center gap-1.5 shadow-sm transition-all duration-fast"
                 >
-                  <RefreshCw className="w-3 h-3 text-[#52635B]" />
+                  <RefreshCw className="w-3 h-3 text-[#B4C0BB]" />
                   <span>Reset Demo Diff</span>
                 </button>
               ) : null}
@@ -313,10 +313,10 @@ export function PrShowcase() {
                 disabled={isApplied || isCommitting}
                 className={`px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 transition-all duration-fast shadow-sm ${
                   isApplied
-                    ? 'bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-bold'
+                    ? 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-bold'
                     : isCommitting
                     ? 'bg-[#0A4D3A] text-white opacity-80 cursor-wait'
-                    : 'bg-[#063B2C] hover:bg-[#0A4D3A] text-white hover:scale-[1.02]'
+                    : 'bg-[#126B50] hover:bg-[#0A4D3A] text-white hover:scale-[1.02]'
                 }`}
               >
                 {isCommitting ? (
@@ -326,7 +326,7 @@ export function PrShowcase() {
                   </>
                 ) : isApplied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-[#063B2C]" />
+                    <Check className="w-3.5 h-3.5 text-[#34E5A5]" />
                     <span>Patch Applied & Verified</span>
                   </>
                 ) : (
@@ -340,10 +340,10 @@ export function PrShowcase() {
           </div>
 
           {/* Smooth Sliding Code Diff Viewer Container */}
-          <div className="rounded-2xl border border-[#E2EDE6] bg-white overflow-hidden shadow-sm min-h-[220px]">
-            <div className="bg-[#FAFDFB] px-4 py-2 border-b border-[#E2EDE6] flex items-center justify-between text-xs font-mono text-[#7A8C84]">
+          <div className="rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[#0A1115] overflow-hidden shadow-sm min-h-[220px]">
+            <div className="bg-[#FAFDFB] px-4 py-2 border-b border-[rgba(255,255,255,0.09)] flex items-center justify-between text-xs font-mono text-[#7F8C86]">
               <span>@@ -{current.lines} @@ Unified Git Diff</span>
-              <span className="text-[#063B2C] font-semibold">
+              <span className="text-[#34E5A5] font-semibold">
                 {isApplied ? 'STATUS: PATCH VERIFIED (CLEAN)' : 'STATUS: UNPATCHED VULNERABILITY'}
               </span>
             </div>
@@ -371,10 +371,10 @@ export function PrShowcase() {
                         transition={{ delay: idx * 0.02, duration: 0.15 }}
                         className={`py-1 px-3 rounded-md flex items-start gap-4 transition-colors ${
                           isAdd
-                            ? 'bg-[#EBF7F0] text-[#063B2C] font-medium border-l-4 border-[#10B981]'
+                            ? 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-medium border-l-4 border-[#10B981]'
                             : isDel
-                            ? 'bg-red-50 text-[#DC2626] border-l-4 border-red-500 line-through decoration-red-400'
-                            : 'text-[#52635B]'
+                            ? 'bg-red-50 text-[#FF6B7A] border-l-4 border-red-500 line-through decoration-red-400'
+                            : 'text-[#B4C0BB]'
                         }`}
                       >
                         <span className="text-[10px] text-[#A3B8AD] select-none w-8 text-right shrink-0">
@@ -397,34 +397,34 @@ export function PrShowcase() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25, ease: MOTION_EASE }}
-              className="rounded-2xl border border-[#E2EDE6] bg-white overflow-hidden shadow-sm"
+              className="rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[#0A1115] overflow-hidden shadow-sm"
             >
               {/* Bot Header */}
-              <div className="bg-[#FAFDFB] px-4 py-2.5 border-b border-[#E2EDE6] flex items-center justify-between text-xs">
+              <div className="bg-[#FAFDFB] px-4 py-2.5 border-b border-[rgba(255,255,255,0.09)] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[#063B2C] flex items-center justify-center text-white">
+                  <div className="w-6 h-6 rounded-full bg-[#126B50] flex items-center justify-center text-white">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
-                  <span className="font-bold text-[#111C18] text-xs">ReviewFlow AI Bot</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] font-mono font-semibold border border-[#C3EBD7]">
+                  <span className="font-bold text-[#F3F7F5] text-xs">ReviewFlow AI Bot</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-mono font-semibold border border-[rgba(52,229,165,0.28)]">
                     automated review
                   </span>
                 </div>
-                <span className="text-[11px] text-[#7A8C84] font-mono">posted via GitHub Checks API</span>
+                <span className="text-[11px] text-[#7F8C86] font-mono">posted via GitHub Checks API</span>
               </div>
 
               {/* Bot Comment Body */}
-              <div className="p-4 space-y-3 text-xs leading-relaxed text-[#111C18]">
+              <div className="p-4 space-y-3 text-xs leading-relaxed text-[#F3F7F5]">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#DC2626] font-mono font-bold text-[10px] border border-red-200">
+                  <span className="px-2 py-0.5 rounded-full bg-red-50 text-[#FF6B7A] font-mono font-bold text-[10px] border border-red-200">
                     {current.severity}
                   </span>
                   <span className="font-bold text-xs">{current.title}</span>
                 </div>
 
-                <p className="text-[#52635B]">{current.suggestion}</p>
+                <p className="text-[#B4C0BB]">{current.suggestion}</p>
 
-                <div className="p-3 bg-[#F8FCFA] rounded-xl border border-[#E2EDE6] font-mono text-[11px] text-[#063B2C]">
+                <div className="p-3 bg-[rgba(255,255,255,0.035)] rounded-xl border border-[rgba(255,255,255,0.09)] font-mono text-[11px] text-[#34E5A5]">
                   {`\`\`\`suggestion\n${
                     current.unpatchedDiff
                       .filter((l) => l.type === 'add')

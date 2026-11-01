@@ -10,7 +10,7 @@ import { Reveal, Tilt3D } from '../ui/Motion3D';
 const SEV = [
   { key: 'CRITICAL', name: 'Critical', color: '#DC2626' },
   { key: 'HIGH', name: 'High', color: '#D97706' },
-  { key: 'MEDIUM', name: 'Medium', color: '#063B2C' },
+  { key: 'MEDIUM', name: 'Medium', color: '#34E5A5' },
   { key: 'LOW', name: 'Low / Info', color: '#94A3A0' },
 ];
 const PILLARS = [
@@ -23,17 +23,17 @@ const PILLARS = [
 
 const tip = {
   contentStyle: { borderRadius: 12, border: '1px solid #E2EDE6', boxShadow: '0 8px 24px rgba(6,59,44,.12)', fontSize: 12 },
-  cursor: { stroke: '#B2E0C7' },
+  cursor: { stroke: 'rgba(255,255,255,0.2)' },
 };
 
 function Panel({ title, sub, children, delay }: { title: string; sub: string; children: React.ReactNode; delay: number }) {
   return (
     <Reveal delay={delay} className="h-full">
       <Tilt3D max={3} className="h-full">
-        <div className="h-full rounded-2xl border border-[#E2EDE6] bg-white p-5 shadow-sm">
+        <div className="h-full rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[#0A1115] p-5 shadow-sm">
           <div className="mb-4">
-            <h3 className="text-sm font-bold text-[#111C18]">{title}</h3>
-            <p className="text-xs text-[#66736D]">{sub}</p>
+            <h3 className="text-sm font-bold text-[#F3F7F5]">{title}</h3>
+            <p className="text-xs text-[#9AA7A1]">{sub}</p>
           </div>
           {children}
         </div>
@@ -43,7 +43,7 @@ function Panel({ title, sub, children, delay }: { title: string; sub: string; ch
 }
 
 const Empty = ({ text }: { text: string }) => (
-  <div className="flex h-[220px] items-center justify-center rounded-xl border border-dashed border-[#D6EFE1] bg-[#F8FCFA] text-xs text-[#66736D]">{text}</div>
+  <div className="flex h-[220px] items-center justify-center rounded-xl border border-dashed border-[#D6EFE1] bg-[rgba(255,255,255,0.035)] text-xs text-[#9AA7A1]">{text}</div>
 );
 
 export function InsightCharts({ analytics }: { analytics: any }) {
@@ -64,14 +64,14 @@ export function InsightCharts({ analytics }: { analytics: any }) {
               <AreaChart data={trend} margin={{ left: -20, right: 8, top: 8 }}>
                 <defs>
                   <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#10B981" stopOpacity={0.45} /><stop offset="100%" stopColor="#10B981" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="gQna" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#063B2C" stopOpacity={0.3} /><stop offset="100%" stopColor="#063B2C" stopOpacity={0} /></linearGradient>
+                  <linearGradient id="gQna" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#34E5A5" stopOpacity={0.3} /><stop offset="100%" stopColor="#34E5A5" stopOpacity={0} /></linearGradient>
                 </defs>
-                <CartesianGrid vertical={false} stroke="#EEF6F1" />
+                <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.07)" />
                 <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#66736D' }} />
                 <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#66736D' }} />
                 <Tooltip {...tip} />
                 <Area type="monotone" dataKey="reviews" name="Reviews" stroke="#10B981" strokeWidth={2.5} fill="url(#gRev)" />
-                <Area type="monotone" dataKey="qna" name="Q&A" stroke="#063B2C" strokeWidth={2} fill="url(#gQna)" />
+                <Area type="monotone" dataKey="qna" name="Q&A" stroke="#34E5A5" strokeWidth={2} fill="url(#gQna)" />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -90,13 +90,13 @@ export function InsightCharts({ analytics }: { analytics: any }) {
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center pb-1">
-              <span className="font-mono text-2xl font-bold text-[#111C18]">{sevTotal}</span>
-              <span className="text-[10px] text-[#66736D]">findings</span>
+              <span className="font-mono text-2xl font-bold text-[#F3F7F5]">{sevTotal}</span>
+              <span className="text-[10px] text-[#9AA7A1]">findings</span>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
               {sev.map((s) => (
-                <span key={s.key} className="flex items-center gap-1.5 text-[11px] text-[#52635B]">
-                  <i className="h-2 w-2 rounded-full" style={{ background: s.color }} />{s.name}<b className="ml-auto font-mono text-[#111C18]">{s.value}</b>
+                <span key={s.key} className="flex items-center gap-1.5 text-[11px] text-[#B4C0BB]">
+                  <i className="h-2 w-2 rounded-full" style={{ background: s.color }} />{s.name}<b className="ml-auto font-mono text-[#F3F7F5]">{s.value}</b>
                 </span>
               ))}
             </div>
@@ -109,10 +109,10 @@ export function InsightCharts({ analytics }: { analytics: any }) {
           {pillTotal === 0 ? <Empty text="Pillar breakdown appears after your first review." /> : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={pill} layout="vertical" margin={{ left: 20, right: 16 }}>
-                <CartesianGrid horizontal={false} stroke="#EEF6F1" />
+                <CartesianGrid horizontal={false} stroke="rgba(255,255,255,0.07)" />
                 <XAxis type="number" allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#66736D' }} />
-                <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#111C18' }} />
-                <Tooltip {...tip} cursor={{ fill: '#F4FAF6' }} />
+                <YAxis type="category" dataKey="name" width={100} tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#F3F7F5' }} />
+                <Tooltip {...tip} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                 <Bar dataKey="count" name="Findings" radius={[0, 8, 8, 0]} barSize={16} animationDuration={900}>
                   {pill.map((p) => <Cell key={p.key} fill={p.color} />)}
                 </Bar>
@@ -124,4 +124,3 @@ export function InsightCharts({ analytics }: { analytics: any }) {
     </div>
   );
 }
-

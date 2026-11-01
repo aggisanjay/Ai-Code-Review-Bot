@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import '../styles/globals.css';
 
 export const metadata: Metadata = {
@@ -40,7 +42,7 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icon.svg" />
       </head>
-      <body className="bg-white text-[#111C18] min-h-screen antialiased selection:bg-[#EBF7F0] selection:text-[#063B2C] font-sans">
+      <body className={`${GeistSans.className} ${GeistMono.variable} bg-[#04070A] text-[#F3F7F5] min-h-screen antialiased selection:bg-[#34E5A5]/30 selection:text-white`}>
         {children}
       </body>
     </html>

@@ -71,28 +71,28 @@ const DECISIONS = [
 
 export default function EngineeringDecisionsPage() {
   return (
-    <div className="min-h-screen bg-white text-[#14211D] flex flex-col justify-between selection:bg-[#EAF5EF] selection:text-[#126B50]">
+    <div className="min-h-screen bg-[#0A1115] text-[#F3F7F5] flex flex-col justify-between selection:bg-[rgba(52,229,165,0.10)] selection:text-[#34E5A5]">
       <Navbar />
 
       <main className="max-w-5xl mx-auto px-6 pt-28 pb-20 w-full flex-1">
         <div className="mb-10">
           <Link
             href="/"
-            className="text-xs font-medium text-[#66736D] hover:text-[#14211D] inline-flex items-center gap-1.5 mb-5 transition-colors"
+            className="text-xs font-medium text-[#9AA7A1] hover:text-[#F3F7F5] inline-flex items-center gap-1.5 mb-5 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Product Overview</span>
           </Link>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-[11px] font-semibold mb-3">
-            <Cpu className="w-3.5 h-3.5 text-[#126B50]" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-[11px] font-semibold mb-3">
+            <Cpu className="w-3.5 h-3.5 text-[#34E5A5]" />
             <span>Architecture Decision Records (ADR)</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#14211D] mb-3">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#F3F7F5] mb-3">
             Engineering Decisions & Trade-Offs
           </h1>
-          <p className="text-sm text-[#66736D] max-w-2xl leading-relaxed">
+          <p className="text-sm text-[#9AA7A1] max-w-2xl leading-relaxed">
             ReviewFlow AI is engineered for production reliability, defensive security, and developer clarity. Here is why we made specific architectural choices instead of taking common shortcuts.
           </p>
         </div>
@@ -101,17 +101,17 @@ export default function EngineeringDecisionsPage() {
           {DECISIONS.map((adr) => (
             <div
               key={adr.id}
-              className="p-6 rounded-2xl bg-white border border-[#E4EAE6] hover:border-[#126B50]/30 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(18,107,80,0.06)] transition-all"
+              className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] hover:border-[rgba(52,229,165,0.45)]/30 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_16px_rgba(18,107,80,0.06)] transition-all"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[#E4EAE6]">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[rgba(255,255,255,0.09)]">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]">
+                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)]">
                     {adr.id}
                   </span>
-                  <h3 className="text-base font-bold text-[#14211D]">{adr.title}</h3>
+                  <h3 className="text-base font-bold text-[#F3F7F5]">{adr.title}</h3>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs text-[#66736D]">
-                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#16835B] font-semibold text-[11px] border border-[#C7E4D6]">
+                <div className="flex items-center gap-2.5 text-xs text-[#9AA7A1]">
+                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-semibold text-[11px] border border-[rgba(52,229,165,0.28)]">
                     <CheckCircle className="w-3.5 h-3.5" />
                     <span>{adr.status}</span>
                   </span>
@@ -122,26 +122,26 @@ export default function EngineeringDecisionsPage() {
 
               <div className="space-y-4 text-xs sm:text-sm leading-relaxed">
                 <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#66736D] block mb-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9AA7A1] block mb-1">
                     Context & Problem Statement
                   </span>
-                  <p className="text-[#66736D] leading-relaxed">{adr.context}</p>
+                  <p className="text-[#9AA7A1] leading-relaxed">{adr.context}</p>
                 </div>
 
                 <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#126B50] block mb-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#34E5A5] block mb-1">
                     Architectural Decision
                   </span>
-                  <div className="text-[#14211D] bg-[#F7F9F8] p-4 rounded-xl border border-[#E4EAE6] font-medium leading-relaxed">
+                  <div className="text-[#F3F7F5] bg-[#04070A] p-4 rounded-xl border border-[rgba(255,255,255,0.09)] font-medium leading-relaxed">
                     {adr.decision}
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#66736D] block mb-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#9AA7A1] block mb-1">
                     Consequences & Engineering Impact
                   </span>
-                  <p className="text-[#66736D] leading-relaxed">{adr.consequences}</p>
+                  <p className="text-[#9AA7A1] leading-relaxed">{adr.consequences}</p>
                 </div>
               </div>
             </div>

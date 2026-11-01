@@ -76,4 +76,3 @@ export function CountUp({ value }: { value: string }) {
   }, [inView, value]);
   return <span ref={ref}>{m ? '0' + m[2] : value}</span>;
 }
-

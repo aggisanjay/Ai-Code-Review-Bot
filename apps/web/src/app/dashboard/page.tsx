@@ -120,32 +120,32 @@ export default function DashboardOverviewPage() {
       value: String(totalReviews),
       change: totalReviews > 0 ? 'Persisted review jobs' : 'No review events yet',
       icon: GitPullRequest,
-      iconColor: 'text-[#126B50]',
-      iconBg: 'bg-[#EAF5EF]',
+      iconColor: 'text-[#34E5A5]',
+      iconBg: 'bg-[rgba(52,229,165,0.10)]',
     },
     {
       title: 'Critical Issues Blocked',
       value: String(criticalBlocked),
       change: criticalBlocked > 0 ? 'Pre-merge protection' : 'Zero critical defects',
       icon: ShieldAlert,
-      iconColor: 'text-[#C43D4B]',
-      iconBg: 'bg-[#FDE8E8]',
+      iconColor: 'text-[#FF6B7A]',
+      iconBg: 'bg-[rgba(255,93,108,0.10)]',
     },
     {
       title: 'Average Turnaround',
       value: avgTurnaround,
       change: 'Sub-minute cycle target',
       icon: Clock,
-      iconColor: 'text-[#126B50]',
-      iconBg: 'bg-[#EAF5EF]',
+      iconColor: 'text-[#34E5A5]',
+      iconBg: 'bg-[rgba(52,229,165,0.10)]',
     },
     {
       title: 'Engineering Hours Saved',
       value: hoursSaved,
       change: 'Grounded team velocity',
       icon: Zap,
-      iconColor: 'text-[#B7791F]',
-      iconBg: 'bg-[#FEF3C7]',
+      iconColor: 'text-[#FFB454]',
+      iconBg: 'bg-[rgba(255,180,84,0.10)]',
     },
   ];
 
@@ -163,18 +163,19 @@ export default function DashboardOverviewPage() {
     (severity.LOW || 0);
 
   return (
-    <div className="flex-1 pb-16 bg-[#F7F9F8]">
+    <div className="flex-1 pb-16 bg-[#04070A]">
       <Header
         title="Dashboard Overview"
         description="Automated code review telemetry, pull request security posture, and velocity."
         isConnected={isLiveConnected}
         action={
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E4EAE6] text-xs font-mono shadow-sleek-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-xs font-mono shadow-sleek-sm">
             <span
-              className={`w-2 h-2 rounded-full ${isLiveConnected ? 'bg-[#16835B] animate-pulse' : 'bg-zinc-400'
-                }`}
+              className={`w-2 h-2 rounded-full ${
+                isLiveConnected ? 'bg-[#16835B] animate-pulse' : 'bg-zinc-400'
+              }`}
             />
-            <span className={isLiveConnected ? 'text-[#126B50] font-semibold' : 'text-[#66736D]'}>
+            <span className={isLiveConnected ? 'text-[#34E5A5] font-semibold' : 'text-[#9AA7A1]'}>
               {isLiveConnected ? `Live Sync (${lastSyncTime})` : 'Connecting...'}
             </span>
           </div>
@@ -184,19 +185,19 @@ export default function DashboardOverviewPage() {
       <div className="px-6 sm:px-8 pt-8 space-y-7 max-w-7xl mx-auto">
         {/* Prominent Connect GitHub Banner when disconnected */}
         {!isLoading && installations.length === 0 && (
-          <div className="p-6 rounded-2xl bg-white border border-[#C7E4D6] shadow-sleek-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
+          <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(52,229,165,0.28)] shadow-sleek-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden">
             <div className="flex items-start sm:items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center shrink-0">
-                <Github className="w-6 h-6 text-[#126B50]" />
+              <div className="w-12 h-12 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] flex items-center justify-center shrink-0">
+                <Github className="w-6 h-6 text-[#34E5A5]" />
               </div>
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-[#14211D] flex items-center gap-2.5 font-display">
+                <h3 className="text-sm sm:text-base font-bold text-[#F3F7F5] flex items-center gap-2.5 font-display">
                   <span>Connect Your GitHub Account or Organization</span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] text-[10px] font-mono border border-[#C7E4D6] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] text-[10px] font-mono border border-[rgba(52,229,165,0.28)] font-bold">
                     Action Required
                   </span>
                 </h3>
-                <p className="text-xs sm:text-sm text-[#66736D] mt-1 max-w-2xl leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#9AA7A1] mt-1 max-w-2xl leading-relaxed">
                   Install the official ReviewFlow AI GitHub App on your repositories to enable automated pull request code reviews and security scanning. No personal access tokens or Gemini keys needed.
                 </p>
               </div>
@@ -213,34 +214,35 @@ export default function DashboardOverviewPage() {
         )}
 
         {/* Metric Cards Grid */}
+        {/* Metric Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => {
             const Icon = stat.icon;
             return (
               <Reveal key={i} delay={i * 0.08}>
-                <Tilt3D>
-                  <div
-                    className="p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm hover:shadow-md hover:border-[#B2E0C7] transition-all duration-fast flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold text-[#52635B]">
-                          {stat.title}
-                        </span>
-                        <div className={`w-8 h-8 rounded-full ${stat.iconBg} flex items-center justify-center border border-black/5`}>
-                          <Icon className={`w-4 h-4 ${stat.iconColor}`} />
-                        </div>
-                      </div>
-                      <div className="text-3xl font-bold text-[#111C18] font-mono tracking-tight"><CountUp value={stat.value} /></div>
-                    </div>
-                    <div className="mt-3.5 pt-3 border-t border-[#F0F5F2] flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#EBF7F0] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3 text-[#10B981]" />
-                        <span>{stat.change}</span>
-                      </span>
+              <Tilt3D>
+              <div
+                className="p-5 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sm hover:shadow-md hover:border-[#B2E0C7] transition-all duration-fast flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-semibold text-[#B4C0BB]">
+                      {stat.title}
+                    </span>
+                    <div className={`w-8 h-8 rounded-full ${stat.iconBg} flex items-center justify-center border border-black/5`}>
+                      <Icon className={`w-4 h-4 ${stat.iconColor}`} />
                     </div>
                   </div>
-                </Tilt3D>
+                  <div className="text-3xl font-bold text-[#F3F7F5] font-mono tracking-tight"><CountUp value={stat.value} /></div>
+                </div>
+                <div className="mt-3.5 pt-3 border-t border-[rgba(255,255,255,0.07)] flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-[#10B981] bg-[rgba(52,229,165,0.10)] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-[#10B981]" />
+                    <span>{stat.change}</span>
+                  </span>
+                </div>
+              </div>
+              </Tilt3D>
               </Reveal>
             );
           })}
@@ -251,20 +253,20 @@ export default function DashboardOverviewPage() {
         {/* Severity Distribution & Engine Status */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Finding Breakdown Card */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm">
+          <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-bold text-[#111C18]">
+              <h3 className="text-sm font-bold text-[#F3F7F5]">
                 Findings by Severity
               </h3>
-              <span className="text-[11px] font-medium text-[#52635B] bg-[#F7FAF8] px-2 py-0.5 rounded-full border border-[#E2EDE6]">
+              <span className="text-[11px] font-medium text-[#B4C0BB] bg-[#F7FAF8] px-2 py-0.5 rounded-full border border-[rgba(255,255,255,0.09)]">
                 Persisted
               </span>
             </div>
 
             {totalFindings === 0 ? (
               <div className="py-10 text-center space-y-2">
-                <span className="text-xs text-[#111C18] font-semibold block">Zero findings recorded</span>
-                <span className="text-[11px] text-[#52635B] block">
+                <span className="text-xs text-[#F3F7F5] font-semibold block">Zero findings recorded</span>
+                <span className="text-[11px] text-[#B4C0BB] block">
                   Reviews will populate severity metrics automatically.
                 </span>
               </div>
@@ -272,12 +274,12 @@ export default function DashboardOverviewPage() {
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-[#DC2626] font-semibold flex items-center gap-2 text-xs">
+                    <span className="text-[#FF6B7A] font-semibold flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 rounded-full bg-[#DC2626]" /> Critical
                     </span>
-                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.CRITICAL}</span>
+                    <span className="text-[#F3F7F5] font-mono font-bold text-xs">{severity.CRITICAL}</span>
                   </div>
-                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[rgba(255,255,255,0.09)]">
                     <div
                       className="h-full bg-[#DC2626] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.CRITICAL / totalFindings) * 100)}%` }}
@@ -287,12 +289,12 @@ export default function DashboardOverviewPage() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-[#D97706] font-semibold flex items-center gap-2 text-xs">
+                    <span className="text-[#FFB454] font-semibold flex items-center gap-2 text-xs">
                       <span className="w-2 h-2 rounded-full bg-[#D97706]" /> High
                     </span>
-                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.HIGH}</span>
+                    <span className="text-[#F3F7F5] font-mono font-bold text-xs">{severity.HIGH}</span>
                   </div>
-                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[rgba(255,255,255,0.09)]">
                     <div
                       className="h-full bg-[#D97706] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.HIGH / totalFindings) * 100)}%` }}
@@ -302,14 +304,14 @@ export default function DashboardOverviewPage() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-[#063B2C] font-semibold flex items-center gap-2 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-[#063B2C]" /> Medium
+                    <span className="text-[#34E5A5] font-semibold flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-[#126B50]" /> Medium
                     </span>
-                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.MEDIUM}</span>
+                    <span className="text-[#F3F7F5] font-mono font-bold text-xs">{severity.MEDIUM}</span>
                   </div>
-                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[rgba(255,255,255,0.09)]">
                     <div
-                      className="h-full bg-[#063B2C] rounded-full transition-all duration-300"
+                      className="h-full bg-[#126B50] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.MEDIUM / totalFindings) * 100)}%` }}
                     />
                   </div>
@@ -317,12 +319,12 @@ export default function DashboardOverviewPage() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1.5 font-medium">
-                    <span className="text-[#52635B] font-semibold flex items-center gap-2 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-[#52635B]" /> Low & Info
+                    <span className="text-[#B4C0BB] font-semibold flex items-center gap-2 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-[#B4C0BB]" /> Low & Info
                     </span>
-                    <span className="text-[#111C18] font-mono font-bold text-xs">{severity.LOW}</span>
+                    <span className="text-[#F3F7F5] font-mono font-bold text-xs">{severity.LOW}</span>
                   </div>
-                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[#E2EDE6]">
+                  <div className="w-full h-2 bg-[#F0FAF4] rounded-full overflow-hidden border border-[rgba(255,255,255,0.09)]">
                     <div
                       className="h-full bg-[#10B981] rounded-full transition-all duration-300"
                       style={{ width: `${Math.round((severity.LOW / totalFindings) * 100)}%` }}
@@ -334,47 +336,47 @@ export default function DashboardOverviewPage() {
           </div>
 
           {/* Actionable Setup & Review Controls */}
-          <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm flex flex-col justify-between">
+          <div className="lg:col-span-2 p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3.5">
-                <h3 className="text-sm font-bold text-[#111C18] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#063B2C]" />
+                <h3 className="text-sm font-bold text-[#F3F7F5] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#34E5A5]" />
                   <span>Review Engine Status & Controls</span>
                 </h3>
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7] font-semibold">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-semibold">
                   Engine Ready
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-[#52635B] leading-relaxed mb-5">
+              <p className="text-xs sm:text-sm text-[#B4C0BB] leading-relaxed mb-5">
                 Automated pull request analysis executes deterministic security analyzers alongside configured Google Gemini reasoning models ({appInfo?.aiModel || 'gemini-3.5-flash'}). Webhook events trigger asynchronous review jobs without blocking developer workflow.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-4 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                  <span className="text-[#52635B] text-[11px] font-semibold block mb-1.5">Active AI Model</span>
-                  <div className="flex items-center gap-2 text-[#111C18] font-bold text-xs">
+                <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)]">
+                  <span className="text-[#B4C0BB] text-[11px] font-semibold block mb-1.5">Active AI Model</span>
+                  <div className="flex items-center gap-2 text-[#F3F7F5] font-bold text-xs">
                     <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
                     <span>{appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 3.5 Flash (gemini-3.5-flash)'}</span>
                   </div>
-                  <span className="text-[10px] text-[#7A8C84] mt-1 block font-mono">High-Speed Reasoning & JSON Schema</span>
+                  <span className="text-[10px] text-[#7F8C86] mt-1 block font-mono">High-Speed Reasoning & JSON Schema</span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6]">
-                  <span className="text-[#52635B] text-[11px] font-semibold block mb-1.5">Policy Enforcement</span>
-                  <div className="flex items-center gap-2 text-[#111C18] font-bold text-xs">
+                <div className="p-4 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)]">
+                  <span className="text-[#B4C0BB] text-[11px] font-semibold block mb-1.5">Policy Enforcement</span>
+                  <div className="flex items-center gap-2 text-[#F3F7F5] font-bold text-xs">
                     <span className="w-2 h-2 rounded-full bg-[#DC2626]" />
                     <span>Block PR on Critical Findings (Active)</span>
                   </div>
-                  <span className="text-[10px] text-[#7A8C84] mt-1 block font-mono">Zero Critical Defect Merge Gates</span>
+                  <span className="text-[10px] text-[#7F8C86] mt-1 block font-mono">Zero Critical Defect Merge Gates</span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-[#E2EDE6] flex items-center justify-between text-xs text-[#52635B]">
+            <div className="mt-6 pt-4 border-t border-[rgba(255,255,255,0.09)] flex items-center justify-between text-xs text-[#B4C0BB]">
               <span className="font-medium">Tenant Isolation: Enforced</span>
               <Link
                 href="/dashboard/repositories"
-                className="text-[#063B2C] hover:underline flex items-center gap-1 font-semibold"
+                className="text-[#34E5A5] hover:underline flex items-center gap-1 font-semibold"
               >
                 <span>Manage Policies</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -384,15 +386,15 @@ export default function DashboardOverviewPage() {
         </div>
 
         {/* Recent Pull Requests Section */}
-        <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm">
+        <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="text-base font-bold text-[#14211D] font-display">Recent Pull Requests</h3>
-              <p className="text-xs text-[#66736D] mt-0.5">Latest code review events and automated finding summaries.</p>
+              <h3 className="text-base font-bold text-[#F3F7F5] font-display">Recent Pull Requests</h3>
+              <p className="text-xs text-[#9AA7A1] mt-0.5">Latest code review events and automated finding summaries.</p>
             </div>
             <Link
               href="/dashboard/pull-requests"
-              className="text-xs text-[#126B50] font-semibold hover:underline font-mono flex items-center gap-1"
+              className="text-xs text-[#34E5A5] font-semibold hover:underline font-mono flex items-center gap-1"
             >
               <span>View All PRs</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -401,12 +403,12 @@ export default function DashboardOverviewPage() {
 
           {pullRequests.length === 0 ? (
             /* Honest Empty State */
-            <div className="py-14 px-4 text-center border-2 border-dashed border-[#E4EAE6] rounded-2xl bg-[#F7F9F8]">
-              <div className="w-12 h-12 rounded-xl bg-white border border-[#E4EAE6] flex items-center justify-center mx-auto mb-3.5 text-[#66736D] shadow-sm">
-                <FolderGit2 className="w-6 h-6 text-[#126B50]" />
+            <div className="py-14 px-4 text-center border-2 border-dashed border-[rgba(255,255,255,0.09)] rounded-2xl bg-[#04070A]">
+              <div className="w-12 h-12 rounded-xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] flex items-center justify-center mx-auto mb-3.5 text-[#9AA7A1] shadow-sm">
+                <FolderGit2 className="w-6 h-6 text-[#34E5A5]" />
               </div>
-              <h4 className="text-sm font-bold text-[#14211D] font-display">No pull requests reviewed yet</h4>
-              <p className="text-xs text-[#66736D] max-w-md mx-auto mt-1 mb-5 font-mono">
+              <h4 className="text-sm font-bold text-[#F3F7F5] font-display">No pull requests reviewed yet</h4>
+              <p className="text-xs text-[#9AA7A1] max-w-md mx-auto mt-1 mb-5 font-mono">
                 Connect a GitHub repository and open a pull request to trigger your first automated AI code review.
               </p>
               <Link
@@ -418,7 +420,7 @@ export default function DashboardOverviewPage() {
               </Link>
             </div>
           ) : (
-            <div className="divide-y divide-[#E4EAE6]">
+            <div className="divide-y divide-[rgba(255,255,255,0.09)]">
               {pullRequests.map((pr) => {
                 const latestJob = pr.latestReview;
                 const risk = latestJob?.overallRisk || 'SAFE';
@@ -430,40 +432,41 @@ export default function DashboardOverviewPage() {
                   <Link
                     key={pr.id}
                     href={`/dashboard/reviews/${latestJob?.id || pr.id}`}
-                    className="py-4 flex items-center justify-between gap-4 hover:bg-[#F7F9F8] px-3 rounded-xl transition-colors block group"
+                    className="py-4 flex items-center justify-between gap-4 hover:bg-[#04070A] px-3 rounded-xl transition-colors block group"
                   >
                     <div className="flex items-start gap-3.5">
                       {pr.authorAvatarUrl ? (
                         <img
                           src={pr.authorAvatarUrl}
                           alt={pr.author}
-                          className="w-8 h-8 rounded-full border border-[#E4EAE6] mt-0.5"
+                          className="w-8 h-8 rounded-full border border-[rgba(255,255,255,0.09)] mt-0.5"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] mt-0.5 flex items-center justify-center text-[10px] font-mono text-[#126B50] font-bold">
+                        <div className="w-8 h-8 rounded-full bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] mt-0.5 flex items-center justify-center text-[10px] font-mono text-[#34E5A5] font-bold">
                           {pr.author.substring(0, 2).toUpperCase()}
                         </div>
                       )}
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-[#66736D] font-medium">
+                          <span className="text-xs font-mono text-[#9AA7A1] font-medium">
                             {pr.repoFullName || pr.repoName}#{pr.number}
                           </span>
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${risk === 'CRITICAL'
-                                ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${
+                              risk === 'CRITICAL'
+                                ? 'bg-[rgba(255,93,108,0.10)] text-[#FF6B7A] border border-[rgba(255,93,108,0.32)]'
                                 : risk === 'HIGH'
-                                  ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
-                                  : 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
-                              }`}
+                                ? 'bg-[rgba(255,180,84,0.10)] text-[#FFB454] border border-[rgba(255,180,84,0.32)]'
+                                : 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)]'
+                            }`}
                           >
                             {risk}
                           </span>
                         </div>
-                        <h4 className="text-xs sm:text-sm font-semibold text-[#14211D] group-hover:text-[#126B50] transition-colors mt-0.5">
+                        <h4 className="text-xs sm:text-sm font-semibold text-[#F3F7F5] group-hover:text-[#34E5A5] transition-colors mt-0.5">
                           {pr.title}
                         </h4>
-                        <div className="flex items-center gap-2 text-[11px] text-[#66736D] mt-1 font-mono">
+                        <div className="flex items-center gap-2 text-[11px] text-[#9AA7A1] mt-1 font-mono">
                           <span>@{pr.author}</span>
                           <span>•</span>
                           <span>Review: {duration}</span>
@@ -476,22 +479,22 @@ export default function DashboardOverviewPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5 text-xs font-mono">
                         {criticalCount > 0 && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4] text-[11px] font-bold">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[rgba(255,93,108,0.10)] text-[#FF6B7A] border border-[rgba(255,93,108,0.32)] text-[11px] font-bold">
                             {criticalCount} Critical
                           </span>
                         )}
                         {highCount > 0 && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A] text-[11px] font-bold">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[rgba(255,180,84,0.10)] text-[#FFB454] border border-[rgba(255,180,84,0.32)] text-[11px] font-bold">
                             {highCount} High
                           </span>
                         )}
                         {criticalCount === 0 && highCount === 0 && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] text-[11px] font-semibold">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] text-[11px] font-semibold">
                             All Clean
                           </span>
                         )}
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-[#66736D] group-hover:text-[#126B50] transition-colors" />
+                      <ArrowUpRight className="w-4 h-4 text-[#9AA7A1] group-hover:text-[#34E5A5] transition-colors" />
                     </div>
                   </Link>
                 );

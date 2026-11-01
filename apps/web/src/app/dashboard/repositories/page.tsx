@@ -456,8 +456,8 @@ function RepositoriesPageContent() {
     const review = pr.latestReview;
     if (!review) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F7F9F8] border border-[#E4EAE6] text-[#66736D] text-[11px] font-mono">
-          <Clock className="w-3 h-3 text-[#66736D]" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] text-[#9AA7A1] text-[11px] font-mono">
+          <Clock className="w-3 h-3 text-[#9AA7A1]" />
           <span>Not Reviewed</span>
         </span>
       );
@@ -465,8 +465,8 @@ function RepositoriesPageContent() {
 
     if (review.isOutdated) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FEF3C7] border border-[#FDE68A] text-[#B7791F] text-[11px] font-mono font-medium">
-          <AlertTriangle className="w-3 h-3 text-[#B7791F]" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[rgba(255,180,84,0.10)] border border-[rgba(255,180,84,0.32)] text-[#FFB454] text-[11px] font-mono font-medium">
+          <AlertTriangle className="w-3 h-3 text-[#FFB454]" />
           <span>Outdated (New Commits)</span>
         </span>
       );
@@ -475,8 +475,8 @@ function RepositoriesPageContent() {
     switch (review.status) {
       case 'QUEUED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FEF3C7] border border-[#FDE68A] text-[#B7791F] text-[11px] font-mono animate-pulse">
-            <RefreshCw className="w-3 h-3 animate-spin text-[#B7791F]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[rgba(255,180,84,0.10)] border border-[rgba(255,180,84,0.32)] text-[#FFB454] text-[11px] font-mono animate-pulse">
+            <RefreshCw className="w-3 h-3 animate-spin text-[#FFB454]" />
             <span>Queued</span>
           </span>
         );
@@ -484,15 +484,15 @@ function RepositoriesPageContent() {
       case 'ANALYZING':
       case 'VALIDATING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-[11px] font-mono font-medium">
-            <RefreshCw className="w-3 h-3 animate-spin text-[#126B50]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-[11px] font-mono font-medium">
+            <RefreshCw className="w-3 h-3 animate-spin text-[#34E5A5]" />
             <span>Running ({review.status.toLowerCase()})</span>
           </span>
         );
       case 'PUBLISHING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-[11px] font-mono animate-pulse font-medium">
-            <Sparkles className="w-3 h-3 text-[#126B50]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-[11px] font-mono animate-pulse font-medium">
+            <Sparkles className="w-3 h-3 text-[#34E5A5]" />
             <span>Publishing...</span>
           </span>
         );
@@ -507,7 +507,7 @@ function RepositoriesPageContent() {
                   ? 'bg-red-50 border-red-200 text-red-700'
                   : isHigh
                   ? 'bg-amber-50 border-amber-200 text-amber-800'
-                  : 'bg-[#EBF7F0] border-[#C3EBD7] text-[#063B2C]'
+                  : 'bg-[rgba(52,229,165,0.10)] border-[rgba(52,229,165,0.28)] text-[#34E5A5]'
               }`}
             >
               {isCritical || isHigh ? (
@@ -525,21 +525,21 @@ function RepositoriesPageContent() {
       }
       case 'FAILED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-[11px] font-mono font-semibold">
-            <XCircle className="w-3 h-3 text-[#C43D4B]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] text-[11px] font-mono font-semibold">
+            <XCircle className="w-3 h-3 text-[#FF6B7A]" />
             <span>Failed</span>
           </span>
         );
       case 'SUPERSEDED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F7F9F8] border border-[#E4EAE6] text-[#66736D] text-[11px] font-mono">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] text-[#9AA7A1] text-[11px] font-mono">
             <Clock className="w-3 h-3" />
             <span>Superseded</span>
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F7F9F8] text-[#66736D] text-[11px] font-mono border border-[#E4EAE6]">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#04070A] text-[#9AA7A1] text-[11px] font-mono border border-[rgba(255,255,255,0.09)]">
             {review.status}
           </span>
         );
@@ -665,7 +665,7 @@ function RepositoriesPageContent() {
   };
 
   return (
-    <div className="flex-1 pb-16 bg-[#F7F9F8]">
+    <div className="flex-1 pb-16 bg-[#04070A]">
       <Header
         title="Connected Repositories"
         description="Configure automated review policies, severity thresholds, and custom guidelines per repository."
@@ -676,7 +676,7 @@ function RepositoriesPageContent() {
                 onClick={openRepoPicker}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-secondary text-xs font-semibold shadow-sleek-sm"
               >
-                <FolderGit2 className="w-3.5 h-3.5 text-[#126B50]" />
+                <FolderGit2 className="w-3.5 h-3.5 text-[#34E5A5]" />
                 <span>Select Repositories</span>
               </button>
             )}
@@ -695,39 +695,39 @@ function RepositoriesPageContent() {
 
       <div className="px-6 sm:px-8 pt-8 space-y-6 max-w-7xl mx-auto">
         {policySaved && (
-          <div className="p-3.5 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0" />
+          <div className="p-3.5 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-[#34E5A5] shrink-0" />
             <span>{policySaved}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <AlertCircle className="w-4 h-4 text-[#C43D4B] shrink-0" />
+          <div className="p-3.5 rounded-xl bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <AlertCircle className="w-4 h-4 text-[#FF6B7A] shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* GitHub Installation Status Banner */}
-        <div className="p-5 rounded-2xl bg-white border border-[#E4EAE6] flex flex-wrap items-center justify-between gap-4 shadow-sleek-sm">
+        <div className="p-5 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] flex flex-wrap items-center justify-between gap-4 shadow-sleek-sm">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-center shadow-sm">
-              <Github className="w-5 h-5 text-[#14211D]" />
+            <div className="w-10 h-10 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-center shadow-sm">
+              <Github className="w-5 h-5 text-[#F3F7F5]" />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
-                <h4 className="text-sm font-bold text-[#14211D] font-display">GitHub App Integration</h4>
+                <h4 className="text-sm font-bold text-[#F3F7F5] font-display">GitHub App Integration</h4>
                 {installations.length > 0 ? (
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] text-[11px] font-mono font-semibold flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#16835B]" /> Connected ({installations.length})
+                  <span className="px-2.5 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] text-[11px] font-mono font-semibold flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#34E5A5]" /> Connected ({installations.length})
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A] text-[11px] font-mono font-semibold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[rgba(255,180,84,0.10)] text-[#FFB454] border border-[rgba(255,180,84,0.32)] text-[11px] font-mono font-semibold">
                     Not Linked
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[#66736D] font-mono mt-1">
+              <p className="text-xs text-[#9AA7A1] font-mono mt-1">
                 {installations.length > 0
                   ? `Active account: ${installations.map((i) => i.accountLogin).join(', ')}`
                   : 'Install the ReviewFlow PR Assistant on your GitHub account or organization.'}
@@ -751,7 +751,7 @@ function RepositoriesPageContent() {
                 onClick={openRepoPicker}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl btn-secondary text-xs font-semibold"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-[#126B50]" />
+                <RefreshCw className="w-3.5 h-3.5 text-[#34E5A5]" />
                 <span>Sync Repositories</span>
               </button>
             )}
@@ -760,15 +760,15 @@ function RepositoriesPageContent() {
 
         {/* Repositories Display */}
         {isLoading ? (
-          <div className="py-20 text-center text-[#66736D] font-mono text-xs">Loading repositories...</div>
+          <div className="py-20 text-center text-[#9AA7A1] font-mono text-xs">Loading repositories...</div>
         ) : repositories.length === 0 ? (
           /* Honest Empty State */
-          <div className="py-16 px-6 text-center border-2 border-dashed border-[#E4EAE6] rounded-2xl bg-white shadow-sleek-sm">
-            <div className="w-12 h-12 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-center mx-auto mb-3.5 text-[#66736D]">
-              <FolderGit2 className="w-6 h-6 text-[#126B50]" />
+          <div className="py-16 px-6 text-center border-2 border-dashed border-[rgba(255,255,255,0.09)] rounded-2xl bg-[#0A1115] shadow-sleek-sm">
+            <div className="w-12 h-12 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-center mx-auto mb-3.5 text-[#9AA7A1]">
+              <FolderGit2 className="w-6 h-6 text-[#34E5A5]" />
             </div>
-            <h4 className="text-base font-bold text-[#14211D] font-display">No repositories monitored</h4>
-            <p className="text-xs sm:text-sm text-[#66736D] max-w-md mx-auto mt-1 mb-6 font-mono leading-relaxed">
+            <h4 className="text-base font-bold text-[#F3F7F5] font-display">No repositories monitored</h4>
+            <p className="text-xs sm:text-sm text-[#9AA7A1] max-w-md mx-auto mt-1 mb-6 font-mono leading-relaxed">
               {installations.length > 0
                 ? 'Your GitHub App is connected! Click "Select Repositories" to choose which repositories to monitor for automated code reviews.'
                 : 'Install the ReviewFlow PR Assistant on your GitHub account or organization to authorize repositories.'}
@@ -804,61 +804,61 @@ function RepositoriesPageContent() {
                 <div
                   key={repo.id}
                   onClick={() => setSelectedRepoForPrs(repo.id)}
-                  className={`p-6 rounded-2xl bg-white border cursor-pointer transition-all flex flex-col justify-between shadow-sleek-sm ${
+                  className={`p-6 rounded-2xl bg-[#0A1115] border cursor-pointer transition-all flex flex-col justify-between shadow-sleek-sm ${
                     isSelected
-                      ? 'border-[#126B50] ring-2 ring-[#126B50]/20 bg-[#EAF5EF]/15 shadow-sleek-md'
-                      : 'border-[#E4EAE6] hover:border-[#C7E4D6] hover:shadow-sleek-md'
+                      ? 'border-[rgba(52,229,165,0.45)] ring-2 ring-[rgba(52,229,165,0.45)]/20 bg-[rgba(52,229,165,0.10)]/15 shadow-sleek-md'
+                      : 'border-[rgba(255,255,255,0.09)] hover:border-[rgba(52,229,165,0.28)] hover:shadow-sleek-md'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3.5">
                       <div className="flex items-center gap-2">
-                        <FolderGit2 className={`w-4 h-4 ${isSelected ? 'text-[#126B50]' : 'text-[#66736D]'}`} />
-                        <span className="text-[11px] font-mono text-[#66736D]">
+                        <FolderGit2 className={`w-4 h-4 ${isSelected ? 'text-[#34E5A5]' : 'text-[#9AA7A1]'}`} />
+                        <span className="text-[11px] font-mono text-[#9AA7A1]">
                           {repo.isPrivate ? 'Private' : 'Public'}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         {isSelected && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-mono font-bold">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-mono font-bold">
                             Viewing PRs
                           </span>
                         )}
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F7F9F8] text-[#14211D] border border-[#E4EAE6] font-mono font-medium">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#04070A] text-[#F3F7F5] border border-[rgba(255,255,255,0.09)] font-mono font-medium">
                           {repo.autoReviewEnabled ? 'Auto-Review' : 'Paused'}
                         </span>
                       </div>
                     </div>
 
-                    <h3 className="text-base font-bold text-[#111C18] mb-0.5 font-display">{repo.name}</h3>
-                    <span className="text-xs font-mono text-[#52635B] block mb-4">{repo.fullName}</span>
+                    <h3 className="text-base font-bold text-[#F3F7F5] mb-0.5 font-display">{repo.name}</h3>
+                    <span className="text-xs font-mono text-[#B4C0BB] block mb-4">{repo.fullName}</span>
 
-                    <div className="space-y-2.5 text-xs bg-[#F8FCFA] p-3.5 rounded-xl border border-[#E2EDE6] mb-3">
+                    <div className="space-y-2.5 text-xs bg-[rgba(255,255,255,0.035)] p-3.5 rounded-xl border border-[rgba(255,255,255,0.09)] mb-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-[#52635B] font-medium text-[11px]">Threshold:</span>
-                        <span className="text-[#B7791F] font-bold bg-[#FEF3C7] px-2 py-0.5 rounded-full text-[10px] font-mono border border-[#FDE68A]">
+                        <span className="text-[#B4C0BB] font-medium text-[11px]">Threshold:</span>
+                        <span className="text-[#FFB454] font-bold bg-[rgba(255,180,84,0.10)] px-2 py-0.5 rounded-full text-[10px] font-mono border border-[rgba(255,180,84,0.32)]">
                           {p.severityThreshold || 'MEDIUM'}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#52635B] font-medium text-[11px]">Block on Critical:</span>
-                        <span className={`font-semibold px-2 py-0.5 rounded-full text-[10px] font-mono ${p.blockPrOnCritical ? 'bg-[#EBF7F0] text-[#063B2C] border border-[#C3EBD7]' : 'bg-gray-100 text-gray-600'}`}>
+                        <span className="text-[#B4C0BB] font-medium text-[11px]">Block on Critical:</span>
+                        <span className={`font-semibold px-2 py-0.5 rounded-full text-[10px] font-mono ${p.blockPrOnCritical ? 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)]' : 'bg-gray-100 text-gray-600'}`}>
                           {p.blockPrOnCritical ? 'Yes' : 'No'}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#52635B] font-medium text-[11px]">Inline Comments:</span>
-                        <span className="text-[#111C18] font-semibold text-[11px] font-mono">
+                        <span className="text-[#B4C0BB] font-medium text-[11px]">Inline Comments:</span>
+                        <span className="text-[#F3F7F5] font-semibold text-[11px] font-mono">
                           {p.autoPostInlineComments ? 'Enabled' : 'Disabled'}
                         </span>
                       </div>
                     </div>
 
                     {/* Codebase Indexing Status & Action */}
-                    <div className="mb-4 p-3 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] text-xs font-mono">
+                    <div className="mb-4 p-3 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-xs font-mono">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[#52635B] font-medium flex items-center gap-1.5">
-                          <Database className="w-3.5 h-3.5 text-[#126B50]" />
+                        <span className="text-[#B4C0BB] font-medium flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-[#34E5A5]" />
                           <span>Codebase Index</span>
                         </span>
                         <button
@@ -876,7 +876,7 @@ function RepositoriesPageContent() {
                       </div>
                       <div className="text-[11px]">
                         {repoIndexStatuses[repo.id]?.lastIndexedAt ? (
-                          <span className="text-[#126B50] font-semibold">
+                          <span className="text-[#34E5A5] font-semibold">
                             ✓ {repoIndexStatuses[repo.id].indexedFilesCount} files ({repoIndexStatuses[repo.id].totalChunksCount} chunks)
                           </span>
                         ) : (
@@ -886,7 +886,7 @@ function RepositoriesPageContent() {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-[#E4EAE6] space-y-2.5">
+                  <div className="pt-4 border-t border-[rgba(255,255,255,0.09)] space-y-2.5">
                     <div className="flex items-center justify-between">
                       <button
                         type="button"
@@ -894,9 +894,9 @@ function RepositoriesPageContent() {
                           e.stopPropagation();
                           setSelectedRepoForPrs(repo.id);
                         }}
-                        className="text-[11px] text-[#66736D] hover:text-[#126B50] font-mono flex items-center gap-1.5 font-medium"
+                        className="text-[11px] text-[#9AA7A1] hover:text-[#34E5A5] font-mono flex items-center gap-1.5 font-medium"
                       >
-                        <GitPullRequest className="w-3.5 h-3.5 text-[#126B50]" />
+                        <GitPullRequest className="w-3.5 h-3.5 text-[#34E5A5]" />
                         <span>{repo.pullRequestsCount || 0} reviews • View PRs</span>
                       </button>
                       <button
@@ -904,7 +904,7 @@ function RepositoriesPageContent() {
                           e.stopPropagation();
                           openPolicyModal(repo);
                         }}
-                        className="flex items-center gap-1 text-xs text-[#126B50] hover:underline font-mono font-bold"
+                        className="flex items-center gap-1 text-xs text-[#34E5A5] hover:underline font-mono font-bold"
                       >
                         <Sliders className="w-3.5 h-3.5" />
                         <span>Policy</span>
@@ -915,7 +915,7 @@ function RepositoriesPageContent() {
                       <Link
                         href={`/dashboard/qna?repoId=${repo.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[#EAF5EF] hover:bg-[#D5EADF] text-[#126B50] text-[11px] font-mono font-semibold transition-all"
+                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[rgba(52,229,165,0.10)] hover:bg-[#D5EADF] text-[#34E5A5] text-[11px] font-mono font-semibold transition-all"
                       >
                         <MessageSquareQuote className="w-3 h-3" />
                         <span>Ask Q&A</span>
@@ -926,9 +926,9 @@ function RepositoriesPageContent() {
                           e.stopPropagation();
                           handleOpenTestModal(repo);
                         }}
-                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-white border border-[#E4EAE6] hover:border-[#C7E4D6] text-[#14211D] text-[11px] font-mono font-semibold transition-all"
+                        className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[#0A1115] border border-[rgba(255,255,255,0.09)] hover:border-[rgba(52,229,165,0.28)] text-[#F3F7F5] text-[11px] font-mono font-semibold transition-all"
                       >
-                        <FileCode2 className="w-3 h-3 text-[#126B50]" />
+                        <FileCode2 className="w-3 h-3 text-[#34E5A5]" />
                         <span>Suggest Tests</span>
                       </button>
                       <button
@@ -937,10 +937,10 @@ function RepositoriesPageContent() {
                           e.stopPropagation();
                           handleOpenApprovals(repo);
                         }}
-                        className="inline-flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg bg-white border border-[#E4EAE6] hover:border-[#C7E4D6] text-[#14211D] text-[11px] font-mono font-semibold transition-all"
+                        className="inline-flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg bg-[#0A1115] border border-[rgba(255,255,255,0.09)] hover:border-[rgba(52,229,165,0.28)] text-[#F3F7F5] text-[11px] font-mono font-semibold transition-all"
                         title="View Pending Write Approvals"
                       >
-                        <Lock className="w-3 h-3 text-[#B7791F]" />
+                        <Lock className="w-3 h-3 text-[#FFB454]" />
                         <span>Approvals</span>
                       </button>
                     </div>
@@ -953,20 +953,20 @@ function RepositoriesPageContent() {
 
         {/* Open Pull Requests Section */}
         {repositories.length > 0 && activeRepoForPrs && (
-          <div className="mt-9 rounded-2xl bg-white border border-[#E4EAE6] overflow-hidden shadow-sleek-md">
+          <div className="mt-9 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] overflow-hidden shadow-sleek-md">
             {/* Header */}
-            <div className="p-6 border-b border-[#E4EAE6] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#F7F9F8]">
+            <div className="p-6 border-b border-[rgba(255,255,255,0.09)] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#04070A]">
               <div>
                 <div className="flex items-center gap-2.5 mb-1">
-                  <GitPullRequest className="w-4 h-4 text-[#126B50]" />
-                  <h2 className="text-base font-bold text-[#14211D] font-display">Open Pull Requests</h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-bold">
+                  <GitPullRequest className="w-4 h-4 text-[#34E5A5]" />
+                  <h2 className="text-base font-bold text-[#F3F7F5] font-display">Open Pull Requests</h2>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-bold">
                     Live GitHub Sync
                   </span>
                 </div>
-                <p className="text-xs text-[#66736D] font-mono">
+                <p className="text-xs text-[#9AA7A1] font-mono">
                   Existing and incoming pull requests for{' '}
-                  <span className="text-[#14211D] font-bold">{activeRepoForPrs.fullName}</span>. Select any PR to trigger an immediate AI review.
+                  <span className="text-[#F3F7F5] font-bold">{activeRepoForPrs.fullName}</span>. Select any PR to trigger an immediate AI review.
                 </p>
               </div>
 
@@ -976,7 +976,7 @@ function RepositoriesPageContent() {
                   <select
                     value={activeRepoForPrs.id}
                     onChange={(e) => setSelectedRepoForPrs(e.target.value)}
-                    className="bg-white border border-[#E4EAE6] text-[#14211D] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sm"
+                    className="bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] text-xs rounded-xl px-3 py-2 font-mono focus:outline-none shadow-sm"
                   >
                     {repositories.map((r) => (
                       <option key={r.id} value={r.id}>
@@ -992,7 +992,7 @@ function RepositoriesPageContent() {
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl btn-secondary text-xs font-mono font-medium"
                   title="Fetch latest open pull requests from GitHub"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingPrs ? 'animate-spin text-[#126B50]' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingPrs ? 'animate-spin text-[#34E5A5]' : ''}`} />
                   <span>{isLoadingPrs ? 'Syncing...' : 'Refresh'}</span>
                 </button>
               </div>
@@ -1000,21 +1000,21 @@ function RepositoriesPageContent() {
 
             {/* Notification & Alerts */}
             {prSuccessNotice && (
-              <div className="mx-6 mt-5 p-3.5 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-xs font-mono flex items-center gap-2.5 font-medium">
+              <div className="mx-6 mt-5 p-3.5 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-xs font-mono flex items-center gap-2.5 font-medium">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{prSuccessNotice}</span>
               </div>
             )}
 
             {prError && (
-              <div className="mx-6 mt-5 p-3.5 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-xs font-mono flex items-center justify-between gap-3">
+              <div className="mx-6 mt-5 p-3.5 rounded-xl bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] text-xs font-mono flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{prError}</span>
                 </div>
                 <button
                   onClick={() => fetchOpenPrs(activeRepoForPrs.id, prPage)}
-                  className="px-2.5 py-1 rounded-md bg-[#C43D4B] text-white text-[11px] font-semibold"
+                  className="px-2.5 py-1 rounded-md bg-[#FF5D6C] text-white text-[11px] font-semibold"
                 >
                   Retry
                 </button>
@@ -1024,19 +1024,19 @@ function RepositoriesPageContent() {
             {/* Content states */}
             {isLoadingPrs && openPrs.length === 0 ? (
               <div className="p-16 text-center space-y-3">
-                <RefreshCw className="w-7 h-7 animate-spin text-[#126B50] mx-auto" />
-                <p className="text-xs text-[#66736D] font-mono">
+                <RefreshCw className="w-7 h-7 animate-spin text-[#34E5A5] mx-auto" />
+                <p className="text-xs text-[#9AA7A1] font-mono">
                   Fetching open pull requests directly from GitHub API...
                 </p>
               </div>
             ) : openPrs.length === 0 ? (
               <div className="p-16 text-center space-y-3.5">
-                <div className="w-12 h-12 rounded-full bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-center mx-auto text-[#66736D]">
-                  <GitPullRequest className="w-6 h-6 text-[#126B50]" />
+                <div className="w-12 h-12 rounded-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-center mx-auto text-[#9AA7A1]">
+                  <GitPullRequest className="w-6 h-6 text-[#34E5A5]" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-[#14211D] font-display">No Open Pull Requests Found</h3>
-                  <p className="text-xs text-[#66736D] font-mono max-w-md mx-auto">
+                  <h3 className="text-sm font-bold text-[#F3F7F5] font-display">No Open Pull Requests Found</h3>
+                  <p className="text-xs text-[#9AA7A1] font-mono max-w-md mx-auto">
                     There are currently no open pull requests in {activeRepoForPrs.fullName}. Open a pull request on GitHub or push new commits to review them.
                   </p>
                 </div>
@@ -1054,7 +1054,7 @@ function RepositoriesPageContent() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-[#E4EAE6] bg-[#F7F9F8] text-[11px] font-mono text-[#66736D] uppercase">
+                    <tr className="border-b border-[rgba(255,255,255,0.09)] bg-[#04070A] text-[11px] font-mono text-[#9AA7A1] uppercase">
                       <th className="py-3.5 px-6 font-semibold">Pull Request</th>
                       <th className="py-3.5 px-5 font-semibold">Author</th>
                       <th className="py-3.5 px-5 font-semibold">Branches & Commit</th>
@@ -1062,7 +1062,7 @@ function RepositoriesPageContent() {
                       <th className="py-3.5 px-6 text-right font-semibold">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E4EAE6] text-xs">
+                  <tbody className="divide-y divide-[rgba(255,255,255,0.09)] text-xs">
                     {openPrs.map((pr) => {
                       const isTriggering = reviewingPrs[pr.number];
                       const review = pr.latestReview;
@@ -1077,7 +1077,7 @@ function RepositoriesPageContent() {
                       return (
                         <tr
                           key={pr.id || pr.number}
-                          className="hover:bg-[#F7F9F8] transition-colors group"
+                          className="hover:bg-[#04070A] transition-colors group"
                         >
                           {/* PR Title & Number */}
                           <td className="py-4 px-6">
@@ -1087,13 +1087,13 @@ function RepositoriesPageContent() {
                                   href={pr.htmlUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="font-semibold text-[#14211D] hover:text-[#126B50] transition-colors inline-flex items-center gap-1 group-hover:underline text-xs sm:text-sm font-display"
+                                  className="font-semibold text-[#F3F7F5] hover:text-[#34E5A5] transition-colors inline-flex items-center gap-1 group-hover:underline text-xs sm:text-sm font-display"
                                 >
                                   <span>{pr.title}</span>
-                                  <ExternalLink className="w-3 h-3 text-[#66736D] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  <ExternalLink className="w-3 h-3 text-[#9AA7A1] opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </a>
                               </div>
-                              <div className="flex items-center gap-2 text-[11px] font-mono text-[#66736D]">
+                              <div className="flex items-center gap-2 text-[11px] font-mono text-[#9AA7A1]">
                                 <span>#{pr.number}</span>
                                 <span>•</span>
                                 <span>
@@ -1110,14 +1110,14 @@ function RepositoriesPageContent() {
                                 <img
                                   src={authorAvatar}
                                   alt={authorLogin}
-                                  className="w-6 h-6 rounded-full border border-[#E4EAE6]"
+                                  className="w-6 h-6 rounded-full border border-[rgba(255,255,255,0.09)]"
                                 />
                               ) : (
-                                <div className="w-6 h-6 rounded-full bg-[#EAF5EF] text-[#126B50] flex items-center justify-center text-[10px] font-mono font-bold">
+                                <div className="w-6 h-6 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] flex items-center justify-center text-[10px] font-mono font-bold">
                                   {(authorLogin || 'U').substring(0, 1).toUpperCase()}
                                 </div>
                               )}
-                              <span className="text-xs text-[#14211D] font-mono font-medium">
+                              <span className="text-xs text-[#F3F7F5] font-mono font-medium">
                                 {authorLogin}
                               </span>
                             </div>
@@ -1126,18 +1126,18 @@ function RepositoriesPageContent() {
                           {/* Branches & Commit */}
                           <td className="py-4 px-5">
                             <div className="space-y-1 font-mono text-[11px]">
-                              <div className="flex items-center gap-1.5 text-[#14211D]">
-                                <GitBranch className="w-3.5 h-3.5 text-[#126B50] shrink-0" />
-                                <span className="text-[#126B50] font-semibold truncate max-w-[120px]" title={pr.headRef}>
+                              <div className="flex items-center gap-1.5 text-[#F3F7F5]">
+                                <GitBranch className="w-3.5 h-3.5 text-[#34E5A5] shrink-0" />
+                                <span className="text-[#34E5A5] font-semibold truncate max-w-[120px]" title={pr.headRef}>
                                   {pr.headRef}
                                 </span>
-                                <span className="text-[#66736D]">→</span>
-                                <span className="text-[#66736D] truncate max-w-[100px]" title={pr.baseRef}>
+                                <span className="text-[#9AA7A1]">→</span>
+                                <span className="text-[#9AA7A1] truncate max-w-[100px]" title={pr.baseRef}>
                                   {pr.baseRef}
                                 </span>
                               </div>
-                              <div className="text-[10px] text-[#66736D]">
-                                SHA: <span className="text-[#14211D] font-medium">{pr.headSha?.slice(0, 7)}</span>
+                              <div className="text-[10px] text-[#9AA7A1]">
+                                SHA: <span className="text-[#F3F7F5] font-medium">{pr.headSha?.slice(0, 7)}</span>
                               </div>
                             </div>
                           </td>
@@ -1153,16 +1153,16 @@ function RepositoriesPageContent() {
                               {isJobActive ? (
                                 <button
                                   disabled
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] text-xs font-mono font-semibold cursor-not-allowed opacity-90"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] text-xs font-mono font-semibold cursor-not-allowed opacity-90"
                                 >
-                                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#126B50]" />
+                                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#34E5A5]" />
                                   <span>Analyzing...</span>
                                 </button>
                               ) : isCompleted ? (
                                 <div className="flex items-center gap-2">
                                   <Link
                                     href={`/dashboard/reviews/${review.id}`}
-                                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#063B2C] hover:bg-[#0A4D3A] text-white text-xs font-semibold shadow-sm transition-all hover:scale-[1.02] whitespace-nowrap"
+                                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#126B50] hover:bg-[#0A4D3A] text-white text-xs font-semibold shadow-sm transition-all hover:scale-[1.02] whitespace-nowrap"
                                   >
                                     <Eye className="w-3.5 h-3.5" />
                                     <span>View Results</span>
@@ -1172,9 +1172,9 @@ function RepositoriesPageContent() {
                                     onClick={() => handleReviewPr(activeRepoForPrs.id, pr.number, true)}
                                     disabled={isTriggering}
                                     title="Rerun AI review on current commit"
-                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#E2EDE6] bg-white hover:bg-[#F7FAF8] text-[#52635B] hover:text-[#111C18] text-xs font-medium transition-colors shadow-sm"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[rgba(255,255,255,0.09)] bg-[#0A1115] hover:bg-[#F7FAF8] text-[#B4C0BB] hover:text-[#F3F7F5] text-xs font-medium transition-colors shadow-sm"
                                   >
-                                    <RefreshCw className={`w-3.5 h-3.5 ${isTriggering ? 'animate-spin text-[#063B2C]' : ''}`} />
+                                    <RefreshCw className={`w-3.5 h-3.5 ${isTriggering ? 'animate-spin text-[#34E5A5]' : ''}`} />
                                     <span>Rerun</span>
                                   </button>
                                 </div>
@@ -1197,9 +1197,9 @@ function RepositoriesPageContent() {
                 </table>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-[#E4EAE6] bg-[#F7F9F8] flex items-center justify-between text-xs font-mono text-[#66736D]">
+                <div className="p-4 border-t border-[rgba(255,255,255,0.09)] bg-[#04070A] flex items-center justify-between text-xs font-mono text-[#9AA7A1]">
                   <div>
-                    Page <span className="text-[#14211D] font-bold">{prPage}</span>
+                    Page <span className="text-[#F3F7F5] font-bold">{prPage}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1228,17 +1228,17 @@ function RepositoriesPageContent() {
         {/* Repository Picker Modal */}
         {isRepoPickerOpen && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl border border-[#E4EAE6] p-6 shadow-sleek-lg space-y-4 max-h-[85vh] flex flex-col text-[#14211D]">
-              <div className="flex items-center justify-between border-b border-[#E4EAE6] pb-3.5">
+            <div className="w-full max-w-2xl bg-[#0A1115] rounded-2xl border border-[rgba(255,255,255,0.09)] p-6 shadow-sleek-lg space-y-4 max-h-[85vh] flex flex-col text-[#F3F7F5]">
+              <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.09)] pb-3.5">
                 <div>
-                  <h3 className="text-base font-bold text-[#14211D] font-display">Select GitHub Repositories</h3>
-                  <p className="text-xs text-[#66736D] font-mono mt-0.5">
+                  <h3 className="text-base font-bold text-[#F3F7F5] font-display">Select GitHub Repositories</h3>
+                  <p className="text-xs text-[#9AA7A1] font-mono mt-0.5">
                     Toggle which repositories ReviewFlow AI automatically reviews when pull requests are opened.
                   </p>
                 </div>
                 <button
                   onClick={() => setIsRepoPickerOpen(false)}
-                  className="text-[#66736D] hover:text-[#14211D] text-xs font-mono font-semibold"
+                  className="text-[#9AA7A1] hover:text-[#F3F7F5] text-xs font-mono font-semibold"
                 >
                   ✕ Close
                 </button>
@@ -1246,29 +1246,29 @@ function RepositoriesPageContent() {
 
               <div className="flex-1 overflow-y-auto space-y-2.5 py-2">
                 {isLoadingAvailable ? (
-                  <div className="py-12 text-center text-xs text-[#66736D] font-mono">
+                  <div className="py-12 text-center text-xs text-[#9AA7A1] font-mono">
                     Querying GitHub App API for authorized repositories...
                   </div>
                 ) : availableRepos.length === 0 ? (
-                  <div className="py-12 text-center text-xs text-[#66736D] font-mono">
+                  <div className="py-12 text-center text-xs text-[#9AA7A1] font-mono">
                     No repositories found under this installation. Make sure you granted access in GitHub App settings.
                   </div>
                 ) : (
                   availableRepos.map((repo) => (
                     <div
                       key={repo.id}
-                      className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between hover:border-[#C7E4D6] transition-all"
+                      className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-between hover:border-[rgba(52,229,165,0.28)] transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <FolderGit2 className="w-4 h-4 text-[#126B50] shrink-0" />
+                        <FolderGit2 className="w-4 h-4 text-[#34E5A5] shrink-0" />
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-[#14211D] font-mono">{repo.fullName}</span>
-                            <span className="text-[10px] text-[#66736D] font-mono">
+                            <span className="text-xs font-bold text-[#F3F7F5] font-mono">{repo.fullName}</span>
+                            <span className="text-[10px] text-[#9AA7A1] font-mono">
                               {repo.private ? 'Private' : 'Public'}
                             </span>
                           </div>
-                          <span className="text-[11px] text-[#66736D] font-mono">
+                          <span className="text-[11px] text-[#9AA7A1] font-mono">
                             Default branch: {repo.defaultBranch}
                           </span>
                         </div>
@@ -1278,13 +1278,13 @@ function RepositoriesPageContent() {
                         onClick={() => handleToggleRepo(repo, !repo.isConnected)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all ${
                           repo.isConnected
-                            ? 'bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] hover:bg-[#FDE8E8] hover:border-[#F8B4B4] hover:text-[#C43D4B]'
-                            : 'bg-white border border-[#E4EAE6] text-[#14211D] hover:bg-[#126B50] hover:text-white'
+                            ? 'bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] hover:bg-[rgba(255,93,108,0.10)] hover:border-[rgba(255,93,108,0.32)] hover:text-[#FF6B7A]'
+                            : 'bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] hover:bg-[#126B50] hover:text-white'
                         }`}
                       >
                         {repo.isConnected ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-[#16835B]" />
+                            <Check className="w-3.5 h-3.5 text-[#34E5A5]" />
                             <span>Monitored</span>
                           </>
                         ) : (
@@ -1299,12 +1299,12 @@ function RepositoriesPageContent() {
                 )}
               </div>
 
-              <div className="pt-3.5 border-t border-[#E4EAE6] flex items-center justify-between text-xs">
+              <div className="pt-3.5 border-t border-[rgba(255,255,255,0.09)] flex items-center justify-between text-xs">
                 <a
                   href={appInfo?.installUrl || 'https://github.com/apps'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#126B50] hover:underline flex items-center gap-1 font-mono text-[11px] font-semibold"
+                  className="text-[#34E5A5] hover:underline flex items-center gap-1 font-mono text-[11px] font-semibold"
                 >
                   <ExternalLink className="w-3 h-3" />
                   <span>Configure Repositories on GitHub</span>
@@ -1323,17 +1323,17 @@ function RepositoriesPageContent() {
         {/* Policy Configuration Modal */}
         {selectedRepo && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-xl bg-white rounded-2xl border border-[#E4EAE6] p-6 sm:p-7 shadow-sleek-lg space-y-5 text-[#14211D]">
-              <div className="flex items-center justify-between border-b border-[#E4EAE6] pb-3.5">
+            <div className="w-full max-w-xl bg-[#0A1115] rounded-2xl border border-[rgba(255,255,255,0.09)] p-6 sm:p-7 shadow-sleek-lg space-y-5 text-[#F3F7F5]">
+              <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.09)] pb-3.5">
                 <div>
-                  <h3 className="text-base font-bold text-[#14211D] font-display">
+                  <h3 className="text-base font-bold text-[#F3F7F5] font-display">
                     Review Policy: {selectedRepo.name}
                   </h3>
-                  <p className="text-xs text-[#66736D] font-mono mt-0.5">{selectedRepo.fullName}</p>
+                  <p className="text-xs text-[#9AA7A1] font-mono mt-0.5">{selectedRepo.fullName}</p>
                 </div>
                 <button
                   onClick={() => setSelectedRepo(null)}
-                  className="text-[#66736D] hover:text-[#14211D] text-xs font-mono font-semibold"
+                  className="text-[#9AA7A1] hover:text-[#F3F7F5] text-xs font-mono font-semibold"
                 >
                   ✕ Close
                 </button>
@@ -1341,13 +1341,13 @@ function RepositoriesPageContent() {
 
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-[#14211D] font-semibold mb-1.5">
+                  <label className="block text-[#F3F7F5] font-semibold mb-1.5">
                     Severity Threshold (Block Pull Request)
                   </label>
                   <select
                     value={threshold}
                     onChange={(e) => setThreshold(e.target.value)}
-                    className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl px-3.5 py-2 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50] font-mono font-medium"
+                    className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl px-3.5 py-2 text-[#F3F7F5] text-xs focus:outline-none focus:border-[rgba(52,229,165,0.45)] font-mono font-medium"
                   >
                     <option value="CRITICAL">CRITICAL only</option>
                     <option value="HIGH">HIGH and above</option>
@@ -1357,52 +1357,52 @@ function RepositoriesPageContent() {
                 </div>
 
                 <div className="space-y-2.5">
-                  <label className="flex items-center gap-2.5 text-[#14211D] cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-[#F3F7F5] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={blockOnCritical}
                       onChange={(e) => setBlockOnCritical(e.target.checked)}
-                      className="rounded border-[#E4EAE6] text-[#126B50] focus:ring-[#126B50]"
+                      className="rounded border-[rgba(255,255,255,0.09)] text-[#34E5A5] focus:ring-[rgba(52,229,165,0.45)]"
                     />
                     <span>Fail GitHub Check Run if Critical vulnerability is detected</span>
                   </label>
 
-                  <label className="flex items-center gap-2.5 text-[#14211D] cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-[#F3F7F5] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={autoInline}
                       onChange={(e) => setAutoInline(e.target.checked)}
-                      className="rounded border-[#E4EAE6] text-[#126B50] focus:ring-[#126B50]"
+                      className="rounded border-[rgba(255,255,255,0.09)] text-[#34E5A5] focus:ring-[rgba(52,229,165,0.45)]"
                     />
                     <span>Post inline comments directly to GitHub conversation thread</span>
                   </label>
 
-                  <label className="flex items-center gap-2.5 text-[#14211D] cursor-pointer">
+                  <label className="flex items-center gap-2.5 text-[#F3F7F5] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={requireTests}
                       onChange={(e) => setRequireTests(e.target.checked)}
-                      className="rounded border-[#E4EAE6] text-[#126B50] focus:ring-[#126B50]"
+                      className="rounded border-[rgba(255,255,255,0.09)] text-[#34E5A5] focus:ring-[rgba(52,229,165,0.45)]"
                     />
                     <span>Enforce unit test coverage expectation for newly added functions</span>
                   </label>
                 </div>
 
                 <div>
-                  <label className="block text-[#14211D] font-semibold mb-1.5">
+                  <label className="block text-[#F3F7F5] font-semibold mb-1.5">
                     Custom Repository Instructions & Style Rules
                   </label>
                   <textarea
                     rows={4}
                     value={customInstructions}
                     onChange={(e) => setCustomInstructions(e.target.value)}
-                    className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl p-3.5 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50] font-mono leading-relaxed"
+                    className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl p-3.5 text-[#F3F7F5] text-xs focus:outline-none focus:border-[rgba(52,229,165,0.45)] font-mono leading-relaxed"
                     placeholder="e.g. Enforce strict input sanitization, check for SQL injection..."
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#E4EAE6] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[rgba(255,255,255,0.09)] flex items-center justify-end gap-3">
                 <button
                   onClick={() => setSelectedRepo(null)}
                   className="px-4 py-2 rounded-xl btn-secondary text-xs font-semibold"
@@ -1425,17 +1425,17 @@ function RepositoriesPageContent() {
         {/* AI Test Suggestion Modal (Section 7) */}
         {isTestModalOpen && testRepo && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl border border-[#E4EAE6] p-6 shadow-sleek-lg space-y-4 max-h-[90vh] flex flex-col text-[#14211D]">
-              <div className="flex items-center justify-between border-b border-[#E4EAE6] pb-3">
+            <div className="w-full max-w-2xl bg-[#0A1115] rounded-2xl border border-[rgba(255,255,255,0.09)] p-6 shadow-sleek-lg space-y-4 max-h-[90vh] flex flex-col text-[#F3F7F5]">
+              <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.09)] pb-3">
                 <div className="flex items-center gap-2">
-                  <FileCode2 className="w-4 h-4 text-[#126B50]" />
-                  <h3 className="text-base font-bold text-[#14211D] font-display">
+                  <FileCode2 className="w-4 h-4 text-[#34E5A5]" />
+                  <h3 className="text-base font-bold text-[#F3F7F5] font-display">
                     Generate Unit Tests: {testRepo.name}
                   </h3>
                 </div>
                 <button
                   onClick={() => setIsTestModalOpen(false)}
-                  className="text-[#66736D] hover:text-[#14211D] text-xs font-mono font-semibold"
+                  className="text-[#9AA7A1] hover:text-[#F3F7F5] text-xs font-mono font-semibold"
                 >
                   ✕ Close
                 </button>
@@ -1443,29 +1443,29 @@ function RepositoriesPageContent() {
 
               <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
                 {testActionNotice && (
-                  <div className="p-3 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] font-mono text-[11px] flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0" />
+                  <div className="p-3 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] font-mono text-[11px] flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#34E5A5] shrink-0" />
                     <span>{testActionNotice}</span>
                   </div>
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono">
                   <div>
-                    <label className="block text-[#14211D] font-semibold mb-1">Target Source File</label>
+                    <label className="block text-[#F3F7F5] font-semibold mb-1">Target Source File</label>
                     <input
                       type="text"
                       value={testTargetFile}
                       onChange={(e) => setTestTargetFile(e.target.value)}
                       placeholder="e.g. src/auth/service.ts"
-                      className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl px-3 py-2 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50]"
+                      className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl px-3 py-2 text-[#F3F7F5] text-xs focus:outline-none focus:border-[rgba(52,229,165,0.45)]"
                     />
                   </div>
                   <div>
-                    <label className="block text-[#14211D] font-semibold mb-1">Test Framework</label>
+                    <label className="block text-[#F3F7F5] font-semibold mb-1">Test Framework</label>
                     <select
                       value={testFramework}
                       onChange={(e) => setTestFramework(e.target.value)}
-                      className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl px-3 py-2 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50]"
+                      className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl px-3 py-2 text-[#F3F7F5] text-xs focus:outline-none focus:border-[rgba(52,229,165,0.45)]"
                     >
                       <option value="Jest">Jest / Vitest</option>
                       <option value="Mocha">Mocha / Chai</option>
@@ -1476,7 +1476,7 @@ function RepositoriesPageContent() {
                 </div>
 
                 <div>
-                  <label className="block text-[#14211D] font-semibold mb-1 font-mono">
+                  <label className="block text-[#F3F7F5] font-semibold mb-1 font-mono">
                     Code Snippet or Function Scope (Optional)
                   </label>
                   <textarea
@@ -1484,7 +1484,7 @@ function RepositoriesPageContent() {
                     value={testSnippet}
                     onChange={(e) => setTestSnippet(e.target.value)}
                     placeholder="Optional snippet or function name to target specifically..."
-                    className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl p-3 text-[#14211D] text-xs focus:outline-none focus:border-[#126B50] font-mono"
+                    className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl p-3 text-[#F3F7F5] text-xs focus:outline-none focus:border-[rgba(52,229,165,0.45)] font-mono"
                   />
                 </div>
 
@@ -1500,22 +1500,22 @@ function RepositoriesPageContent() {
                 </div>
 
                 {generatedTest && (
-                  <div className="space-y-3 pt-3 border-t border-[#E4EAE6]">
-                    <div className="p-3.5 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] space-y-2">
+                  <div className="space-y-3 pt-3 border-t border-[rgba(255,255,255,0.09)]">
+                    <div className="p-3.5 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#14211D] font-display">
+                        <span className="font-bold text-[#F3F7F5] font-display">
                           {generatedTest.behaviorTested}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-mono font-bold">
                           {generatedTest.framework}
                         </span>
                       </div>
-                      <p className="text-[#52635B] text-xs">{generatedTest.whyItMatters}</p>
+                      <p className="text-[#B4C0BB] text-xs">{generatedTest.whyItMatters}</p>
 
                       {generatedTest.potentialEdgeCases?.length > 0 && (
                         <div className="text-[11px] font-mono pt-1">
-                          <span className="font-semibold text-[#14211D] block mb-1">Edge Cases Handled:</span>
-                          <ul className="list-disc list-inside space-y-0.5 text-[#52635B]">
+                          <span className="font-semibold text-[#F3F7F5] block mb-1">Edge Cases Handled:</span>
+                          <ul className="list-disc list-inside space-y-0.5 text-[#B4C0BB]">
                             {generatedTest.potentialEdgeCases.map((ec: string, i: number) => (
                               <li key={i}>{ec}</li>
                             ))}
@@ -1526,28 +1526,28 @@ function RepositoriesPageContent() {
 
                     <div>
                       <div className="flex items-center justify-between mb-1.5 text-xs font-mono">
-                        <span className="text-[#66736D] font-semibold">
-                          Proposed File: <strong className="text-[#14211D]">{generatedTest.testFilePath}</strong>
+                        <span className="text-[#9AA7A1] font-semibold">
+                          Proposed File: <strong className="text-[#F3F7F5]">{generatedTest.testFilePath}</strong>
                         </span>
                         <button
                           type="button"
                           onClick={() => navigator.clipboard.writeText(generatedTest.proposedTestCode)}
-                          className="text-[#126B50] hover:underline flex items-center gap-1"
+                          className="text-[#34E5A5] hover:underline flex items-center gap-1"
                         >
                           <CheckSquare className="w-3 h-3" />
                           <span>Copy Code</span>
                         </button>
                       </div>
-                      <pre className="p-4 rounded-xl bg-[#14211D] text-[#EAF5EF] font-mono text-[11px] overflow-x-auto max-h-64 whitespace-pre">
+                      <pre className="p-4 rounded-xl bg-[#126B50] text-[#F3F7F5] font-mono text-[11px] overflow-x-auto max-h-64 whitespace-pre">
                         {generatedTest.proposedTestCode}
                       </pre>
                     </div>
 
                     {/* Section 7 Human-in-the-Loop Safe Approval */}
-                    <div className="p-3.5 rounded-xl bg-[#FEF3C7]/40 border border-[#FDE68A] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="p-3.5 rounded-xl bg-[rgba(255,180,84,0.10)]/40 border border-[rgba(255,180,84,0.32)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                       <div>
-                        <span className="font-bold text-[#B7791F] block">Safe Two-Phase Write Control</span>
-                        <span className="text-[11px] text-[#66736D]">
+                        <span className="font-bold text-[#FFB454] block">Safe Two-Phase Write Control</span>
+                        <span className="text-[11px] text-[#9AA7A1]">
                           No write is executed automatically. Requesting approval binds this patch to a 64-character cryptographic nonce.
                         </span>
                       </div>
@@ -1569,65 +1569,65 @@ function RepositoriesPageContent() {
         {/* Pending Write Approvals Drawer (Section 7) */}
         {isApprovalsModalOpen && approvalsRepo && (
           <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl bg-white rounded-2xl border border-[#E4EAE6] p-6 shadow-sleek-lg space-y-4 max-h-[85vh] flex flex-col text-[#14211D]">
-              <div className="flex items-center justify-between border-b border-[#E4EAE6] pb-3">
+            <div className="w-full max-w-2xl bg-[#0A1115] rounded-2xl border border-[rgba(255,255,255,0.09)] p-6 shadow-sleek-lg space-y-4 max-h-[85vh] flex flex-col text-[#F3F7F5]">
+              <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.09)] pb-3">
                 <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-[#B7791F]" />
-                  <h3 className="text-base font-bold text-[#14211D] font-display">
+                  <Lock className="w-4 h-4 text-[#FFB454]" />
+                  <h3 className="text-base font-bold text-[#F3F7F5] font-display">
                     Pending Write Approvals: {approvalsRepo.name}
                   </h3>
                 </div>
                 <button
                   onClick={() => setIsApprovalsModalOpen(false)}
-                  className="text-[#66736D] hover:text-[#14211D] text-xs font-mono font-semibold"
+                  className="text-[#9AA7A1] hover:text-[#F3F7F5] text-xs font-mono font-semibold"
                 >
                   ✕ Close
                 </button>
               </div>
 
               {approvalNotice && (
-                <div className="p-3 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] font-mono text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0" />
+                <div className="p-3 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] font-mono text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#34E5A5] shrink-0" />
                   <span>{approvalNotice}</span>
                 </div>
               )}
 
               <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs font-mono">
                 {isLoadingApprovals ? (
-                  <div className="py-12 text-center text-[#66736D]">Loading pending approval requests...</div>
+                  <div className="py-12 text-center text-[#9AA7A1]">Loading pending approval requests...</div>
                 ) : pendingApprovals.length === 0 ? (
-                  <div className="py-12 text-center text-[#66736D]">
+                  <div className="py-12 text-center text-[#9AA7A1]">
                     No pending approval requests. Write actions require explicit developer proposal before execution.
                   </div>
                 ) : (
                   pendingApprovals.map((approval) => (
                     <div
                       key={approval.id}
-                      className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] space-y-2.5"
+                      className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#14211D] text-sm font-display">
+                        <span className="font-bold text-[#F3F7F5] text-sm font-display">
                           {approval.title}
                         </span>
-                        <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A] text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-full bg-[rgba(255,180,84,0.10)] text-[#FFB454] border border-[rgba(255,180,84,0.32)] text-[10px] font-bold">
                           {approval.status}
                         </span>
                       </div>
 
-                      <p className="text-xs text-[#52635B]">{approval.description}</p>
+                      <p className="text-xs text-[#B4C0BB]">{approval.description}</p>
 
-                      <div className="text-[11px] text-[#66736D] space-y-1 bg-white p-2.5 rounded-lg border border-[#E4EAE6]">
-                        <div>Target Branch: <strong className="text-[#14211D]">{approval.targetBranch}</strong></div>
-                        <div>Target SHA: <strong className="text-[#14211D]">{approval.targetCommitSha || 'HEAD'}</strong></div>
-                        <div>Nonce: <code className="text-[#126B50]">{approval.nonce.slice(0, 16)}...</code></div>
+                      <div className="text-[11px] text-[#9AA7A1] space-y-1 bg-[#0A1115] p-2.5 rounded-lg border border-[rgba(255,255,255,0.09)]">
+                        <div>Target Branch: <strong className="text-[#F3F7F5]">{approval.targetBranch}</strong></div>
+                        <div>Target SHA: <strong className="text-[#F3F7F5]">{approval.targetCommitSha || 'HEAD'}</strong></div>
+                        <div>Nonce: <code className="text-[#34E5A5]">{approval.nonce.slice(0, 16)}...</code></div>
                         <div>Expires: {new Date(approval.expiresAt).toLocaleString()}</div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E4EAE6]">
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-[rgba(255,255,255,0.09)]">
                         <button
                           onClick={() => handleExecuteApproval(approval, false)}
                           disabled={Boolean(executingApproval)}
-                          className="px-3 py-1.5 rounded-lg border border-[#F8B4B4] text-[#C43D4B] hover:bg-[#FDE8E8] text-xs font-semibold"
+                          className="px-3 py-1.5 rounded-lg border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] hover:bg-[rgba(255,93,108,0.10)] text-xs font-semibold"
                         >
                           Reject
                         </button>
@@ -1656,8 +1656,8 @@ export default function RepositoriesPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#F7F9F8] p-8 text-[#66736D] font-mono text-xs flex items-center justify-center">
-          <RefreshCw className="w-5 h-5 animate-spin text-[#126B50] mr-2" />
+        <div className="min-h-screen bg-[#04070A] p-8 text-[#9AA7A1] font-mono text-xs flex items-center justify-center">
+          <RefreshCw className="w-5 h-5 animate-spin text-[#34E5A5] mr-2" />
           <span>Loading repository workspace...</span>
         </div>
       }

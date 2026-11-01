@@ -46,7 +46,7 @@ export function MarkdownMessage({ content }: MarkdownMessageProps) {
   // If structured sections detected, render the specialized Executive Architectural Dossier
   if (sections.length >= 2) {
     return (
-      <div className="space-y-4 font-sans text-xs sm:text-[13px] text-[#14211D]">
+      <div className="space-y-4 font-sans text-xs sm:text-[13px] text-[#F3F7F5]">
         {sections.map((section, idx) => (
           <StructuredSectionCard key={idx} title={section.title} body={section.body} />
         ))}
@@ -68,9 +68,9 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
   // 1. Executive Summary Card
   if (title.toLowerCase().includes('executive summary')) {
     return (
-      <div className="rounded-2xl bg-gradient-to-br from-[#F8FCFA] to-white border border-[#C7E4D6] p-4 sm:p-5 shadow-sleek-sm space-y-2.5">
-        <div className="flex items-center gap-2 text-[#126B50] font-mono font-bold text-xs uppercase tracking-wider">
-          <Sparkles className="w-4 h-4 text-[#16835B]" />
+      <div className="rounded-2xl bg-gradient-to-br from-[rgba(255,255,255,0.04)] to-white border border-[rgba(52,229,165,0.28)] p-4 sm:p-5 shadow-sleek-sm space-y-2.5">
+        <div className="flex items-center gap-2 text-[#34E5A5] font-mono font-bold text-xs uppercase tracking-wider">
+          <Sparkles className="w-4 h-4 text-[#34E5A5]" />
           <span>Executive Summary</span>
         </div>
         <div className="text-xs sm:text-sm leading-relaxed text-[#2A3B34]">
@@ -92,13 +92,13 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
       .filter(Boolean);
 
     return (
-      <div className="rounded-2xl bg-white border border-[#E4EAE6] p-4 sm:p-5 shadow-sleek-sm space-y-3.5">
-        <div className="flex items-center justify-between pb-2 border-b border-[#E4EAE6]">
-          <div className="flex items-center gap-2 text-[#14211D] font-display font-bold text-sm sm:text-base">
-            <Layers className="w-4 h-4 text-[#126B50]" />
+      <div className="rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] p-4 sm:p-5 shadow-sleek-sm space-y-3.5">
+        <div className="flex items-center justify-between pb-2 border-b border-[rgba(255,255,255,0.09)]">
+          <div className="flex items-center gap-2 text-[#F3F7F5] font-display font-bold text-sm sm:text-base">
+            <Layers className="w-4 h-4 text-[#34E5A5]" />
             <span>Architecture & Implementation Details</span>
           </div>
-          <span className="text-[11px] font-mono text-[#66736D]">
+          <span className="text-[11px] font-mono text-[#9AA7A1]">
             {items.length} {items.length === 1 ? 'mechanism' : 'mechanisms'}
           </span>
         </div>
@@ -111,11 +111,11 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
               return (
                 <div
                   key={idx}
-                  className="p-3 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] space-y-1.5 transition-all hover:border-[#C7E4D6]"
+                  className="p-3 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] space-y-1.5 transition-all hover:border-[rgba(52,229,165,0.28)]"
                 >
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#126B50] shrink-0" />
-                    <span className="font-bold text-[#14211D] text-xs sm:text-[13px]">
+                    <span className="font-bold text-[#F3F7F5] text-xs sm:text-[13px]">
                       {itemTitle}
                     </span>
                   </div>
@@ -130,7 +130,7 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
             return (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] text-xs sm:text-[13px] leading-relaxed text-[#4A5952]"
+                className="p-3 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-xs sm:text-[13px] leading-relaxed text-[#4A5952]"
               >
                 {renderFormattedInline(it.replace(/^[-*]\s+/, ''))}
               </div>
@@ -149,13 +149,13 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
       .filter(Boolean);
 
     return (
-      <div className="rounded-2xl bg-white border border-[#E4EAE6] p-4 sm:p-5 shadow-sleek-sm space-y-3.5">
-        <div className="flex items-center justify-between pb-2 border-b border-[#E4EAE6]">
-          <div className="flex items-center gap-2 text-[#14211D] font-display font-bold text-sm sm:text-base">
-            <Cpu className="w-4 h-4 text-[#126B50]" />
+      <div className="rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] p-4 sm:p-5 shadow-sleek-sm space-y-3.5">
+        <div className="flex items-center justify-between pb-2 border-b border-[rgba(255,255,255,0.09)]">
+          <div className="flex items-center gap-2 text-[#F3F7F5] font-display font-bold text-sm sm:text-base">
+            <Cpu className="w-4 h-4 text-[#34E5A5]" />
             <span>Key Components & Execution Flow</span>
           </div>
-          <span className="text-[11px] font-mono text-[#66736D]">
+          <span className="text-[11px] font-mono text-[#9AA7A1]">
             {items.length} {items.length === 1 ? 'component' : 'components'}
           </span>
         </div>
@@ -168,15 +168,15 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
               return (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] space-y-2 hover:border-[#C7E4D6] transition-all"
+                  className="p-3.5 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] space-y-2 hover:border-[rgba(52,229,165,0.28)] transition-all"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2 font-mono">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-md bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] font-bold text-[11px]">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-md bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] font-bold text-[11px]">
                         {String(idx + 1).padStart(2, '0')}
                       </span>
-                      <span className="px-2 py-0.5 rounded-md bg-white border border-[#E4EAE6] text-[#14211D] font-bold text-xs flex items-center gap-1.5">
-                        <FileCode2 className="w-3.5 h-3.5 text-[#126B50]" />
+                      <span className="px-2 py-0.5 rounded-md bg-[#0A1115] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] font-bold text-xs flex items-center gap-1.5">
+                        <FileCode2 className="w-3.5 h-3.5 text-[#34E5A5]" />
                         <span>{filePath}</span>
                       </span>
                     </div>
@@ -191,7 +191,7 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
             return (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-[#F8FCFA] border border-[#E2EDE6] text-xs sm:text-[13px] leading-relaxed text-[#4A5952]"
+                className="p-3 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] text-xs sm:text-[13px] leading-relaxed text-[#4A5952]"
               >
                 {renderFormattedInline(it)}
               </div>
@@ -216,7 +216,7 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
             <ShieldAlert className="w-4 h-4 text-[#EA580C]" />
             <span>Gaps, Caveats & Security Assessment</span>
           </div>
-          <span className="text-[11px] font-mono text-[#9A3412] bg-[#FEF3C7] border border-[#FDE68A] px-2 py-0.5 rounded-full font-bold">
+          <span className="text-[11px] font-mono text-[#9A3412] bg-[rgba(255,180,84,0.10)] border border-[rgba(255,180,84,0.32)] px-2 py-0.5 rounded-full font-bold">
             Audit Findings ({items.length})
           </span>
         </div>
@@ -234,16 +234,16 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
               return (
                 <div
                   key={idx}
-                  className="p-3.5 rounded-xl bg-white border border-[#FED7AA] space-y-1.5 shadow-2xs"
+                  className="p-3.5 rounded-xl bg-[#0A1115] border border-[#FED7AA] space-y-1.5 shadow-2xs"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <AlertTriangle
                         className={`w-4 h-4 shrink-0 ${
-                          isHighRisk ? 'text-[#DC2626]' : 'text-[#D97706]'
+                          isHighRisk ? 'text-[#FF6B7A]' : 'text-[#FFB454]'
                         }`}
                       />
-                      <span className="font-bold text-[#14211D] text-xs sm:text-[13px]">
+                      <span className="font-bold text-[#F3F7F5] text-xs sm:text-[13px]">
                         {riskTitle}
                       </span>
                     </div>
@@ -251,13 +251,13 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
                       className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
                         isHighRisk
                           ? 'bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]'
-                          : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'
+                          : 'bg-[rgba(255,180,84,0.10)] text-[#92400E] border border-[rgba(255,180,84,0.32)]'
                       }`}
                     >
                       {isHighRisk ? 'CRITICAL RISK' : 'GAP / LIMITATION'}
                     </span>
                   </div>
-                  <div className="pl-6 text-xs sm:text-[13px] leading-relaxed text-[#52635B]">
+                  <div className="pl-6 text-xs sm:text-[13px] leading-relaxed text-[#B4C0BB]">
                     {renderFormattedInline(riskBody)}
                   </div>
                 </div>
@@ -267,7 +267,7 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
             return (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-white border border-[#FED7AA] text-xs sm:text-[13px] leading-relaxed text-[#52635B]"
+                className="p-3 rounded-xl bg-[#0A1115] border border-[#FED7AA] text-xs sm:text-[13px] leading-relaxed text-[#B4C0BB]"
               >
                 {renderFormattedInline(it.replace(/^[-*]\s+/, ''))}
               </div>
@@ -280,8 +280,8 @@ function StructuredSectionCard({ title, body }: { title: string; body: string })
 
   // 5. Generic Custom Section
   return (
-    <div className="rounded-2xl bg-white border border-[#E4EAE6] p-4 sm:p-5 shadow-sleek-sm space-y-3">
-      <h3 className="text-sm sm:text-base font-bold text-[#14211D] font-display pb-2 border-b border-[#E4EAE6]">
+    <div className="rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] p-4 sm:p-5 shadow-sleek-sm space-y-3">
+      <h3 className="text-sm sm:text-base font-bold text-[#F3F7F5] font-display pb-2 border-b border-[rgba(255,255,255,0.09)]">
         {cleanTitle}
       </h3>
       <div className="text-xs sm:text-[13px] leading-relaxed text-[#2A3B34]">
@@ -303,7 +303,7 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
   const blocks = content.split(/\n\n+/);
 
   return (
-    <div className="space-y-3.5 text-xs sm:text-[13px] leading-relaxed text-[#14211D] font-sans">
+    <div className="space-y-3.5 text-xs sm:text-[13px] leading-relaxed text-[#F3F7F5] font-sans">
       {blocks.map((block, bIdx) => {
         const trimmed = block.trim();
 
@@ -312,7 +312,7 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
           return (
             <h3
               key={bIdx}
-              className="text-sm sm:text-base font-bold text-[#14211D] font-display pt-2 pb-1 border-b border-[#E4EAE6]"
+              className="text-sm sm:text-base font-bold text-[#F3F7F5] font-display pt-2 pb-1 border-b border-[rgba(255,255,255,0.09)]"
             >
               {renderFormattedInline(trimmed.replace(/^###\s+/, ''))}
             </h3>
@@ -324,7 +324,7 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
           return (
             <h2
               key={bIdx}
-              className="text-base sm:text-lg font-bold text-[#14211D] font-display pt-3 pb-1 border-b border-[#E4EAE6]"
+              className="text-base sm:text-lg font-bold text-[#F3F7F5] font-display pt-3 pb-1 border-b border-[rgba(255,255,255,0.09)]"
             >
               {renderFormattedInline(trimmed.replace(/^##\s+/, ''))}
             </h2>
@@ -363,7 +363,7 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
                   key={iIdx}
                   className="flex items-start gap-2.5 text-xs sm:text-[13px] text-[#2A3B34]"
                 >
-                  <span className="text-[11px] font-bold font-mono text-[#126B50] bg-[#EAF5EF] border border-[#C7E4D6] rounded px-1.5 py-0.5 shrink-0">
+                  <span className="text-[11px] font-bold font-mono text-[#34E5A5] bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] rounded px-1.5 py-0.5 shrink-0">
                     {iIdx + 1}
                   </span>
                   <div className="flex-1 leading-relaxed">{renderFormattedInline(item)}</div>
@@ -391,7 +391,7 @@ function GenericMarkdownRenderer({ content }: { content: string }) {
 
         // 6. Horizontal Rule
         if (/^[-*_]{3,}$/.test(trimmed)) {
-          return <hr key={bIdx} className="border-[#E4EAE6] my-4" />;
+          return <hr key={bIdx} className="border-[rgba(255,255,255,0.09)] my-4" />;
         }
 
         // 7. Regular paragraph
@@ -436,10 +436,10 @@ function renderFormattedInline(text: string): React.ReactNode {
       elements.push(
         <span
           key={`cite-${idx}`}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EAF5EF] text-[#126B50] font-mono text-[11px] font-bold border border-[#C7E4D6] shadow-2xs mx-1 align-baseline hover:bg-[#D4ECE0] transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-mono text-[11px] font-bold border border-[rgba(52,229,165,0.28)] shadow-2xs mx-1 align-baseline hover:bg-[#D4ECE0] transition-colors cursor-pointer"
           title={`Source evidence: ${citeText}`}
         >
-          <FileCode2 className="w-3 h-3 text-[#126B50] shrink-0" />
+          <FileCode2 className="w-3 h-3 text-[#34E5A5] shrink-0" />
           <span>{citeText}</span>
         </span>
       );
@@ -452,9 +452,9 @@ function renderFormattedInline(text: string): React.ReactNode {
       elements.push(
         <span
           key={`boldcode-${idx}`}
-          className="inline-flex items-center gap-1 bg-[#EAF5EF] text-[#126B50] px-1.5 py-0.5 rounded text-[11px] font-mono font-bold border border-[#C7E4D6] mx-0.5"
+          className="inline-flex items-center gap-1 bg-[rgba(52,229,165,0.10)] text-[#34E5A5] px-1.5 py-0.5 rounded text-[11px] font-mono font-bold border border-[rgba(52,229,165,0.28)] mx-0.5"
         >
-          <FileCode2 className="w-3 h-3 text-[#126B50] shrink-0" />
+          <FileCode2 className="w-3 h-3 text-[#34E5A5] shrink-0" />
           <span>{codeVal}</span>
         </span>
       );
@@ -464,7 +464,7 @@ function renderFormattedInline(text: string): React.ReactNode {
     // C. Bold text: **text**
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
       elements.push(
-        <strong key={`bold-${idx}`} className="font-bold text-[#14211D]">
+        <strong key={`bold-${idx}`} className="font-bold text-[#F3F7F5]">
           {part.slice(2, -2)}
         </strong>
       );
@@ -476,7 +476,7 @@ function renderFormattedInline(text: string): React.ReactNode {
       elements.push(
         <code
           key={`code-${idx}`}
-          className="bg-[#EAF5EF] text-[#126B50] px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold border border-[#C7E4D6] mx-0.5"
+          className="bg-[rgba(52,229,165,0.10)] text-[#34E5A5] px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold border border-[rgba(52,229,165,0.28)] mx-0.5"
         >
           {part.slice(1, -1)}
         </code>

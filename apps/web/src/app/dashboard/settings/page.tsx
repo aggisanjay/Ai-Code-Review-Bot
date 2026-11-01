@@ -175,7 +175,7 @@ export default function SettingsPage() {
   const currentPlan = billing?.plan || org?.plan || 'FREE';
 
   return (
-    <div className="flex-1 pb-16 bg-[#F7F9F8]">
+    <div className="flex-1 pb-16 bg-[#04070A]">
       <Header
         title="Settings & Policies"
         description="Manage organization preferences, AI review engine providers, team members, and billing quotas."
@@ -183,21 +183,21 @@ export default function SettingsPage() {
 
       <div className="px-6 sm:px-8 pt-8 space-y-6 max-w-5xl mx-auto">
         {feedback && (
-          <div className="p-3.5 rounded-xl bg-[#EAF5EF] border border-[#C7E4D6] text-[#126B50] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <CheckCircle2 className="w-4 h-4 text-[#16835B] shrink-0" />
+          <div className="p-3.5 rounded-xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] text-[#34E5A5] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-[#34E5A5] shrink-0" />
             <span>{feedback}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
-            <AlertCircle className="w-4 h-4 text-[#C43D4B] shrink-0" />
+          <div className="p-3.5 rounded-xl bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] text-xs flex items-center gap-2.5 font-mono font-medium shadow-sm">
+            <AlertCircle className="w-4 h-4 text-[#FF6B7A] shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Settings Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-[#E4EAE6] pb-3 overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-[rgba(255,255,255,0.09)] pb-3 overflow-x-auto">
           {[
             { id: 'org', label: 'Organization & Team', icon: Building2 },
             { id: 'ai', label: 'AI Review Providers', icon: Brain },
@@ -212,11 +212,11 @@ export default function SettingsPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 ${
                   isSelected
-                    ? 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6] shadow-sm'
-                    : 'text-[#66736D] hover:text-[#14211D] hover:bg-white'
+                    ? 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] border border-[rgba(52,229,165,0.28)] shadow-sm'
+                    : 'text-[#9AA7A1] hover:text-[#F3F7F5] hover:bg-[#0A1115]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#126B50]' : 'text-[#66736D]'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-[#34E5A5]' : 'text-[#9AA7A1]'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -226,58 +226,58 @@ export default function SettingsPage() {
         {/* Tab 1: Organization & Team */}
         {activeTab === 'org' && (
           <div className="space-y-6">
-            <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-4">
-              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+            <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm space-y-4">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#F3F7F5]">
                 Organization Profile
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>
-                  <label className="text-[#66736D] font-semibold block mb-1.5">Organization Name</label>
+                  <label className="text-[#9AA7A1] font-semibold block mb-1.5">Organization Name</label>
                   <input
                     type="text"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl p-3 text-[#14211D] font-medium focus:outline-none focus:border-[#126B50] font-mono"
+                    className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl p-3 text-[#F3F7F5] font-medium focus:outline-none focus:border-[rgba(52,229,165,0.45)] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[#66736D] font-semibold block mb-1.5">Slug Identifier</label>
+                  <label className="text-[#9AA7A1] font-semibold block mb-1.5">Slug Identifier</label>
                   <input
                     type="text"
                     disabled
                     value={org?.slug || 'workspace'}
-                    className="w-full bg-[#F7F9F8] border border-[#E4EAE6] rounded-xl p-3 text-[#66736D] font-mono opacity-80"
+                    className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl p-3 text-[#9AA7A1] font-mono opacity-80"
                   />
                 </div>
               </div>
             </div>
 
             {/* Members List */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm">
+            <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+                  <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#F3F7F5]">
                     Team Members ({members.length})
                   </h3>
-                  <p className="text-xs text-[#66736D] mt-0.5">Authorized members with access to tenant repositories.</p>
+                  <p className="text-xs text-[#9AA7A1] mt-0.5">Authorized members with access to tenant repositories.</p>
                 </div>
               </div>
 
-              <div className="divide-y divide-[#E4EAE6] text-xs">
+              <div className="divide-y divide-[rgba(255,255,255,0.09)] text-xs">
                 {members.map((m) => {
                   const initial = (m.user?.name || m.user?.email || 'U').substring(0, 2).toUpperCase();
                   return (
                     <div key={m.id} className="py-3.5 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center font-bold text-[#126B50] font-mono text-[11px] shadow-sm">
+                        <div className="w-8 h-8 rounded-full bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] flex items-center justify-center font-bold text-[#34E5A5] font-mono text-[11px] shadow-sm">
                           {initial}
                         </div>
                         <div>
-                          <span className="font-semibold text-[#14211D] block text-xs sm:text-sm font-display">{m.user?.name}</span>
-                          <span className="text-[11px] text-[#66736D] font-mono">{m.user?.email}</span>
+                          <span className="font-semibold text-[#F3F7F5] block text-xs sm:text-sm font-display">{m.user?.name}</span>
+                          <span className="text-[11px] text-[#9AA7A1] font-mono">{m.user?.email}</span>
                         </div>
                       </div>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#F7F9F8] border border-[#E4EAE6] text-[#14211D] font-mono font-bold">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] text-[#F3F7F5] font-mono font-bold">
                         {m.role}
                       </span>
                     </div>
@@ -290,47 +290,47 @@ export default function SettingsPage() {
 
         {/* Tab 2: AI Review Engine */}
         {activeTab === 'ai' && (
-          <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-5">
+          <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm space-y-5">
             <div>
-              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#F3F7F5]">
                 AI Provider Architecture & Model Selection
               </h3>
-              <p className="text-xs text-[#66736D] mt-0.5">
+              <p className="text-xs text-[#9AA7A1] mt-0.5">
                 Worker executes reviews through Google Gemini or OpenAI with structured JSON schemas.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="p-5 rounded-2xl border-2 border-[#126B50] bg-[#EAF5EF]/20 shadow-sleek-sm">
+              <div className="p-5 rounded-2xl border-2 border-[rgba(52,229,165,0.45)] bg-[rgba(52,229,165,0.10)]/20 shadow-sleek-sm">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-[#14211D] text-sm font-display">
+                  <span className="font-bold text-[#F3F7F5] text-sm font-display">
                     {appInfo?.aiModel ? `Google Gemini (${appInfo.aiModel})` : 'Google Gemini 3.5 Flash (gemini-3.5-flash)'}
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-mono font-bold border border-[rgba(52,229,165,0.28)]">
                     Active Model
                   </span>
                 </div>
-                <p className="text-xs text-[#66736D] leading-relaxed">
+                <p className="text-xs text-[#9AA7A1] leading-relaxed">
                   Active production LLM model. Uses Google Gemini 3.5 Flash with structured JSON schemas to evaluate repository pull request diffs with high-speed senior engineering precision.
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl border border-[#E4EAE6] bg-[#F7F9F8]">
+              <div className="p-5 rounded-2xl border border-[rgba(255,255,255,0.09)] bg-[#04070A]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-[#14211D] text-sm font-display">Deterministic AST Scanner</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white text-[#16835B] font-mono font-bold border border-[#E4EAE6]">
+                  <span className="font-bold text-[#F3F7F5] text-sm font-display">Deterministic AST Scanner</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0A1115] text-[#34E5A5] font-mono font-bold border border-[rgba(255,255,255,0.09)]">
                     Zero-latency
                   </span>
                 </div>
-                <p className="text-xs text-[#66736D] leading-relaxed">
+                <p className="text-xs text-[#9AA7A1] leading-relaxed">
                   Pre-flight Abstract Syntax Tree checks for hardcoded cryptographic secrets, unsafe code execution, and prompt-injection defense.
                 </p>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] font-mono text-xs text-[#66736D] space-y-1.5">
-              <div>Active Model: <strong className="text-[#14211D]">{appInfo?.aiModel || 'gemini-3.5-flash'}</strong></div>
-              <div>AI Provider: <strong className="text-[#14211D]">{appInfo?.aiProvider ? appInfo.aiProvider.toUpperCase() : 'GEMINI'}</strong></div>
+            <div className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] font-mono text-xs text-[#9AA7A1] space-y-1.5">
+              <div>Active Model: <strong className="text-[#F3F7F5]">{appInfo?.aiModel || 'gemini-3.5-flash'}</strong></div>
+              <div>AI Provider: <strong className="text-[#F3F7F5]">{appInfo?.aiProvider ? appInfo.aiProvider.toUpperCase() : 'GEMINI'}</strong></div>
               <div>Worker Execution Path: Durable BullMQ + Background Processor</div>
             </div>
           </div>
@@ -348,55 +348,55 @@ export default function SettingsPage() {
           const reposLimit = billing?.usage?.repositoriesLimit ?? billing?.reposLimit ?? (currentPlan === 'PRO' ? 15 : currentPlan === 'TEAM' ? 50 : 3);
 
           return (
-            <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-6">
+            <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm space-y-6">
               <div>
-                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#F3F7F5]">
                   Subscription Tier, PR Reviews & Codebase Q&A Quotas
                 </h3>
-                <p className="text-xs text-[#66736D] mt-0.5">
+                <p className="text-xs text-[#9AA7A1] mt-0.5">
                   Current active subscription plan and real-time monthly usage for {org?.name || 'your workspace'}.
                 </p>
               </div>
 
               {/* Real DB Quota Status Panel */}
-              <div className="p-5 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-xs font-mono">
+              <div className="p-5 rounded-2xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-xs font-mono">
                 <div className="space-y-1">
-                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reviews</span>
-                  <div className="text-2xl font-bold text-[#14211D]">
+                  <span className="text-[#9AA7A1] text-[11px] uppercase font-semibold">Monthly Reviews</span>
+                  <div className="text-2xl font-bold text-[#F3F7F5]">
                     {reviewsUsed} / {reviewsLimit}
                   </div>
-                  <div className="text-[11px] text-[#126B50] font-semibold">
+                  <div className="text-[11px] text-[#34E5A5] font-semibold">
                     {reviewsRemaining} reviews remaining
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Codebase Q&A Queries</span>
-                  <div className="text-2xl font-bold text-[#14211D]">
+                  <span className="text-[#9AA7A1] text-[11px] uppercase font-semibold">Codebase Q&A Queries</span>
+                  <div className="text-2xl font-bold text-[#F3F7F5]">
                     {qnaUsed} / {qnaLimit}
                   </div>
-                  <div className="text-[11px] text-[#126B50] font-semibold">
+                  <div className="text-[11px] text-[#34E5A5] font-semibold">
                     {qnaRemaining} queries remaining
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Monthly Reset Date</span>
-                  <div className="text-sm font-bold text-[#14211D] mt-1">
+                  <span className="text-[#9AA7A1] text-[11px] uppercase font-semibold">Monthly Reset Date</span>
+                  <div className="text-sm font-bold text-[#F3F7F5] mt-1">
                     {billing?.resetDate ? new Date(billing.resetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Next calendar month'}
                   </div>
-                  <div className="text-[11px] text-[#66736D]">
+                  <div className="text-[11px] text-[#9AA7A1]">
                     Resets 1st of each calendar month UTC
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[#66736D] text-[11px] uppercase font-semibold">Connected Repositories</span>
-                  <div className="text-sm font-bold text-[#14211D] mt-1">
+                  <span className="text-[#9AA7A1] text-[11px] uppercase font-semibold">Connected Repositories</span>
+                  <div className="text-sm font-bold text-[#F3F7F5] mt-1">
                     {reposUsed} / {reposLimit} allowed
                   </div>
-                  <div className="text-[11px] text-[#66736D]">
-                    Current plan: <strong className="text-[#14211D]">{currentPlan}</strong>
+                  <div className="text-[11px] text-[#9AA7A1]">
+                    Current plan: <strong className="text-[#F3F7F5]">{currentPlan}</strong>
                   </div>
                 </div>
               </div>
@@ -407,23 +407,23 @@ export default function SettingsPage() {
                     key={tier}
                     className={`p-5 rounded-2xl border flex flex-col justify-between transition-all ${
                       currentPlan === tier
-                        ? 'bg-white border-2 border-[#126B50] shadow-sleek-md'
-                        : 'bg-white border-[#E4EAE6] shadow-sleek-sm'
+                        ? 'bg-[#0A1115] border-2 border-[rgba(52,229,165,0.45)] shadow-sleek-md'
+                        : 'bg-[#0A1115] border-[rgba(255,255,255,0.09)] shadow-sleek-sm'
                     }`}
                   >
                     <div>
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-[#14211D] font-mono">{tier} TIER</span>
+                        <span className="font-bold text-[#F3F7F5] font-mono">{tier} TIER</span>
                         {currentPlan === tier && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EAF5EF] text-[#126B50] font-mono font-bold border border-[#C7E4D6]">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-mono font-bold border border-[rgba(52,229,165,0.28)]">
                             Current
                           </span>
                         )}
                       </div>
-                      <div className="text-2xl font-bold text-[#14211D] font-mono my-2.5">
+                      <div className="text-2xl font-bold text-[#F3F7F5] font-mono my-2.5">
                         {tier === 'FREE' ? '$0' : tier === 'PRO' ? '$29/mo' : '$99/mo'}
                       </div>
-                      <p className="text-xs text-[#66736D] leading-relaxed">
+                      <p className="text-xs text-[#9AA7A1] leading-relaxed">
                         {tier === 'FREE'
                           ? '25 reviews • 100 Q&A queries / mo • 3 repos'
                           : tier === 'PRO'
@@ -442,19 +442,19 @@ export default function SettingsPage() {
                         <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                       </button>
                     ) : currentPlan === tier ? (
-                      <div className="mt-5 text-[11px] text-[#126B50] font-mono font-bold text-center">Active Plan</div>
+                      <div className="mt-5 text-[11px] text-[#34E5A5] font-mono font-bold text-center">Active Plan</div>
                     ) : (
-                      <div className="mt-5 text-[11px] text-[#66736D] font-mono text-center">Base Tier</div>
+                      <div className="mt-5 text-[11px] text-[#9AA7A1] font-mono text-center">Base Tier</div>
                     )}
                   </div>
                 ))}
               </div>
 
             {/* Customer Portal Action */}
-            <div className="p-5 rounded-2xl bg-[#F7F9F8] border border-[#E4EAE6] flex flex-wrap items-center justify-between gap-4">
+            <div className="p-5 rounded-2xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h4 className="text-xs font-bold text-[#14211D]">Stripe Customer Billing Portal</h4>
-                <p className="text-xs text-[#66736D] mt-0.5">
+                <h4 className="text-xs font-bold text-[#F3F7F5]">Stripe Customer Billing Portal</h4>
+                <p className="text-xs text-[#9AA7A1] mt-0.5">
                   Update payment methods, view past invoices, or manage subscription tier and cancellations.
                 </p>
               </div>
@@ -473,32 +473,32 @@ export default function SettingsPage() {
 
         {/* Tab 4: Security & Webhooks */}
         {activeTab === 'security' && (
-          <div className="p-6 rounded-2xl bg-white border border-[#E4EAE6] shadow-sleek-sm space-y-4 text-xs">
+          <div className="p-6 rounded-2xl bg-[#0A1115] border border-[rgba(255,255,255,0.09)] shadow-sleek-sm space-y-4 text-xs">
             <div>
-              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#14211D]">
+              <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-[#F3F7F5]">
                 GitHub App Cryptographic Verification & Multi-Tenancy
               </h3>
-              <p className="text-xs text-[#66736D] mt-0.5">
+              <p className="text-xs text-[#9AA7A1] mt-0.5">
                 Security baseline, webhook verification, and tenant quarantine guarantees.
               </p>
             </div>
 
             <div className="space-y-2.5 font-mono text-[11px]">
-              <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between">
-                <span className="text-[#14211D]">Webhook Signature Verification (HMAC-SHA256)</span>
-                <span className="text-[#126B50] font-bold">Active & Enforced</span>
+              <div className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-between">
+                <span className="text-[#F3F7F5]">Webhook Signature Verification (HMAC-SHA256)</span>
+                <span className="text-[#34E5A5] font-bold">Active & Enforced</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between">
-                <span className="text-[#14211D]">Tenant Isolation on Webhook Ingestion</span>
-                <span className="text-[#126B50] font-bold">Enforced via InstallationId</span>
+              <div className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-between">
+                <span className="text-[#F3F7F5]">Tenant Isolation on Webhook Ingestion</span>
+                <span className="text-[#34E5A5] font-bold">Enforced via InstallationId</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between">
-                <span className="text-[#14211D]">Server-Enforced Database Sessions</span>
-                <span className="text-[#126B50] font-bold">Active</span>
+              <div className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-between">
+                <span className="text-[#F3F7F5]">Server-Enforced Database Sessions</span>
+                <span className="text-[#34E5A5] font-bold">Active</span>
               </div>
-              <div className="p-4 rounded-xl bg-[#F7F9F8] border border-[#E4EAE6] flex items-center justify-between">
-                <span className="text-[#14211D]">Webhook Delivery Deduplication</span>
-                <span className="text-[#126B50] font-bold">Unique Constraint Enforced</span>
+              <div className="p-4 rounded-xl bg-[#04070A] border border-[rgba(255,255,255,0.09)] flex items-center justify-between">
+                <span className="text-[#F3F7F5]">Webhook Delivery Deduplication</span>
+                <span className="text-[#34E5A5] font-bold">Unique Constraint Enforced</span>
               </div>
             </div>
           </div>

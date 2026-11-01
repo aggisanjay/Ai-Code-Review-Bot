@@ -81,23 +81,23 @@ export default function ConnectGithubGatewayPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#F7F9F8] text-[#14211D] flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white border border-[#E4EAE6] rounded-2xl p-8 shadow-sleek-md text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-[#EAF5EF] border border-[#C7E4D6] flex items-center justify-center mx-auto text-[#126B50] shadow-sm">
-          <Github className="w-8 h-8 text-[#126B50]" />
+    <div className="min-h-screen bg-[#04070A] text-[#F3F7F5] flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-[#0A1115] border border-[rgba(255,255,255,0.09)] rounded-2xl p-8 shadow-sleek-md text-center space-y-6">
+        <div className="w-16 h-16 rounded-2xl bg-[rgba(52,229,165,0.10)] border border-[rgba(52,229,165,0.28)] flex items-center justify-center mx-auto text-[#34E5A5] shadow-sm">
+          <Github className="w-8 h-8 text-[#34E5A5]" />
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-[#14211D] tracking-tight font-display">Connect ReviewFlow AI to GitHub</h2>
-          <p className="text-xs text-[#66736D] mt-1.5 font-mono">
+          <h2 className="text-xl font-bold text-[#F3F7F5] tracking-tight font-display">Connect ReviewFlow AI to GitHub</h2>
+          <p className="text-xs text-[#9AA7A1] mt-1.5 font-mono">
             Secure, single-app multi-tenant GitHub App integration
           </p>
         </div>
 
         {error ? (
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#C43D4B] text-xs flex items-center gap-2.5 font-mono text-left font-medium">
-              <AlertCircle className="w-4 h-4 text-[#C43D4B] shrink-0" />
+            <div className="p-4 rounded-xl bg-[rgba(255,93,108,0.10)] border border-[rgba(255,93,108,0.32)] text-[#FF6B7A] text-xs flex items-center gap-2.5 font-mono text-left font-medium">
+              <AlertCircle className="w-4 h-4 text-[#FF6B7A] shrink-0" />
               <span>{error}</span>
             </div>
             <div className="flex items-center justify-center gap-3">
@@ -118,11 +118,11 @@ export default function ConnectGithubGatewayPage() {
           </div>
         ) : (
           <div className="space-y-3.5 pt-2">
-            <div className="flex items-center justify-center gap-2.5 text-xs font-mono text-[#14211D] font-medium">
-              <RefreshCw className="w-4 h-4 text-[#126B50] animate-spin" />
+            <div className="flex items-center justify-center gap-2.5 text-xs font-mono text-[#F3F7F5] font-medium">
+              <RefreshCw className="w-4 h-4 text-[#34E5A5] animate-spin" />
               <span>{statusMessage}</span>
             </div>
-            <p className="text-xs text-[#66736D] font-mono leading-relaxed">
+            <p className="text-xs text-[#9AA7A1] font-mono leading-relaxed">
               You will be redirected automatically without entering any keys or installation IDs.
             </p>
           </div>
