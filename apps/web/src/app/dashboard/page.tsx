@@ -16,6 +16,8 @@ import {
   Github,
 } from 'lucide-react';
 import { Header } from '../../components/dashboard/Header';
+import { InsightCharts } from '../../components/dashboard/InsightCharts';
+import { Reveal, Tilt3D, CountUp } from '../../components/ui/Motion3D';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
@@ -169,9 +171,8 @@ export default function DashboardOverviewPage() {
         action={
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E4EAE6] text-xs font-mono shadow-sleek-sm">
             <span
-              className={`w-2 h-2 rounded-full ${
-                isLiveConnected ? 'bg-[#16835B] animate-pulse' : 'bg-zinc-400'
-              }`}
+              className={`w-2 h-2 rounded-full ${isLiveConnected ? 'bg-[#16835B] animate-pulse' : 'bg-zinc-400'
+                }`}
             />
             <span className={isLiveConnected ? 'text-[#126B50] font-semibold' : 'text-[#66736D]'}>
               {isLiveConnected ? `Live Sync (${lastSyncTime})` : 'Connecting...'}
@@ -212,36 +213,40 @@ export default function DashboardOverviewPage() {
         )}
 
         {/* Metric Cards Grid */}
-        {/* Metric Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => {
             const Icon = stat.icon;
             return (
-              <div
-                key={i}
-                className="p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm hover:shadow-md hover:border-[#B2E0C7] transition-all duration-fast flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-semibold text-[#52635B]">
-                      {stat.title}
-                    </span>
-                    <div className={`w-8 h-8 rounded-full ${stat.iconBg} flex items-center justify-center border border-black/5`}>
-                      <Icon className={`w-4 h-4 ${stat.iconColor}`} />
+              <Reveal key={i} delay={i * 0.08}>
+                <Tilt3D>
+                  <div
+                    className="p-5 rounded-2xl bg-white border border-[#E2EDE6] shadow-sm hover:shadow-md hover:border-[#B2E0C7] transition-all duration-fast flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-semibold text-[#52635B]">
+                          {stat.title}
+                        </span>
+                        <div className={`w-8 h-8 rounded-full ${stat.iconBg} flex items-center justify-center border border-black/5`}>
+                          <Icon className={`w-4 h-4 ${stat.iconColor}`} />
+                        </div>
+                      </div>
+                      <div className="text-3xl font-bold text-[#111C18] font-mono tracking-tight"><CountUp value={stat.value} /></div>
+                    </div>
+                    <div className="mt-3.5 pt-3 border-t border-[#F0F5F2] flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-[#10B981] bg-[#EBF7F0] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-[#10B981]" />
+                        <span>{stat.change}</span>
+                      </span>
                     </div>
                   </div>
-                  <div className="text-3xl font-bold text-[#111C18] font-mono tracking-tight">{stat.value}</div>
-                </div>
-                <div className="mt-3.5 pt-3 border-t border-[#F0F5F2] flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold text-[#10B981] bg-[#EBF7F0] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 text-[#10B981]" />
-                    <span>{stat.change}</span>
-                  </span>
-                </div>
-              </div>
+                </Tilt3D>
+              </Reveal>
             );
           })}
         </div>
+
+        <InsightCharts analytics={analytics} />
 
         {/* Severity Distribution & Engine Status */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -445,13 +450,12 @@ export default function DashboardOverviewPage() {
                             {pr.repoFullName || pr.repoName}#{pr.number}
                           </span>
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${
-                              risk === 'CRITICAL'
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-mono ${risk === 'CRITICAL'
                                 ? 'bg-[#FDE8E8] text-[#C43D4B] border border-[#F8B4B4]'
                                 : risk === 'HIGH'
-                                ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
-                                : 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
-                            }`}
+                                  ? 'bg-[#FEF3C7] text-[#B7791F] border border-[#FDE68A]'
+                                  : 'bg-[#EAF5EF] text-[#126B50] border border-[#C7E4D6]'
+                              }`}
                           >
                             {risk}
                           </span>
