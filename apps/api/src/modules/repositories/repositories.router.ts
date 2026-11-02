@@ -67,18 +67,27 @@ async function resolveActiveInstallation(
       return null;
     }
 
-    let matched = activeInstallations.find((inst) =>
+    const matched = activeInstallations.find((inst) =>
       accountLoginOrOwner
         ? inst.account?.login?.toLowerCase() === accountLoginOrOwner.toLowerCase()
         : false
     );
 
-    // If only one installation exists for this app, fallback to it
-    if (!matched && activeInstallations.length === 1) {
-      matched = activeInstallations[0];
-    }
-
     if (matched) {
+      // TENANT ISOLATION: Check if this installation is already owned by a DIFFERENT org
+      const existingRecord = await prisma.gitHubInstallation.findUnique({
+        where: { installationId: matched.id },
+      });
+
+      if (existingRecord && existingRecord.organizationId !== orgId) {
+        logger.warn('resolveActiveInstallation blocked: installation belongs to another tenant', {
+          installationId: matched.id,
+          requestingOrgId: orgId,
+          ownerOrgId: existingRecord.organizationId,
+        });
+        return null; // Do NOT re-assign another tenant's installation
+      }
+
       logger.info('Auto-resolved and synchronized GitHub installation ID', {
         orgId,
         oldId: failedInstallationId,
@@ -87,8 +96,9 @@ async function resolveActiveInstallation(
       });
 
       if (failedInstallationId && failedInstallationId !== matched.id) {
+        // Only delete the old record if it belongs to this org
         await prisma.gitHubInstallation.deleteMany({
-          where: { installationId: failedInstallationId },
+          where: { installationId: failedInstallationId, organizationId: orgId },
         });
       }
 
@@ -103,7 +113,7 @@ async function resolveActiveInstallation(
           permissions: JSON.stringify(matched.permissions || {}),
         },
         update: {
-          organizationId: orgId,
+          // Only update metadata, NEVER change organizationId
           accountLogin: matched.account?.login || accountLoginOrOwner || 'unknown',
           avatarUrl: matched.account?.avatar_url || null,
           permissions: JSON.stringify(matched.permissions || {}),
@@ -389,44 +399,26 @@ repositoriesRouter.post(
       const accountType = (details.account as any)?.type || 'Organization';
       const avatarUrl = (details.account as any)?.avatar_url || null;
 
-      // 2. Prevent cross-tenant claim hijacking while allowing verified org owners to re-claim/transfer
+      // 2. STRICT tenant isolation: never allow cross-tenant claim
       const existing = await prisma.gitHubInstallation.findUnique({
         where: { installationId: targetInstallationId },
       });
 
       if (existing && existing.organizationId !== orgId) {
-        // Verify if current user is an OWNER or ADMIN of the previously linked organization
-        const membershipInPreviousOrg = await prisma.organizationMember.findUnique({
-          where: {
-            organizationId_userId: {
-              organizationId: existing.organizationId,
-              userId: req.user!.id,
-            },
-          },
+        logger.warn('Cross-tenant installation claim blocked', {
+          installationId: targetInstallationId,
+          requestingOrgId: orgId,
+          ownerOrgId: existing.organizationId,
+          userId: req.user!.id,
         });
 
-        if (membershipInPreviousOrg && ['OWNER', 'ADMIN'].includes(membershipInPreviousOrg.role)) {
-          logger.info('Seamlessly reassigning GitHub installation to active organization for verified owner', {
-            installationId: targetInstallationId,
-            fromOrgId: existing.organizationId,
-            toOrgId: orgId,
-            userId: req.user!.id,
-          });
-
-          // Also transfer existing repositories linked to this installation to the active org
-          await prisma.repository.updateMany({
-            where: { organizationId: existing.organizationId },
-            data: { organizationId: orgId },
-          });
-        } else {
-          res.status(409).json({
-            error: {
-              code: 'ALREADY_CLAIMED',
-              message: 'This GitHub installation is already linked to another ReviewFlow organization.',
-            },
-          });
-          return;
-        }
+        res.status(409).json({
+          error: {
+            code: 'ALREADY_CLAIMED',
+            message: 'This GitHub App installation is already connected to another ReviewFlow workspace. The original workspace owner must disconnect it first from Settings before it can be linked to a different workspace.',
+          },
+        });
+        return;
       }
 
       // 3. Upsert installation record scoped to current tenant
@@ -441,7 +433,7 @@ repositoriesRouter.post(
           permissions: JSON.stringify(details.permissions || {}),
         },
         update: {
-          organizationId: orgId,
+          // SECURITY: Never overwrite organizationId on update — tenant boundary is immutable
           accountLogin,
           accountType,
           avatarUrl,
@@ -471,17 +463,7 @@ repositoriesRouter.post(
 
       let userFriendlyMessage = `Failed to verify installation with GitHub: ${err.message}`;
       if (err.status === 404 || String(err.message).includes('Not Found')) {
-        try {
-          const appInstallations = await client.listAppInstallations();
-          if (appInstallations.length > 0) {
-            const listStr = appInstallations.map((i) => `${i.id} (@${(i.account as any)?.login})`).join(', ');
-            userFriendlyMessage = `Installation ID ${numericInstallationId} was not found on GitHub. Did you enter your App ID? Active installation ID(s) for your app: ${listStr}`;
-          } else {
-            userFriendlyMessage = `Installation ID ${numericInstallationId} was not found. Please install the GitHub App first on your account or organization.`;
-          }
-        } catch {
-          // ignore
-        }
+        userFriendlyMessage = `Installation ID ${numericInstallationId} was not found on GitHub. Please ensure you have installed the GitHub App on your GitHub account or organization first.`;
       }
 
       res.status(502).json({
@@ -620,29 +602,53 @@ repositoriesRouter.post(
     }
 
     if (enabled) {
-      // Connect or enable repository
-      const repo = await prisma.repository.upsert({
+      // Connect or enable repository — with tenant isolation check
+      const existingRepo = await prisma.repository.findUnique({
         where: { githubRepoId: numericRepoId },
-        create: {
-          organizationId: orgId,
+      });
+
+      // SECURITY: If repo exists under a DIFFERENT org, block the toggle
+      if (existingRepo && existingRepo.organizationId !== orgId) {
+        logger.warn('Cross-tenant repository toggle blocked', {
           githubRepoId: numericRepoId,
           fullName,
-          name,
-          owner: owner || fullName.split('/')[0],
-          defaultBranch: defaultBranch || 'main',
-          isPrivate: Boolean(isPrivate),
-          isActive: true,
-          autoReviewEnabled: true,
-        },
-        update: {
-          organizationId: orgId,
-          fullName,
-          name,
-          isActive: true,
-          autoReviewEnabled: true,
-          updatedAt: new Date(),
-        },
-      });
+          requestingOrgId: orgId,
+          ownerOrgId: existingRepo.organizationId,
+        });
+
+        res.status(409).json({
+          error: {
+            code: 'REPO_OWNED_BY_OTHER_ORG',
+            message: 'This repository is already connected to another ReviewFlow workspace.',
+          },
+        });
+        return;
+      }
+
+      const repo = existingRepo
+        ? await prisma.repository.update({
+          where: { id: existingRepo.id },
+          data: {
+            fullName,
+            name,
+            isActive: true,
+            autoReviewEnabled: true,
+            updatedAt: new Date(),
+          },
+        })
+        : await prisma.repository.create({
+          data: {
+            organizationId: orgId,
+            githubRepoId: numericRepoId,
+            fullName,
+            name,
+            owner: owner || fullName.split('/')[0],
+            defaultBranch: defaultBranch || 'main',
+            isPrivate: Boolean(isPrivate),
+            isActive: true,
+            autoReviewEnabled: true,
+          },
+        });
 
       // Ensure default policy exists
       await prisma.reviewPolicy.upsert({
@@ -844,25 +850,28 @@ repositoriesRouter.get('/:id/pull-requests', async (req: AuthenticatedRequest, r
     let ghPullRequests: any[] = [];
     try {
       ghPullRequests = await adapter.listPullRequests(repo.owner, repo.name, state, page, limit);
-  } catch (err: any) {
-    if ((err.status === 404 || err.message?.includes('Not Found')) && client) {
-      logger.warn('404 fetching PRs, attempting to auto-sync active GitHub installation', {
-        repo: repo.fullName,
-        owner: repo.owner,
-      });
-      const freshInstallationId = await resolveActiveInstallation(
-        orgId,
-        repo.owner,
-        targetInstallation?.installationId
-      );
-      if (freshInstallationId && freshInstallationId !== targetInstallation?.installationId) {
-        const freshClient = getGitHubAppClient(freshInstallationId);
-        if (freshClient) {
-          try {
-            ghPullRequests = await freshClient.listPullRequests(repo.owner, repo.name, state, page, limit);
-          } catch (retryErr: any) {
-            logger.error('Failed to list GitHub pull requests after sync', { error: retryErr.message });
-            throw retryErr;
+    } catch (err: any) {
+      if ((err.status === 404 || err.message?.includes('Not Found')) && client) {
+        logger.warn('404 fetching PRs, attempting to auto-sync active GitHub installation', {
+          repo: repo.fullName,
+          owner: repo.owner,
+        });
+        const freshInstallationId = await resolveActiveInstallation(
+          orgId,
+          repo.owner,
+          targetInstallation?.installationId
+        );
+        if (freshInstallationId && freshInstallationId !== targetInstallation?.installationId) {
+          const freshClient = getGitHubAppClient(freshInstallationId);
+          if (freshClient) {
+            try {
+              ghPullRequests = await freshClient.listPullRequests(repo.owner, repo.name, state, page, limit);
+            } catch (retryErr: any) {
+              logger.error('Failed to list GitHub pull requests after sync', { error: retryErr.message });
+              throw retryErr;
+            }
+          } else {
+            throw err;
           }
         } else {
           throw err;
@@ -870,10 +879,7 @@ repositoriesRouter.get('/:id/pull-requests', async (req: AuthenticatedRequest, r
       } else {
         throw err;
       }
-    } else {
-      throw err;
     }
-  }
 
     // Fetch matching pull requests and their latest review jobs from DB
     const dbPrs = await prisma.pullRequest.findMany({
@@ -924,23 +930,23 @@ repositoriesRouter.get('/:id/pull-requests', async (req: AuthenticatedRequest, r
         repoFullName: repo.fullName,
         latestReview: latestJob
           ? {
-              id: latestJob.id,
-              status: latestJob.status,
-              overallRisk: latestJob.result?.overallRisk || 'SAFE',
-              commitSha: latestJob.commitSha,
-              isOutdated,
-              durationSeconds: latestJob.durationSeconds,
-              totalFindings: findings.length,
-              findingCounts: {
-                CRITICAL: findings.filter((f) => f.severity === 'CRITICAL').length,
-                HIGH: findings.filter((f) => f.severity === 'HIGH').length,
-                MEDIUM: findings.filter((f) => f.severity === 'MEDIUM').length,
-                LOW: findings.filter((f) => f.severity === 'LOW').length,
-                INFO: findings.filter((f) => f.severity === 'INFO').length,
-              },
-              createdAt: latestJob.createdAt,
-              completedAt: latestJob.completedAt,
-            }
+            id: latestJob.id,
+            status: latestJob.status,
+            overallRisk: latestJob.result?.overallRisk || 'SAFE',
+            commitSha: latestJob.commitSha,
+            isOutdated,
+            durationSeconds: latestJob.durationSeconds,
+            totalFindings: findings.length,
+            findingCounts: {
+              CRITICAL: findings.filter((f) => f.severity === 'CRITICAL').length,
+              HIGH: findings.filter((f) => f.severity === 'HIGH').length,
+              MEDIUM: findings.filter((f) => f.severity === 'MEDIUM').length,
+              LOW: findings.filter((f) => f.severity === 'LOW').length,
+              INFO: findings.filter((f) => f.severity === 'INFO').length,
+            },
+            createdAt: latestJob.createdAt,
+            completedAt: latestJob.completedAt,
+          }
           : null,
       };
     });
@@ -1426,13 +1432,13 @@ repositoriesRouter.post(
     // Resolve or create conversation
     let conversation = conversationId
       ? await prisma.codebaseConversation.findFirst({
-          where: {
-            id: conversationId,
-            repositoryId: repo.id,
-            repository: { organizationId: repo.organizationId },
-          },
-          include: { messages: { orderBy: { createdAt: 'asc' }, take: 10 } },
-        })
+        where: {
+          id: conversationId,
+          repositoryId: repo.id,
+          repository: { organizationId: repo.organizationId },
+        },
+        include: { messages: { orderBy: { createdAt: 'asc' }, take: 10 } },
+      })
       : null;
 
     if (!conversation) {
@@ -1612,7 +1618,7 @@ repositoriesRouter.get(
             citations = parsed.citations || [];
             telemetry = parsed.telemetry || undefined;
           }
-        } catch {}
+        } catch { }
       }
       return {
         id: m.id,

@@ -117,26 +117,46 @@ webhooksRouter.post('/github', async (req: Request, res: Response) => {
       if (reg) {
         if (action === 'added' && Array.isArray(repositories_added)) {
           for (const r of repositories_added) {
-            await prisma.repository.upsert({
+            // TENANT ISOLATION: Only create repo if it doesn't already belong to another org
+            const existingRepo = await prisma.repository.findUnique({
               where: { githubRepoId: r.id },
-              create: {
-                organizationId: reg.organizationId,
+            });
+
+            if (existingRepo && existingRepo.organizationId !== reg.organizationId) {
+              logger.warn('Webhook skipped repo addition: repo already belongs to another tenant', {
                 githubRepoId: r.id,
                 fullName: r.full_name,
-                name: r.name,
-                owner: r.full_name.split('/')[0],
-                defaultBranch: 'main',
-                isPrivate: Boolean(r.private),
-                isActive: true,
-                autoReviewEnabled: true,
-              },
-              update: {
-                fullName: r.full_name,
-                name: r.name,
-                isActive: true,
-                autoReviewEnabled: true,
-              },
-            });
+                ownerOrgId: existingRepo.organizationId,
+                webhookOrgId: reg.organizationId,
+              });
+              continue;
+            }
+
+            if (existingRepo) {
+              await prisma.repository.update({
+                where: { id: existingRepo.id },
+                data: {
+                  fullName: r.full_name,
+                  name: r.name,
+                  isActive: true,
+                  autoReviewEnabled: true,
+                },
+              });
+            } else {
+              await prisma.repository.create({
+                data: {
+                  organizationId: reg.organizationId,
+                  githubRepoId: r.id,
+                  fullName: r.full_name,
+                  name: r.name,
+                  owner: r.full_name.split('/')[0],
+                  defaultBranch: 'main',
+                  isPrivate: Boolean(r.private),
+                  isActive: true,
+                  autoReviewEnabled: true,
+                },
+              });
+            }
           }
           logger.info('Added repositories via webhook', { count: repositories_added.length, orgId: reg.organizationId });
         } else if (action === 'removed' && Array.isArray(repositories_removed)) {
