@@ -13,6 +13,8 @@ import {
   Building2,
   Sparkles,
   Activity,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -22,7 +24,10 @@ export function Sidebar() {
   const router = useRouter();
 
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
-  const [org, setOrg] = useState<{ name: string; plan: string } | null>(null);
+  const [org, setOrg] = useState<{ id?: string; name: string; plan: string } | null>(null);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [showOrgDropdown, setShowOrgDropdown] = useState(false);
+  const [isSwitchingOrg, setIsSwitchingOrg] = useState(false);
   const [usage, setUsage] = useState<{ reviewsUsed: number; reviewsLimit: number; resetDate?: string } | null>(null);
 
   useEffect(() => {
@@ -47,9 +52,13 @@ export function Sidebar() {
         }
         if (json?.data?.activeOrganization) {
           setOrg({
+            id: json.data.activeOrganization.id,
             name: json.data.activeOrganization.name,
             plan: json.data.activeOrganization.plan,
           });
+        }
+        if (json?.data?.organizations) {
+          setOrganizations(json.data.organizations);
         }
       })
       .catch(() => {});
@@ -71,6 +80,38 @@ export function Sidebar() {
       })
       .catch(() => {});
   }, [router]);
+
+  const handleSwitchOrg = async (targetOrgId: string) => {
+    if (targetOrgId === org?.id) {
+      setShowOrgDropdown(false);
+      return;
+    }
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
+    if (!token) return;
+
+    setIsSwitchingOrg(true);
+    try {
+      const res = await fetch(`${API_URL}/auth/switch-org`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ organizationId: targetOrgId }),
+      });
+      const json = await res.json();
+      if (res.ok && json.data?.token) {
+        localStorage.setItem('reviewflow_token', json.data.token);
+        window.location.reload();
+      }
+    } catch {
+      // fallback
+    } finally {
+      setIsSwitchingOrg(false);
+      setShowOrgDropdown(false);
+    }
+  };
 
   const handleLogout = async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('reviewflow_token') : null;
@@ -130,14 +171,19 @@ export function Sidebar() {
         </div>
 
         {/* Active Organization Switcher Card */}
-        <div className="p-3.5">
-          <div className="p-3 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#0A1115] border border-[rgba(255,255,255,0.09)] flex items-center justify-center text-[#F3F7F5] shadow-sm">
+        <div className="p-3.5 relative">
+          <div
+            onClick={() => organizations.length > 1 && setShowOrgDropdown(!showOrgDropdown)}
+            className={`p-3 rounded-xl bg-[rgba(255,255,255,0.035)] border border-[rgba(255,255,255,0.09)] flex items-center justify-between transition-colors ${
+              organizations.length > 1 ? 'cursor-pointer hover:border-[rgba(52,229,165,0.30)]' : ''
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-[#0A1115] border border-[rgba(255,255,255,0.09)] flex items-center justify-center text-[#F3F7F5] shadow-sm shrink-0">
                 <Building2 className="w-3.5 h-3.5 text-[#34E5A5]" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-[#F3F7F5] truncate max-w-[130px]">
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-[#F3F7F5] truncate max-w-[120px]">
                   {org?.name || 'Workspace'}
                 </span>
                 <span className="text-[10px] text-[#34E5A5] font-mono font-semibold">
@@ -145,7 +191,46 @@ export function Sidebar() {
                 </span>
               </div>
             </div>
+            {organizations.length > 1 && (
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#9AA7A1] transition-transform shrink-0 ${
+                  showOrgDropdown ? 'rotate-180' : ''
+                }`}
+              />
+            )}
           </div>
+
+          {/* Org Switcher Dropdown */}
+          {showOrgDropdown && organizations.length > 1 && (
+            <div className="absolute top-[calc(100%-8px)] left-3.5 right-3.5 z-50 bg-[#0A1115] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-sleek-lg p-1.5 space-y-1">
+              <div className="px-2 py-1 text-[10px] font-mono font-semibold text-[#7F8C86] uppercase tracking-wider">
+                Workspaces ({organizations.length})
+              </div>
+              {organizations.map((o) => {
+                const isCurrent = o.id === org?.id;
+                return (
+                  <button
+                    key={o.id}
+                    disabled={isSwitchingOrg}
+                    onClick={() => handleSwitchOrg(o.id)}
+                    className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors text-xs ${
+                      isCurrent
+                        ? 'bg-[rgba(52,229,165,0.10)] text-[#34E5A5] font-medium'
+                        : 'text-[#B4C0BB] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#F3F7F5]'
+                    }`}
+                  >
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate font-semibold text-xs">{o.name}</span>
+                      <span className="text-[10px] font-mono text-[#7F8C86]">
+                        {o.installationsCount > 0 ? `Connected • ${o.repositoriesCount || 0} repos` : 'No GitHub link'}
+                      </span>
+                    </div>
+                    {isCurrent && <Check className="w-3.5 h-3.5 text-[#34E5A5] shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Nav Links */}

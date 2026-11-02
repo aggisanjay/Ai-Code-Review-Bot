@@ -122,7 +122,19 @@ authRouter.post('/login', async (req: Request, res: Response) => {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    include: { memberships: { include: { organization: true } } },
+    include: {
+      memberships: {
+        include: {
+          organization: {
+            include: {
+              _count: {
+                select: { installations: true, repositories: true },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!user || !verifyPassword(password, user.passwordHash)) {
@@ -130,7 +142,15 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     return;
   }
 
-  const activeOrg = user.memberships[0];
+  // Prioritize organization that holds active GitHub installations or repositories
+  const sortedMemberships = [...user.memberships].sort((a, b) => {
+    const aCount = (a.organization._count?.installations ?? 0) * 100 + (a.organization._count?.repositories ?? 0);
+    const bCount = (b.organization._count?.installations ?? 0) * 100 + (b.organization._count?.repositories ?? 0);
+    if (bCount !== aCount) return bCount - aCount;
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
+
+  const activeOrg = sortedMemberships[0];
 
   // Create durable session in database
   const sessionToken = crypto.randomBytes(32).toString('hex');
@@ -241,6 +261,45 @@ authRouter.post('/reset-password', async (req: Request, res: Response) => {
   });
 });
 
+// POST /api/v1/auth/switch-org
+authRouter.post('/switch-org', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+  const { organizationId } = req.body;
+  if (!organizationId || typeof organizationId !== 'string') {
+    res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'organizationId is required.' } });
+    return;
+  }
+
+  const membership = await prisma.organizationMember.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId,
+        userId: req.user!.id,
+      },
+    },
+    include: { organization: true },
+  });
+
+  if (!membership) {
+    res.status(403).json({ error: { code: 'FORBIDDEN', message: 'You are not a member of this organization.' } });
+    return;
+  }
+
+  const token = generateToken(req.user!.id, membership.organizationId, req.user!.sessionId);
+
+  res.json({
+    data: {
+      token,
+      organization: {
+        id: membership.organization.id,
+        name: membership.organization.name,
+        slug: membership.organization.slug,
+        plan: membership.organization.plan,
+        role: membership.role,
+      },
+    },
+  });
+});
+
 // GET /api/v1/auth/me
 authRouter.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) {
@@ -252,7 +311,15 @@ authRouter.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: 
     where: { id: req.user.id },
     include: {
       memberships: {
-        include: { organization: true },
+        include: {
+          organization: {
+            include: {
+              _count: {
+                select: { installations: true, repositories: true },
+              },
+            },
+          },
+        },
       },
     },
   });
@@ -282,6 +349,8 @@ authRouter.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: 
         slug: m.organization.slug,
         plan: m.organization.plan,
         role: m.role,
+        installationsCount: m.organization._count?.installations ?? 0,
+        repositoriesCount: m.organization._count?.repositories ?? 0,
       })),
     },
   });
