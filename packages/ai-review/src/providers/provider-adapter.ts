@@ -61,7 +61,7 @@ export class GeminiProvider implements ILlmProvider {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${this.apiKey}`;
       const generationConfig: Record<string, any> = {
         temperature: 0.1,
-        maxOutputTokens: 4096,
+        maxOutputTokens: 8192,
       };
       if (isJson) {
         generationConfig.responseMimeType = 'application/json';
@@ -166,7 +166,7 @@ export class OpenAiProvider implements ILlmProvider {
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.1,
-      max_tokens: 4096,
+      max_tokens: 8192,
     };
     if (isJson) {
       payload.response_format = { type: 'json_object' };

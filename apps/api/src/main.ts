@@ -19,6 +19,7 @@ import { reviewsRouter } from './modules/reviews/reviews.router';
 import { analyticsRouter } from './modules/analytics/analytics.router';
 import { billingRouter } from './modules/billing/billing.router';
 import { webhooksRouter } from './modules/webhooks/webhooks.router';
+import { startEmbeddedWorker, stopEmbeddedWorker } from './worker/embedded-worker';
 
 const app = express();
 
@@ -150,16 +151,19 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
 
 const server = app.listen(config.port, () => {
   logger.info(`🚀 ReviewFlow AI API Server running on port ${config.port} (${config.nodeEnv})`);
+  startEmbeddedWorker();
 });
 
 // Graceful Shutdown
 process.on('SIGTERM', () => {
   logger.info('Received SIGTERM, closing server gracefully...');
+  stopEmbeddedWorker();
   server.close(() => process.exit(0));
 });
 
 process.on('SIGINT', () => {
   logger.info('Received SIGINT, closing server gracefully...');
+  stopEmbeddedWorker();
   server.close(() => process.exit(0));
 });
 

@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "main": "src/main.ts",
   "scripts": {
-    "dev": "node init && tsx watch src/main.ts",
-    "build": "node init && tsc -b",
-    "start": "node init && tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -b",
+    "start": "tsx src/main.ts",
     "test": "node --test"
   },
   "dependencies": {
+    "@reviewflow/ai-review": "*",
     "@reviewflow/database": "*",
     "@reviewflow/github-client": "*",
     "@reviewflow/shared": "*",

@@ -1,6 +1,7 @@
 import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { logger } from './logger';
+import { triggerImmediateReview, triggerImmediateIndex } from '../worker/embedded-worker';
 
 export interface ReviewJobQueueData {
   reviewJobId: string;
@@ -66,6 +67,10 @@ export function getReviewQueue(): Queue<ReviewJobQueueData> | null {
 }
 
 export async function enqueueReviewJob(reviewJobId: string): Promise<boolean> {
+  // 1. Trigger immediate in-process embedded worker execution
+  triggerImmediateReview(reviewJobId);
+
+  // 2. Also try BullMQ if Redis is configured (for external worker architectures)
   const queue = getReviewQueue();
   if (queue) {
     try {
@@ -73,13 +78,17 @@ export async function enqueueReviewJob(reviewJobId: string): Promise<boolean> {
       logger.info(`Durable BullMQ review job enqueued: ${reviewJobId}`);
       return true;
     } catch (err: any) {
-      logger.warn(`BullMQ add failed, job will be picked up by worker polling loop: ${err.message}`);
+      logger.warn(`BullMQ add notice (job processed by embedded worker): ${err.message}`);
     }
   }
-  return false;
+  return true;
 }
 
 export async function enqueueIndexJob(indexJobId: string): Promise<boolean> {
+  // 1. Trigger immediate in-process embedded worker execution
+  triggerImmediateIndex(indexJobId);
+
+  // 2. Also try BullMQ if Redis is configured
   const queue = getReviewQueue();
   if (queue) {
     try {
@@ -87,9 +96,9 @@ export async function enqueueIndexJob(indexJobId: string): Promise<boolean> {
       logger.info(`Durable BullMQ index job enqueued: ${indexJobId}`);
       return true;
     } catch (err: any) {
-      logger.warn(`BullMQ index add failed, job will be picked up by worker polling loop: ${err.message}`);
+      logger.warn(`BullMQ index add notice (job processed by embedded worker): ${err.message}`);
     }
   }
-  return false;
+  return true;
 }
 

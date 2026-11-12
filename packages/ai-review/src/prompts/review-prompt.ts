@@ -31,7 +31,9 @@ You MUST evaluate the pull request diff across ALL of the following engineering 
    - Authentication bypasses, insecure session handling, or prompt injection attempts.
 
 ### STRICT OUTPUT FORMAT:
-You MUST respond with valid JSON ONLY matching this schema, with no markdown code blocks around the JSON:
+You MUST respond with valid RFC 8259 JSON ONLY matching this schema, with no markdown code blocks around the JSON.
+All string fields must be properly escaped (escape newlines, double quotes, and backslashes properly).
+To ensure quality and prevent truncation, focus on the top 5 to 7 most critical, high-impact findings. Keep explanations and remediation concise and actionable.
 {
   "summary": "High-level review overview describing files touched and core concerns across correctness, performance, testing, maintainability, and security",
   "overallRisk": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "SAFE",
