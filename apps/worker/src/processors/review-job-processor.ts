@@ -12,6 +12,83 @@ export interface ProcessReviewJobOptions {
   llmProvider?: ILlmProvider;
 }
 
+const DEFAULT_IGNORED_DIFF_PATTERNS = [
+  /package-lock\.json$/i,
+  /yarn\.lock$/i,
+  /pnpm-lock\.yaml$/i,
+  /composer\.lock$/i,
+  /Cargo\.lock$/i,
+  /Gemfile\.lock$/i,
+  /poetry\.lock$/i,
+  /\.min\.(js|css)$/i,
+  /\.map$/i,
+  /\.svg$/i,
+  /\.png$/i,
+  /\.jpg$/i,
+  /\.jpeg$/i,
+  /\.ico$/i,
+  /(^|\/)dist\//i,
+  /(^|\/)build\//i,
+  /(^|\/)\.next\//i,
+  /(^|\/)coverage\//i,
+];
+
+function preprocessAndFilterDiff(
+  rawDiff: string,
+  excludedPaths: string[] = [],
+  maxLines: number = 25000
+): { filteredDiff: string; originalLineCount: number; filteredLineCount: number; wasTruncated: boolean } {
+  const originalLineCount = rawDiff ? rawDiff.split('\n').length : 0;
+  if (!rawDiff || typeof rawDiff !== 'string') {
+    return { filteredDiff: rawDiff || '', originalLineCount: 0, filteredLineCount: 0, wasTruncated: false };
+  }
+
+  const fileDiffs = rawDiff.split(/^diff --git /m).filter(Boolean);
+  const keptDiffChunks: string[] = [];
+  let currentLines = 0;
+  let wasTruncated = false;
+
+  for (const fileChunk of fileDiffs) {
+    const firstLine = fileChunk.split(/\r?\n/)[0] || '';
+    const match = firstLine.match(/a\/(.+?)\s+b\/(.+)/);
+    const filePath = match ? match[2] : '';
+
+    const isExcluded =
+      (filePath && excludedPaths.some((p) => p && filePath.includes(p))) ||
+      DEFAULT_IGNORED_DIFF_PATTERNS.some((re) => re.test(filePath));
+
+    if (isExcluded) {
+      keptDiffChunks.push(
+        `diff --git a/${filePath} b/${filePath}\n# [ReviewFlow: Excluded lockfile/generated/binary from AI review: ${filePath}]\n`
+      );
+      currentLines += 2;
+      continue;
+    }
+
+    const chunkLines = fileChunk.split('\n').length;
+    if (currentLines + chunkLines > maxLines) {
+      wasTruncated = true;
+      keptDiffChunks.push(
+        `diff --git ${firstLine}\n# [ReviewFlow: Remaining diff omitted to stay within ${maxLines} lines policy limit]\n`
+      );
+      break;
+    }
+
+    keptDiffChunks.push(`diff --git ${fileChunk}`);
+    currentLines += chunkLines;
+  }
+
+  const filteredDiff = keptDiffChunks.join('');
+  const filteredLineCount = filteredDiff.split('\n').length;
+
+  return {
+    filteredDiff: filteredDiff || rawDiff,
+    originalLineCount,
+    filteredLineCount,
+    wasTruncated,
+  };
+}
+
 export async function processReviewJob(jobId: string, options?: ProcessReviewJobOptions): Promise<void> {
   const job = await prisma.reviewJob.findUnique({
     where: { id: jobId },
@@ -175,7 +252,7 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
           autoPostInlineComments: policyRecord.autoPostInlineComments,
           autoCreateCheckRun: policyRecord.autoCreateCheckRun,
           requireTestsForNewCode: policyRecord.requireTestsForNewCode,
-          maxDiffLines: policyRecord.maxDiffLines,
+          maxDiffLines: policyRecord.maxDiffLines || 25000,
           customInstructions: policyRecord.customInstructions,
           excludedPaths: JSON.parse(policyRecord.excludedPaths),
         };
@@ -186,23 +263,33 @@ export async function processReviewJob(jobId: string, options?: ProcessReviewJob
       policy = ReviewPolicySchema.parse({});
     }
 
-    // Validate diff line count against policy
-    const diffLineCount = diffText.split('\n').length;
-    if (policy.maxDiffLines && diffLineCount > policy.maxDiffLines) {
-      throw new Error(
-        `Diff exceeds policy limit (${diffLineCount} lines > ${policy.maxDiffLines} allowed lines). Review aborted.`
-      );
-    }
+    // Preprocess and filter diff: strip generated/lock files and prune to policy limit
+    const maxAllowed = policy.maxDiffLines || 25000;
+    const { filteredDiff, originalLineCount, filteredLineCount, wasTruncated } = preprocessAndFilterDiff(
+      diffText,
+      policy.excludedPaths,
+      maxAllowed
+    );
+
+    console.log(
+      `[Worker] Diff preprocessed: ${originalLineCount} raw lines -> ${filteredLineCount} lines filtered (limit: ${maxAllowed}, truncated: ${wasTruncated})`
+    );
 
     // 8. Run AI + Deterministic Review Pipeline
     const pipelineResult = await runReviewPipeline({
       repoName: repository.fullName,
       prNumber: pullRequest.number,
       prTitle: pullRequest.title,
-      diffText,
+      diffText: filteredDiff,
       policy,
       llmProvider,
     });
+
+    if (wasTruncated) {
+      pipelineResult.summary.summary =
+        `> ℹ️ **Notice**: This pull request contained ${originalLineCount.toLocaleString()} total diff lines. Generated/lock files were excluded and analysis was focused on the primary ${filteredLineCount.toLocaleString()} lines of source changes.\n\n` +
+        pipelineResult.summary.summary;
+    }
 
     // 9. Update status -> VALIDATING
     await prisma.reviewJob.update({

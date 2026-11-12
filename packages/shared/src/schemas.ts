@@ -54,7 +54,7 @@ export const ReviewPolicySchema = z.object({
   autoPostInlineComments: z.boolean().default(true),
   autoCreateCheckRun: z.boolean().default(true),
   requireTestsForNewCode: z.boolean().default(true),
-  maxDiffLines: z.number().int().default(4000),
+  maxDiffLines: z.number().int().default(25000),
   customInstructions: z.string().max(2000).optional().default(''),
   excludedPaths: z.array(z.string()).default([]),
 });

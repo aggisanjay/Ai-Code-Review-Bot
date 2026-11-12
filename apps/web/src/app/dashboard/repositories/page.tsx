@@ -77,6 +77,7 @@ function RepositoriesPageContent() {
   const [blockOnCritical, setBlockOnCritical] = useState(true);
   const [autoInline, setAutoInline] = useState(true);
   const [requireTests, setRequireTests] = useState(true);
+  const [maxDiffLines, setMaxDiffLines] = useState(25000);
   const [customInstructions, setCustomInstructions] = useState('');
 
   // Indexing states
@@ -621,6 +622,7 @@ function RepositoriesPageContent() {
     setBlockOnCritical(p.blockPrOnCritical ?? true);
     setAutoInline(p.autoPostInlineComments ?? true);
     setRequireTests(p.requireTestsForNewCode ?? true);
+    setMaxDiffLines(p.maxDiffLines || 25000);
     setCustomInstructions(p.customInstructions || '');
   };
 
@@ -644,6 +646,7 @@ function RepositoriesPageContent() {
           blockPrOnCritical: blockOnCritical,
           autoPostInlineComments: autoInline,
           requireTestsForNewCode: requireTests,
+          maxDiffLines: Number(maxDiffLines),
           customInstructions,
         }),
       });
@@ -1354,6 +1357,26 @@ function RepositoriesPageContent() {
                     <option value="MEDIUM">MEDIUM and above</option>
                     <option value="LOW">LOW and above</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-[#F3F7F5] font-semibold mb-1.5">
+                    Max Diff Line Limit (AI Review Safety Boundary)
+                  </label>
+                  <select
+                    value={maxDiffLines}
+                    onChange={(e) => setMaxDiffLines(Number(e.target.value))}
+                    className="w-full bg-[#04070A] border border-[rgba(255,255,255,0.09)] rounded-xl px-3.5 py-2 text-[#F3F7F5] text-xs focus:outline-none focus:border-[rgba(52,229,165,0.45)] font-mono font-medium"
+                  >
+                    <option value={5000}>5,000 lines</option>
+                    <option value={10000}>10,000 lines</option>
+                    <option value={25000}>25,000 lines (Standard Default)</option>
+                    <option value={50000}>50,000 lines (Large PRs)</option>
+                    <option value={100000}>100,000 lines (Enterprise / Monorepo)</option>
+                  </select>
+                  <p className="text-[10px] text-[#9AA7A1] font-mono mt-1">
+                    Lockfiles (package-lock.json, etc.) and build bundles are automatically excluded. Diffs exceeding this limit are safely focused on primary source code.
+                  </p>
                 </div>
 
                 <div className="space-y-2.5">
